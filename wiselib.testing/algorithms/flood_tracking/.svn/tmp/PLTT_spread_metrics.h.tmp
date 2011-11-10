@@ -1,0 +1,697 @@
+/***************************************************************************
+** This file is part of the generic algorithm library Wiselib.           **
+** Copyright (C) 2008,2009 by the Wisebed (www.wisebed.eu) project.      **
+**                                                                       **
+** The Wiselib is free software: you can redistribute it and/or modify   **
+** it under the terms of the GNU Lesser General Public License as        **
+** published by the Free Software Foundation, either version 3 of the    **
+** License, or (at your option) any later version.                       **
+**                                                                       **
+** The Wiselib is distributed in the hope that it will be useful,        **
+** but WITHOUT ANY WARRANTY; without even the implied warranty of        **
+** MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         **
+** GNU Lesser General Public License for more details.                   **
+**                                                                       **
+** You should have received a copy of the GNU Lesser General Public      **
+** License along with the Wiselib.                                       **
+** If not, see <http://www.gnu.org/licenses/>.                           **
+***************************************************************************/
+#ifndef __PLTT_SPREAD_METRICS_H__
+#define __PLTT_SPREAD_METRICS_H__
+namespace wiselib
+{
+	template <	typename node_id_t_P,
+				typename Integer_P>
+	class PLTT_TargetSpreadMetric_Type
+	{
+	public:
+		typedef node_id_t_P node_id_t;
+		typedef Integer_P Integer;
+		PLTT_TargetSpreadMetric_Type(){}
+		PLTT_TargetSpreadMetric_Type( node_id_t _target_id )
+		{
+			inhibition_messages_send = 0;
+			spread_messages_send = 0;
+			spread_messages_inhibited = 0;
+			inhibition_messages_inhibited = 0;
+			inhibition_messages_bytes_send = 0;
+			spread_messages_bytes_send = 0;
+			spread_messages_bytes_inhibited = 0;
+			inhibition_messages_bytes_inhibited = 0;
+			target_id = _target_id;
+		}
+		~PLTT_TargetSpreadMetric_Type(){}
+		void inc_inhibition_messages_send( void ) { ++inhibition_messages_send; }
+		void inc_inhibition_messages_bytes_send( Integer _bytes_num ) { inhibition_messages_bytes_send = inhibition_messages_bytes_send + _bytes_num; }
+		void inc_spread_messages_send( void ) { ++spread_messages_send; }
+		void inc_spread_messages_bytes_send( Integer _bytes_num ) { spread_messages_bytes_send = spread_messages_bytes_send + _bytes_num; }
+		void inc_spread_messages_inhibited( void ) { ++spread_messages_inhibited; }
+		void inc_spread_messages_bytes_inhibited( Integer _bytes_num ) { spread_messages_bytes_inhibited = spread_messages_bytes_inhibited + _bytes_num; }
+		void inc_inhibition_messages_inhibited( void ) { ++inhibition_messages_inhibited; }
+		void inc_inhibition_messages_bytes_inhibited( Integer _bytes_num ) { inhibition_messages_bytes_inhibited = inhibition_messages_bytes_inhibited + _bytes_num; }
+<<<<<<< .mine
+		Integer get_messages_send( void ) { return inhibition_messages_send + spread_messages_send; }
+=======
+		void inc_inhibition_messages_received( void ) { ++inhibition_messages_received; }
+		void inc_inhibition_messages_bytes_received( Integer _bytes_num ) { inhibition_messages_bytes_received = inhibition_messages_bytes_received + _bytes_num; }
+		void inc_spread_messages_received( void ) { ++spread_messages_received; }
+		void inc_spread_messages_bytes_received( Integer _bytes_num ) { spread_messages_bytes_received = spread_messages_bytes_received + _bytes_num; }
+		Integer get_messages_send( void ) { return inhibition_messages_send + spread_messages_send; }
+>>>>>>> .r3810
+		Integer get_messages_bytes_send( void ) { return inhibition_messages_bytes_send + spread_messages_bytes_send; }
+		Integer get_messages_inhibited( void ) { return inhibition_messages_inhibited + spread_messages_inhibited; }
+		Integer get_messages_bytes_inhibited( void ) { return inhibition_messages_bytes_inhibited + spread_messages_bytes_inhibited; }
+		Integer get_messages_received( void ) { return inhibition_messages_received + spread_messages_received; }
+		Integer get_messages_bytes_received( void ) { return inhibition_messages_bytes_received + spread_messages_bytes_received; }
+		Integer get_spread_messages_send( void ) { return spread_messages_send; }
+		Integer get_spread_messages_bytes_send( void ) { return spread_messages_bytes_send; }
+		Integer get_inhibition_messages_send( void ) { return inhibition_messages_send; }
+		Integer get_inhibition_messages_bytes_send( void ) { return inhibition_messages_bytes_send; }
+		Integer get_spread_messages_inhibited( void ) { return spread_messages_inhibited; }
+		Integer get_spread_messages_bytes_inhibited( void ) { return spread_messages_bytes_inhibited; }
+		Integer get_inhibition_messages_inhibited( void ) { return inhibition_messages_inhibited; }
+		Integer get_inhibition_messages_bytes_inhibited( void ) { return inhibition_messages_bytes_inhibited; }
+		Integer get_inhibition_messages_received( void ) { return inhibition_messages_received; }
+		Integer get_spread_messages_received( void ) { return spread_messages_received; }
+		node_id_t get_target_id( void )	{ return target_id; }
+<<<<<<< .mine
+		void reset( void )
+		{
+			inhibition_messages_send = 0;
+			spread_messages_send = 0;
+			spread_messages_inhibited = 0;
+			inhibition_messages_inhibited = 0;
+			inhibition_messages_bytes_send = 0;
+			spread_messages_bytes_send = 0;
+			spread_messages_bytes_inhibited = 0;
+			inhibition_messages_bytes_inhibited = 0;
+		}
+		//FloatingPoint greedy_inhibition_energy_saves_ratio()
+		//{
+		//	return 	( inhibition_messages_inhibited + spread_messages_inhibited ) * 100 /
+		//			( inhibition_messages_inhibited + spread_messages_inhibited + inhibition_messages_send + spread_messages_send );
+		//}
+		//FloatingPoint greedy_inhibition_efficiency()
+		//{
+		//	return	inhibition_messages_inhibited * 100 / spread_messages_inhibited;
+		//}
+=======
+		void reset( void )
+		{
+			inhibition_messages_send = 0;
+			inhibition_messages_bytes_send = 0;
+			spread_messages_send = 0;
+			spread_messages_bytes_send = 0;
+			inhibition_messages_inhibited = 0;
+			inhibition_messages_bytes_inhibited = 0;
+			spread_messages_inhibited = 0;
+			spread_messages_bytes_inhibited = 0;
+			inhibition_messages_received = 0;
+			inhibition_messages_bytes_received = 0;
+			spread_messages_received = 0;
+			spread_messages_bytes_received = 0;
+		}
+>>>>>>> .r3810
+	private:
+		node_id_t target_id;
+		Integer inhibition_messages_send;
+		Integer inhibition_messages_bytes_send;
+		Integer spread_messages_send;
+		Integer spread_messages_bytes_send;
+		Integer spread_messages_inhibited;
+		Integer spread_messages_bytes_inhibited;
+		Integer inhibition_messages_inhibited;
+		Integer inhibition_messages_bytes_inhibited;
+		Integer inhibition_messages_received;
+		Integer inhibition_messages_bytes_received;
+		Integer spread_messages_received;
+		Integer spread_messages_bytes_received;
+	};
+
+	template <	typename PLTT_TargetSpreadMetric_P,
+				typename PLTT_SpreadMetricList_P>
+	class PLTT_SpreadMetrics_Type
+	{
+	public:
+		typedef PLTT_TargetSpreadMetric_P PLTT_TargetSpreadMetric;
+		typedef typename PLTT_TargetSpreadMetric::Integer Integer;
+		typedef typename PLTT_TargetSpreadMetric::node_id_t node_id_t;
+		typedef PLTT_SpreadMetricList_P PLTT_SpreadMetricList;
+		typedef typename PLTT_SpreadMetricList::iterator PLTT_SpreadMetricListIterator;
+		PLTT_SpreadMetrics_Type()
+		{}
+		~PLTT_SpreadMetrics_Type()
+		{}
+		//---------------------------------------------------------------------------------------
+		PLTT_TargetSpreadMetric* find_metrics_of_target( node_id_t _target_id )
+		{
+			for (PLTT_SpreadMetricListIterator i = target_spread_metric_list.begin(); i != target_spread_metric_list.end(); ++i )
+			{
+				if ( i->get_target_id() == _target_id )
+				{
+					return &(*i);
+				}
+			}
+			return NULL;
+		}
+		//---------------------------------------------------------------------------------------
+		Integer get_messages_send_of_target( node_id_t _target_id )
+		{
+			PLTT_TargetSpreadMetric* p = find_metrics_of_target( _target_id );
+			if ( p != NULL )
+			{
+				return p->get_messages_send();
+			}
+		}
+		//---------------------------------------------------------------------------------------
+		Integer get_messages_bytes_send_of_target( node_id_t _target_id )
+		{
+			PLTT_TargetSpreadMetric* p = find_metrics_of_target( _target_id );
+			if ( p != NULL )
+			{
+				return p->get_messages_bytes_send();
+			}
+		}
+		//---------------------------------------------------------------------------------------
+		Integer get_messages_inhibited_of_target( node_id_t _target_id )
+		{
+			PLTT_TargetSpreadMetric* p = find_metrics_of_target( _target_id );
+			if ( p != NULL )
+			{
+				return p->get_messages_inhibited();
+			}
+		}
+		//---------------------------------------------------------------------------------------
+		Integer get_messages_bytes_inhibited_of_target( node_id_t _target_id )
+		{
+			PLTT_TargetSpreadMetric* p = find_metrics_of_target( _target_id );
+			if ( p != NULL )
+			{
+				return p->get_messages_bytes_inhibited();
+			}
+		}
+		//---------------------------------------------------------------------------------------
+		Integer get_messages_received_of_target( node_id_t _target_id )
+		{
+			PLTT_TargetSpreadMetric* p = find_metrics_of_target( _target_id );
+			if ( p != NULL )
+			{
+				return p->get_messages_received();
+			}
+		}
+		//---------------------------------------------------------------------------------------
+		Integer get_messages_received_bytes_of_target( node_id_t _target_id )
+		{
+			PLTT_TargetSpreadMetric* p = find_metrics_of_target( _target_id );
+			if ( p != NULL )
+			{
+				return p->get_messages_bytes_received();
+			}
+		}
+		//---------------------------------------------------------------------------------------
+		Integer get_spread_messages_send_of_target( node_id_t _target_id )
+		{
+			PLTT_TargetSpreadMetric* p = find_metrics_of_target( _target_id );
+			if ( p != NULL )
+			{
+				return p->get_spread_messages_send();
+			}
+		}
+		//---------------------------------------------------------------------------------------
+		Integer get_spread_messages_bytes_send_of_target( node_id_t _target_id )
+		{
+			PLTT_TargetSpreadMetric* p = find_metrics_of_target( _target_id );
+			if ( p != NULL )
+			{
+				return p->get_spread_messages_bytes_send();
+			}
+		}
+		//---------------------------------------------------------------------------------------
+		Integer get_inhibition_messages_send_of_target( node_id_t _target_id )
+		{
+			PLTT_TargetSpreadMetric* p = find_metrics_of_target( _target_id );
+			if ( p != NULL )
+			{
+				return p->get_inhibition_messages_send();
+			}
+		}
+		//---------------------------------------------------------------------------------------
+		Integer get_inhibition_messages_bytes_send_of_target( node_id_t _target_id )
+		{
+			PLTT_TargetSpreadMetric* p = find_metrics_of_target( _target_id );
+			if ( p != NULL )
+			{
+				return p->get_inhibition_messages_bytes_send();
+			}
+		}
+		//---------------------------------------------------------------------------------------
+		Integer get_spread_messages_inhibited_of_target( node_id_t _target_id )
+		{
+			PLTT_TargetSpreadMetric* p = find_metrics_of_target( _target_id );
+			if ( p != NULL )
+			{
+				return p->get_spread_messages_inhibited();
+			}
+		}
+		//---------------------------------------------------------------------------------------
+		Integer get_spread_messages_bytes_inhibited_of_target( node_id_t _target_id )
+		{
+			PLTT_TargetSpreadMetric* p = find_metrics_of_target( _target_id );
+			if ( p != NULL )
+			{
+				return p->get_spread_messages_bytes_inhibited();
+			}
+		}
+		//---------------------------------------------------------------------------------------
+		Integer get_inhibition_messages_inhibited_of_target( node_id_t _target_id )
+		{
+			PLTT_TargetSpreadMetric* p = find_metrics_of_target( _target_id );
+			if ( p != NULL )
+			{
+				return p->get_inhibition_messages_inhibited();
+			}
+		}
+		//---------------------------------------------------------------------------------------
+		Integer get_inhibition_messages_bytes_inhibited_of_target( node_id_t _target_id )
+		{
+			PLTT_TargetSpreadMetric* p = find_metrics_of_target( _target_id );
+			if ( p != NULL )
+			{
+				return p->get_inhibition_messages_bytes_inhibited();
+			}
+		}
+		//---------------------------------------------------------------------------------------
+		Integer get_spread_messages_received_of_target( node_id_t _target_id )
+		{
+			PLTT_TargetSpreadMetric* p = find_metrics_of_target( _target_id );
+			if ( p != NULL )
+			{
+				return p->get_spread_messages_received();
+			}
+		}
+		//---------------------------------------------------------------------------------------
+		Integer get_spread_messages_bytes_received_of_target( node_id_t _target_id )
+		{
+			PLTT_TargetSpreadMetric* p = find_metrics_of_target( _target_id );
+			if ( p != NULL )
+			{
+				return p->get_spread_messages_bytes_received();
+			}
+		}
+		//---------------------------------------------------------------------------------------
+		Integer get_inhibition_messages_received_of_target( node_id_t _target_id )
+		{
+			PLTT_TargetSpreadMetric* p = find_metrics_of_target( _target_id );
+			if ( p != NULL )
+			{
+				return p->get_inhibition_messages_received();
+			}
+		}
+		//---------------------------------------------------------------------------------------
+		Integer get_inhibition_messages_bytes_received_of_target( node_id_t _target_id )
+		{
+			PLTT_TargetSpreadMetric* p = find_metrics_of_target( _target_id );
+			if ( p != NULL )
+			{
+				return p->get_inhibition_messages_bytes_received();
+			}
+		}
+		//---------------------------------------------------------------------------------------
+		void inc_inhibition_messages_send_of_target( node_id_t _target_id )
+		{
+			PLTT_TargetSpreadMetric* p = find_metrics_of_target( _target_id );
+			if ( p != NULL )
+			{
+				p->inc_inhibition_messages_send();
+			}
+			else
+			{
+				target_spread_metric_list.push_back( PLTT_TargetSpreadMetric( _target_id ) );
+				PLTT_SpreadMetricListIterator i = target_spread_metric_list.end() - 1;
+				i->inc_inhibition_messages_send();
+			}
+		}
+		//---------------------------------------------------------------------------------------
+		void inc_inhibition_messages_bytes_send_of_target( node_id_t _target_id, Integer _bytes_num )
+		{
+			PLTT_TargetSpreadMetric* p = find_metrics_of_target( _target_id );
+			if ( p != NULL )
+			{
+				p->inc_inhibition_messages_bytes_send();
+			}
+			else
+			{
+				target_spread_metric_list.push_back( PLTT_TargetSpreadMetric( _target_id ) );
+				PLTT_SpreadMetricListIterator i = target_spread_metric_list.end() - 1;
+				i->inc_inhibition_messages_bytes_send( _bytes_num );
+			}
+		}
+		//---------------------------------------------------------------------------------------
+		void inc_spread_messages_send_of_target( node_id_t _target_id )
+		{
+			PLTT_TargetSpreadMetric* p = find_metrics_of_target( _target_id );
+			if ( p != NULL )
+			{
+				p->inc_spread_messages_send();
+			}
+			else
+			{
+				target_spread_metric_list.push_back( PLTT_TargetSpreadMetric( _target_id ) );
+				PLTT_SpreadMetricListIterator i = target_spread_metric_list.end() - 1;
+				i->inc_spread_messages_send();
+			}
+		}
+		//---------------------------------------------------------------------------------------
+		void inc_spread_messages_bytes_send_of_target( node_id_t _target_id, Integer _bytes_num )
+		{
+			PLTT_TargetSpreadMetric* p = find_metrics_of_target( _target_id );
+			if ( p != NULL )
+			{
+				p->inc_spread_messages_bytes_send();
+			}
+			else
+			{
+				target_spread_metric_list.push_back( PLTT_TargetSpreadMetric( _target_id ) );
+				PLTT_SpreadMetricListIterator i = target_spread_metric_list.end() - 1;
+				i->inc_spread_messages_bytes_send( _bytes_num );
+			}
+		}
+		//---------------------------------------------------------------------------------------
+		void inc_spread_messages_inhibited_of_target( node_id_t _target_id )
+		{
+			PLTT_TargetSpreadMetric* p = find_metrics_of_target( _target_id );
+			if ( p != NULL )
+			{
+				p->inc_spread_messages_inhibited();
+			}
+			else
+			{
+				target_spread_metric_list.push_back( PLTT_TargetSpreadMetric( _target_id ) );
+				PLTT_SpreadMetricListIterator i = target_spread_metric_list.end() - 1;
+				i->inc_spread_messages_inhibited();
+			}
+		}
+		//---------------------------------------------------------------------------------------
+		void inc_spread_messages_bytes_inhibited_of_target( node_id_t _target_id, Integer _bytes_num )
+		{
+			PLTT_TargetSpreadMetric* p = find_metrics_of_target( _target_id );
+			if ( p != NULL )
+			{
+				p->inc_spread_messages_bytes_inhibited();
+			}
+			else
+			{
+				target_spread_metric_list.push_back( PLTT_TargetSpreadMetric( _target_id ) );
+				PLTT_SpreadMetricListIterator i = target_spread_metric_list.end() - 1;
+				i->inc_spread_messages_bytes_inhibited( _bytes_num );
+			}
+		}
+		//---------------------------------------------------------------------------------------
+		void inc_inhibition_messages_inhibited_of_target( node_id_t _target_id )
+		{
+			PLTT_TargetSpreadMetric* p = find_metrics_of_target( _target_id );
+			if ( p != NULL )
+			{
+				p->inc_inhibition_messages_inhibited();
+			}
+			else
+			{
+				target_spread_metric_list.push_back( PLTT_TargetSpreadMetric( _target_id ) );
+				PLTT_SpreadMetricListIterator i = target_spread_metric_list.end() - 1;
+				i->inc_inhibition_messages_inhibited();
+			}
+		}
+		//---------------------------------------------------------------------------------------
+		void inc_inhibition_messages_bytes_inhibited_of_target( node_id_t _target_id, Integer _bytes_num )
+		{
+			PLTT_TargetSpreadMetric* p = find_metrics_of_target( _target_id );
+			if ( p != NULL )
+			{
+				p->inc_inhibition_messages_bytes_inhibited();
+			}
+			else
+			{
+				target_spread_metric_list.push_back( PLTT_TargetSpreadMetric( _target_id ) );
+				PLTT_SpreadMetricListIterator i = target_spread_metric_list.end() - 1;
+				i->inc_inhibition_messages_bytes_inhibited( _bytes_num );
+			}
+		}
+		//---------------------------------------------------------------------------------------
+		void inc_inhibition_messages_received_of_target( node_id_t _target_id )
+		{
+			PLTT_TargetSpreadMetric* p = find_metrics_of_target( _target_id );
+			if ( p != NULL )
+			{
+				p->inc_inhibition_messages_received();
+			}
+			else
+			{
+				target_spread_metric_list.push_back( PLTT_TargetSpreadMetric( _target_id ) );
+				PLTT_SpreadMetricListIterator i = target_spread_metric_list.end() - 1;
+				i->inc_inhibition_messages_received();
+			}
+		}
+		//---------------------------------------------------------------------------------------
+		void inc_inhibition_messages_bytes_received_of_target( node_id_t _target_id, Integer _bytes_num )
+		{
+			PLTT_TargetSpreadMetric* p = find_metrics_of_target( _target_id );
+			if ( p != NULL )
+			{
+				p->inc_inhibition_messages_bytes_received();
+			}
+			else
+			{
+				target_spread_metric_list.push_back( PLTT_TargetSpreadMetric( _target_id ) );
+				PLTT_SpreadMetricListIterator i = target_spread_metric_list.end() - 1;
+				i->inc_inhibition_messages_bytes_received( _bytes_num );
+			}
+		}
+		//---------------------------------------------------------------------------------------
+		void inc_spread_messages_received_of_target( node_id_t _target_id )
+		{
+			PLTT_TargetSpreadMetric* p = find_metrics_of_target( _target_id );
+			if ( p != NULL )
+			{
+				p->inc_spread_messages_received();
+			}
+			else
+			{
+				target_spread_metric_list.push_back( PLTT_TargetSpreadMetric( _target_id ) );
+				PLTT_SpreadMetricListIterator i = target_spread_metric_list.end() - 1;
+				i->inc_spread_messages_received();
+			}
+		}
+		//---------------------------------------------------------------------------------------
+		void inc_spread_messages_bytes_received_of_target( node_id_t _target_id, Integer _bytes_num )
+		{
+			PLTT_TargetSpreadMetric* p = find_metrics_of_target( _target_id );
+			if ( p != NULL )
+			{
+				p->inc_spread_messages_bytes_received();
+			}
+			else
+			{
+				target_spread_metric_list.push_back( PLTT_TargetSpreadMetric( _target_id ) );
+				PLTT_SpreadMetricListIterator i = target_spread_metric_list.end() - 1;
+				i->inc_spread_messages_bytes_received( _bytes_num );
+			}
+		}
+		//---------------------------------------------------------------------------------------
+		Integer get_messages_send( void )
+		{
+			Integer messages_send = 0;
+			for (PLTT_SpreadMetricListIterator i = target_spread_metric_list.begin(); i != target_spread_metric_list.end(); ++i )
+			{
+				messages_send = i->get_messages_send() + messages_send;
+			}
+			return messages_send;
+		}
+		//---------------------------------------------------------------------------------------
+		Integer get_messages_bytes_send( void )
+		{
+			Integer messages_bytes_send = 0;
+			for (PLTT_SpreadMetricListIterator i = target_spread_metric_list.begin(); i != target_spread_metric_list.end(); ++i )
+			{
+				messages_bytes_send = i->get_messages_bytes_send() + messages_bytes_send;
+			}
+			return messages_bytes_send;
+		}
+		//---------------------------------------------------------------------------------------
+		Integer get_messages_inhibited( void )
+		{
+			Integer messages_inhibited = 0;
+			for (PLTT_SpreadMetricListIterator i = target_spread_metric_list.begin(); i != target_spread_metric_list.end(); ++i )
+			{
+				messages_inhibited = i->get_messages_inhibited() + messages_inhibited;
+			}
+			return messages_inhibited;
+		}
+		//---------------------------------------------------------------------------------------
+		Integer get_messages_bytes_inhibited( void )
+		{
+			Integer messages_bytes_inhibited = 0;
+			for (PLTT_SpreadMetricListIterator i = target_spread_metric_list.begin(); i != target_spread_metric_list.end(); ++i )
+			{
+				messages_bytes_inhibited = i->get_messages_bytes_inhibited() + messages_bytes_inhibited;
+			}
+			return messages_bytes_inhibited;
+		}
+		//---------------------------------------------------------------------------------------
+		Integer get_spread_messages_send( void )
+		{
+			Integer spread_messages_send = 0;
+			for (PLTT_SpreadMetricListIterator i = target_spread_metric_list.begin(); i != target_spread_metric_list.end(); ++i )
+			{
+				spread_messages_send = i->get_spread_messages_send() + spread_messages_send;
+			}
+			return spread_messages_send;
+		}
+		//---------------------------------------------------------------------------------------
+		Integer get_spread_messages_bytes_send( void )
+		{
+			Integer spread_messages_bytes_send = 0;
+			for (PLTT_SpreadMetricListIterator i = target_spread_metric_list.begin(); i != target_spread_metric_list.end(); ++i )
+			{
+				spread_messages_bytes_send = i->get_spread_messages_bytes_send() + spread_messages_bytes_send;
+			}
+			return spread_messages_bytes_send;
+		}
+		//---------------------------------------------------------------------------------------
+		Integer get_inhibition_messages_send( void )
+		{
+			Integer inhibition_messages_send = 0;
+			for (PLTT_SpreadMetricListIterator i = target_spread_metric_list.begin(); i != target_spread_metric_list.end(); ++i )
+			{
+				inhibition_messages_send = i->get_inhibition_messages_send() + inhibition_messages_send;
+			}
+			return inhibition_messages_send;
+		}
+		//---------------------------------------------------------------------------------------
+		Integer get_inhibition_messages_bytes_send( void )
+		{
+			Integer inhibition_messages_bytes_send = 0;
+			for (PLTT_SpreadMetricListIterator i = target_spread_metric_list.begin(); i != target_spread_metric_list.end(); ++i )
+			{
+				inhibition_messages_bytes_send = i->get_inhibition_messages_bytes_send() + inhibition_messages_bytes_send;
+			}
+			return inhibition_messages_bytes_send;
+		}
+		//---------------------------------------------------------------------------------------
+		Integer get_spread_messages_inhibited( void )
+		{
+			Integer spread_messages_inhibited = 0;
+			for (PLTT_SpreadMetricListIterator i = target_spread_metric_list.begin(); i != target_spread_metric_list.end(); ++i )
+			{
+				spread_messages_inhibited = i->get_spread_messages_inhibited() + spread_messages_inhibited;
+			}
+			return spread_messages_inhibited;
+		}
+		//---------------------------------------------------------------------------------------
+		Integer get_spread_messages_bytes_inhibited( void )
+		{
+			Integer spread_messages_bytes_inhibited = 0;
+			for (PLTT_SpreadMetricListIterator i = target_spread_metric_list.begin(); i != target_spread_metric_list.end(); ++i )
+			{
+				spread_messages_bytes_inhibited = i->get_spread_messages_bytes_inhibited() + spread_messages_bytes_inhibited;
+			}
+			return spread_messages_bytes_inhibited;
+		}
+		//---------------------------------------------------------------------------------------
+		Integer get_inhibition_messages_inhibited( void )
+		{
+			Integer inhibition_messages_inhibited = 0;
+			for (PLTT_SpreadMetricListIterator i = target_spread_metric_list.begin(); i != target_spread_metric_list.end(); ++i )
+			{
+				inhibition_messages_inhibited = i->get_inhibition_messages_inhibited() + inhibition_messages_inhibited;
+			}
+			return inhibition_messages_inhibited;
+		}
+		//---------------------------------------------------------------------------------------
+		Integer get_inhibition_messages_bytes_inhibited( void )
+		{
+			Integer inhibition_messages_bytes_inhibited = 0;
+			for (PLTT_SpreadMetricListIterator i = target_spread_metric_list.begin(); i != target_spread_metric_list.end(); ++i )
+			{
+				inhibition_messages_bytes_inhibited = i->get_inhibition_messages_bytes_inhibited() + inhibition_messages_bytes_inhibited;
+			}
+			return inhibition_messages_bytes_inhibited;
+		}
+<<<<<<< .mine
+		//FloatingPoint greedy_inhibition_energy_saves_ratio()
+		//{
+		//	Integer mi = get_messages_inhibited();
+		//	Integer ma = mi + get_messages_send();
+		//	if ( ma != 0 ) { return mi * 100 / ma; }
+		//	else { return 0 }
+		//}
+		//FloatingPoint greedy_inhibition_efficiency()
+		//{
+		//	Integer imi = get_inhibition_messages_inhibited();
+		//	Integer smi = get_spread_messages_inhibited();
+		//	if ( smi != 0 ) { return imi * 100 / smi; }
+		//	else { return 0 }
+		//}
+		void reset( void )
+		{
+			for (PLTT_TargetSpreadMetricListIterator i = target_spread_metric_list.begin(); i != target_spread_metric_list.end(); ++i )
+			{
+				i->reset();
+			}
+		}
+		PLTT_TargetSpreadMetricList target_spread_metric_list;
+=======
+		//---------------------------------------------------------------------------------------
+		Integer get_spread_messages_received( void )
+		{
+			Integer spread_messages_received = 0;
+			for (PLTT_SpreadMetricListIterator i = target_spread_metric_list.begin(); i != target_spread_metric_list.end(); ++i )
+			{
+				spread_messages_received = i->get_spread_messages_received() + spread_messages_received;
+			}
+			return spread_messages_received;
+		}
+		//---------------------------------------------------------------------------------------
+		Integer get_spread_messages_bytes_received( void )
+		{
+			Integer spread_messages_bytes_received = 0;
+			for (PLTT_SpreadMetricListIterator i = target_spread_metric_list.begin(); i != target_spread_metric_list.end(); ++i )
+			{
+				spread_messages_bytes_received = i->get_spread_messages_bytes_received() + spread_messages_bytes_received;
+			}
+			return spread_messages_bytes_received;
+		}
+		//---------------------------------------------------------------------------------------
+		Integer get_inhibition_messages_received( void )
+		{
+			Integer inhibition_messages_received = 0;
+			for (PLTT_SpreadMetricListIterator i = target_spread_metric_list.begin(); i != target_spread_metric_list.end(); ++i )
+			{
+				inhibition_messages_received = i->get_inhibition_messages_received() + inhibition_messages_received;
+			}
+			return inhibition_messages_received;
+		}
+		//---------------------------------------------------------------------------------------
+		Integer get_inhibition_messages_bytes_received( void )
+		{
+			Integer inhibition_messages_bytes_received = 0;
+			for (PLTT_SpreadMetricListIterator i = target_spread_metric_list.begin(); i != target_spread_metric_list.end(); ++i )
+			{
+				inhibition_messages_bytes_received = i->get_inhibition_messages_bytes_received() + inhibition_messages_bytes_received;
+			}
+			return inhibition_messages_bytes_received;
+		}
+		//---------------------------------------------------------------------------------------
+		void reset( void )
+		{
+			for (PLTT_SpreadMetricListIterator i = target_spread_metric_list.begin(); i != target_spread_metric_list.end(); ++i )
+			{
+				i->reset();
+			}
+		}
+		//---------------------------------------------------------------------------------------
+	private:
+		PLTT_SpreadMetricList target_spread_metric_list;
+>>>>>>> .r3810
+	};
+}
+#endif
