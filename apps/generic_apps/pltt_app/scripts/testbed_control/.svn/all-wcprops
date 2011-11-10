@@ -1,0 +1,17 @@
+K 25
+svn:wc:ra_dav:version-url
+V 78
+/wisebed/!svn/ver/4359/wiselib/trunk/applications/pltt/scripts/testbed_control
+END
+reset_testbed.sh
+K 25
+svn:wc:ra_dav:version-url
+V 95
+/wisebed/!svn/ver/4359/wiselib/trunk/applications/pltt/scripts/testbed_control/reset_testbed.sh
+END
+reboot_testbed.sh
+K 25
+svn:wc:ra_dav:version-url
+V 96
+/wisebed/!svn/ver/4333/wiselib/trunk/applications/pltt/scripts/testbed_control/reboot_testbed.sh
+END

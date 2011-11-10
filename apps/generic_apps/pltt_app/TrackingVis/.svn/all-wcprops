@@ -1,0 +1,53 @@
+K 25
+svn:wc:ra_dav:version-url
+V 66
+/wisebed/!svn/ver/5374/wiselib/trunk/applications/pltt/TrackingVis
+END
+.classpath
+K 25
+svn:wc:ra_dav:version-url
+V 77
+/wisebed/!svn/ver/5110/wiselib/trunk/applications/pltt/TrackingVis/.classpath
+END
+fragment.xml
+K 25
+svn:wc:ra_dav:version-url
+V 79
+/wisebed/!svn/ver/5110/wiselib/trunk/applications/pltt/TrackingVis/fragment.xml
+END
+.project
+K 25
+svn:wc:ra_dav:version-url
+V 75
+/wisebed/!svn/ver/5110/wiselib/trunk/applications/pltt/TrackingVis/.project
+END
+unige_testbed.png
+K 25
+svn:wc:ra_dav:version-url
+V 84
+/wisebed/!svn/ver/5110/wiselib/trunk/applications/pltt/TrackingVis/unige_testbed.png
+END
+socket_way.txt
+K 25
+svn:wc:ra_dav:version-url
+V 81
+/wisebed/!svn/ver/5318/wiselib/trunk/applications/pltt/TrackingVis/socket_way.txt
+END
+uzl_testbed.png
+K 25
+svn:wc:ra_dav:version-url
+V 82
+/wisebed/!svn/ver/5318/wiselib/trunk/applications/pltt/TrackingVis/uzl_testbed.png
+END
+build.properties
+K 25
+svn:wc:ra_dav:version-url
+V 83
+/wisebed/!svn/ver/5110/wiselib/trunk/applications/pltt/TrackingVis/build.properties
+END
+TrackingVis_1.0.0.jar
+K 25
+svn:wc:ra_dav:version-url
+V 88
+/wisebed/!svn/ver/5374/wiselib/trunk/applications/pltt/TrackingVis/TrackingVis_1.0.0.jar
+END

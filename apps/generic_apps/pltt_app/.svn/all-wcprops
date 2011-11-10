@@ -1,0 +1,77 @@
+K 25
+svn:wc:ra_dav:version-url
+V 54
+/wisebed/!svn/ver/5425/wiselib/trunk/applications/pltt
+END
+PLTT_UZL_topology.h
+K 25
+svn:wc:ra_dav:version-url
+V 74
+/wisebed/!svn/ver/5323/wiselib/trunk/applications/pltt/PLTT_UZL_topology.h
+END
+Topology.ods
+K 25
+svn:wc:ra_dav:version-url
+V 67
+/wisebed/!svn/ver/5159/wiselib/trunk/applications/pltt/Topology.ods
+END
+PLTT_privacy_tracker_target_app.cpp
+K 25
+svn:wc:ra_dav:version-url
+V 90
+/wisebed/!svn/ver/5337/wiselib/trunk/applications/pltt/PLTT_privacy_tracker_target_app.cpp
+END
+blank_Makefile
+K 25
+svn:wc:ra_dav:version-url
+V 69
+/wisebed/!svn/ver/3385/wiselib/trunk/applications/pltt/blank_Makefile
+END
+PLTT_CTI_topology.h
+K 25
+svn:wc:ra_dav:version-url
+V 74
+/wisebed/!svn/ver/4324/wiselib/trunk/applications/pltt/PLTT_CTI_topology.h
+END
+blank_app.cpp
+K 25
+svn:wc:ra_dav:version-url
+V 68
+/wisebed/!svn/ver/3385/wiselib/trunk/applications/pltt/blank_app.cpp
+END
+PLTT_passive_nb_Makefile
+K 25
+svn:wc:ra_dav:version-url
+V 79
+/wisebed/!svn/ver/3358/wiselib/trunk/applications/pltt/PLTT_passive_nb_Makefile
+END
+PLTT_DEMO_topology.h
+K 25
+svn:wc:ra_dav:version-url
+V 75
+/wisebed/!svn/ver/5123/wiselib/trunk/applications/pltt/PLTT_DEMO_topology.h
+END
+PLTT_UNIGE_topology.h
+K 25
+svn:wc:ra_dav:version-url
+V 76
+/wisebed/!svn/ver/5106/wiselib/trunk/applications/pltt/PLTT_UNIGE_topology.h
+END
+PLTT_passive_nb_app.cpp
+K 25
+svn:wc:ra_dav:version-url
+V 78
+/wisebed/!svn/ver/5367/wiselib/trunk/applications/pltt/PLTT_passive_nb_app.cpp
+END
+PLTT_app_config.h
+K 25
+svn:wc:ra_dav:version-url
+V 72
+/wisebed/!svn/ver/5337/wiselib/trunk/applications/pltt/PLTT_app_config.h
+END
+PLTT_privacy_tracker_target_Makefile
+K 25
+svn:wc:ra_dav:version-url
+V 91
+/wisebed/!svn/ver/3807/wiselib/trunk/applications/pltt/PLTT_privacy_tracker_target_Makefile
+END

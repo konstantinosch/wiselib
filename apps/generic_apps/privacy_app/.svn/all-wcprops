@@ -1,0 +1,29 @@
+K 25
+svn:wc:ra_dav:version-url
+V 57
+/wisebed/!svn/ver/5417/wiselib/trunk/applications/privacy
+END
+sniffer_Makefile
+K 25
+svn:wc:ra_dav:version-url
+V 74
+/wisebed/!svn/ver/5366/wiselib/trunk/applications/privacy/sniffer_Makefile
+END
+privacy_Makefile
+K 25
+svn:wc:ra_dav:version-url
+V 74
+/wisebed/!svn/ver/5282/wiselib/trunk/applications/privacy/privacy_Makefile
+END
+sniffer_app.cpp
+K 25
+svn:wc:ra_dav:version-url
+V 73
+/wisebed/!svn/ver/5366/wiselib/trunk/applications/privacy/sniffer_app.cpp
+END
+privacy_app.cpp
+K 25
+svn:wc:ra_dav:version-url
+V 73
+/wisebed/!svn/ver/5417/wiselib/trunk/applications/privacy/privacy_app.cpp
+END

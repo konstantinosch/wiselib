@@ -1,0 +1,53 @@
+K 25
+svn:wc:ra_dav:version-url
+V 62
+/wisebed/!svn/ver/4692/wiselib/trunk/applications/pltt/scripts
+END
+run_pltt_cti.sh
+K 25
+svn:wc:ra_dav:version-url
+V 78
+/wisebed/!svn/ver/4692/wiselib/trunk/applications/pltt/scripts/run_pltt_cti.sh
+END
+blank_cti.bsh
+K 25
+svn:wc:ra_dav:version-url
+V 76
+/wisebed/!svn/ver/4312/wiselib/trunk/applications/pltt/scripts/blank_cti.bsh
+END
+run_blank_cti.sh
+K 25
+svn:wc:ra_dav:version-url
+V 79
+/wisebed/!svn/ver/4692/wiselib/trunk/applications/pltt/scripts/run_blank_cti.sh
+END
+pltt_unige.bsh
+K 25
+svn:wc:ra_dav:version-url
+V 77
+/wisebed/!svn/ver/4692/wiselib/trunk/applications/pltt/scripts/pltt_unige.bsh
+END
+run_pltt_unige.sh
+K 25
+svn:wc:ra_dav:version-url
+V 80
+/wisebed/!svn/ver/4692/wiselib/trunk/applications/pltt/scripts/run_pltt_unige.sh
+END
+blank_unige.bsh
+K 25
+svn:wc:ra_dav:version-url
+V 78
+/wisebed/!svn/ver/4692/wiselib/trunk/applications/pltt/scripts/blank_unige.bsh
+END
+run_blank_unige.sh
+K 25
+svn:wc:ra_dav:version-url
+V 81
+/wisebed/!svn/ver/4692/wiselib/trunk/applications/pltt/scripts/run_blank_unige.sh
+END
+pltt_cti.bsh
+K 25
+svn:wc:ra_dav:version-url
+V 75
+/wisebed/!svn/ver/4305/wiselib/trunk/applications/pltt/scripts/pltt_cti.bsh
+END

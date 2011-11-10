@@ -1,0 +1,74 @@
+package ishell.plugins;
+
+import org.eclipse.ui.IMemento;
+
+import ishell.device.MessagePacket;
+import ishell.gui.views.PluginView;
+import ishell.plugins.Plugin;
+
+import java.io.*;
+import java.net.*;
+//import java.util.*;
+
+public class TrackingVisPlugin extends Plugin {
+	Socket echoSocket = null;
+	PrintWriter out = null;
+  //  private Timer comm_timer = new Timer();
+//    private TimerTask  comm_task = new TimerTask()
+//    {
+//    	public void run() 
+//    	{ 
+//    		try{
+//    			out = new PrintWriter(echoSocket.getOutputStream(), true );
+//    			out.println( "message" );
+//    		} catch (IOException e ) {}
+//    	}
+//    };
+	
+	
+	public TrackingVisPlugin(PluginView parent) {
+		super(parent);
+		// TODO Auto-generated constructor stub
+//		try{
+//			echoSocket = new Socket("localhost",4444);
+//		} catch (IOException e ) {}
+//		comm_timer.schedule(comm_task, 10, 10);
+	}
+	
+
+	@Override
+	public void restoreData(IMemento arg0) {
+		// TODO Auto-generated method stub
+
+	}
+
+	@Override
+	public void saveData(IMemento arg0) {
+		// TODO Auto-generated method stub
+
+	}
+
+	@Override
+	public int[] setTypes() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public void shutdown() 
+	{
+//		// TODO Auto-generated method stub
+//		try{
+//			out = new PrintWriter(echoSocket.getOutputStream(), true );
+//			out.println( "end" );
+//		} catch (IOException e ) {}
+	}
+
+	@Override
+	public void receivePacket(MessagePacket arg0) {
+		// TODO Auto-generated method stub
+		packet = arg0;
+	}
+	
+	public MessagePacket packet = null;
+}

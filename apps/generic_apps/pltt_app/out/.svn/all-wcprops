@@ -1,0 +1,35 @@
+K 25
+svn:wc:ra_dav:version-url
+V 58
+/wisebed/!svn/ver/5425/wiselib/trunk/applications/pltt/out
+END
+NORMAL_TARGET.bin
+K 25
+svn:wc:ra_dav:version-url
+V 76
+/wisebed/!svn/ver/5411/wiselib/trunk/applications/pltt/out/NORMAL_TARGET.bin
+END
+PRIVATE_TARGET1.bin
+K 25
+svn:wc:ra_dav:version-url
+V 78
+/wisebed/!svn/ver/5413/wiselib/trunk/applications/pltt/out/PRIVATE_TARGET1.bin
+END
+PRIVATE_TARGET2.bin
+K 25
+svn:wc:ra_dav:version-url
+V 78
+/wisebed/!svn/ver/5414/wiselib/trunk/applications/pltt/out/PRIVATE_TARGET2.bin
+END
+NORMAL_PASSIVE.bin
+K 25
+svn:wc:ra_dav:version-url
+V 77
+/wisebed/!svn/ver/5425/wiselib/trunk/applications/pltt/out/NORMAL_PASSIVE.bin
+END
+PRIVACY_PASSIVE.bin
+K 25
+svn:wc:ra_dav:version-url
+V 78
+/wisebed/!svn/ver/5421/wiselib/trunk/applications/pltt/out/PRIVACY_PASSIVE.bin
+END

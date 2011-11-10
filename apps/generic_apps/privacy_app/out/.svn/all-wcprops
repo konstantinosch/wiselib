@@ -1,0 +1,23 @@
+K 25
+svn:wc:ra_dav:version-url
+V 61
+/wisebed/!svn/ver/5417/wiselib/trunk/applications/privacy/out
+END
+privacy_app.hex
+K 25
+svn:wc:ra_dav:version-url
+V 77
+/wisebed/!svn/ver/5417/wiselib/trunk/applications/privacy/out/privacy_app.hex
+END
+HE.bin
+K 25
+svn:wc:ra_dav:version-url
+V 68
+/wisebed/!svn/ver/5417/wiselib/trunk/applications/privacy/out/HE.bin
+END
+CA.bin
+K 25
+svn:wc:ra_dav:version-url
+V 68
+/wisebed/!svn/ver/5417/wiselib/trunk/applications/privacy/out/CA.bin
+END

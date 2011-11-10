@@ -1,0 +1,53 @@
+//main app switches
+//#define PLTT_TRACKER
+#define PLTT_TARGET
+#define PLTT_SECURE
+//#define UNIGE_TESTBED
+//#define CTI_TESTBED
+#define UZL_TESTBED
+//#define PLTT_DEMO_topology
+
+//target properties
+#ifdef PLTT_TARGET
+	#define TRACE_DIMINISH_SECONDS 1
+	#define TRACE_DIMINISH_AMOUNT 2
+	#define TRACE_SPREAD_PENALTY 4
+	#define TRACE_START_INTENSITY 127
+	#define TARGET_SPREAD_MILIS 4000
+	#define TARGET_TRANSMISSION_POWER -30
+	#define TARGET_MINI_RUN_TIMES 100
+	#define TARGET_SPREAD_METRICS_TIMER 10000
+#endif
+
+//tracker properties
+#ifdef PLTT_TRACKER
+	//#define TARGET_ID_TO_TRACK1 0x1bf7 //paired with 0x1c74 tracker
+	//#define TARGET_ID_TO_TRACK1 0x1ba5 //paired with 0x1b84 tracker
+	//#define TARGET_ID_TO_TRACK1 0x9712 //paired with 0x15e1 tracker
+	//#define TARGET_ID_TO_TRACK1 0x99a8   //paired with 0x1721 tracker
+	#define TARGET_ID_TO_TRACK1 0x1b6b   //paired with 0x0cc3a
+	#define TARGET_TO_TRACK_MAX_INTENSITY1 127
+	#define TRACKER_TRANSMISSION_POWER1 -6
+	#define TRACKER_SEND_MILIS1 2500
+	#define TRACKER_TRACKING_METRICS_TIMER 10000
+#endif
+
+//general properties
+#define MAX_NEIGHBORS_SUPPORTED 60
+#define MAX_TARGETS_SUPPORTED 10
+#define MAX_TRACKERS_SUPPORTED 10
+#define MAX_RELIABLE_AGENTS_SUPPORTED 30
+#define INTENSITY_DETECTION_THRESHOLD 95
+
+//metrics timeout
+#define METRICS_TIMEOUT 2000
+
+//opt reliable tracking properties
+#define RELIABLE_TRACKING_EXPIRATION_TIME 4000
+#define RELIABLE_TRACKING_RECURRING_TIME 250
+#define RELIABLE_TRACKING_DAEMON_TIME 250
+
+//secure properties
+//#define PLTT_SECURE_MAX_CALLBACKS
+//#define PLTT_SECURE_MAX_RECEIVERS
+
