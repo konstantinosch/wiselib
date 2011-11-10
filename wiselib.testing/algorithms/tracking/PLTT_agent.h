@@ -55,7 +55,6 @@ namespace wiselib
 		}
 		block_data_t* set_buffer_from( block_data_t* buff, size_t offset = 0 )
 		{
-
 			uint8_t AGENT_ID_POS = 0;
 			uint8_t TARGET_POS = AGENT_ID_POS + sizeof( AgentID );
 			uint8_t TRACKER_POS = TARGET_POS + target.get_buffer_size();
