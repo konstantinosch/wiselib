@@ -232,7 +232,6 @@ namespace wiselib
 				block_data_t* buff = buffer;
 				message.set_payload( target_trace.get_buffer_size(), target_trace.set_buffer_from( buff ) );
 				radio().send( Radio::BROADCAST_ADDRESS, message.buffer_size(), (block_data_t*)&message );
-				target_trace.print( debug() );
 				target_trace.update_start_time();
 				timer().template set_timer<self_type, &self_type::send_trace>( spread_milis, this, 0 );
 #ifdef PLTT_TARGET_MINI_RUN

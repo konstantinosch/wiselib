@@ -43,9 +43,6 @@ namespace wiselib
 		typedef typename Radio::size_t size_t;
 		typedef PLTT_TraceType<Os, Radio, TimesNumber, SecondsNumber, IntensityNumber, Node, NodeID, Debug> self_type;
 		inline PLTT_TraceType():
-			current				(0),
-			parent				(0),
-			grandparent			(0),
 			start_time			(0),
 			diminish_seconds	(0),
 			diminish_amount		(0),
@@ -57,13 +54,13 @@ namespace wiselib
 			recipient_2_id		(0)
 		{
 			max_intensity = 2;
-			for (uint8_t i = 0; i < ( sizeof( max_intensity )*8 ); ++i )
+			for (uint8_t i = 0; i < ( sizeof( max_intensity )*8 ); i++ )
 			{
 				max_intensity = 2*max_intensity;
 			}
 			max_intensity = max_intensity - 1;
 		}
-		inline PLTT_TraceType(const SecondsNumber& _ds, const IntensityNumber& _da, const IntensityNumber& _sp,	const IntensityNumber& _si, const TimesNumber& _st )
+		inline PLTT_TraceType( const SecondsNumber& _ds, const IntensityNumber& _da, const IntensityNumber& _sp, const IntensityNumber& _si, const TimesNumber& _st )
 		{
 			diminish_seconds = _ds;
 			diminish_amount = _da;
@@ -72,7 +69,7 @@ namespace wiselib
 			start_time = _st;
 			inhibited = 0;
 			max_intensity = 2;
-			for (uint8_t i = 0; i < ( sizeof( max_intensity )*8 ); ++i )
+			for (uint8_t i = 0; i < ( sizeof( max_intensity )*8 ); i++ )
 			{
 				max_intensity = 2*max_intensity;
 			}
@@ -90,7 +87,7 @@ namespace wiselib
 			get_from_buffer( buff, offset );
 			inhibited = 0;
 			max_intensity = 2;
-			for (uint8_t i = 0; i < ( sizeof( max_intensity )*8 ); ++i )
+			for (uint8_t i = 0; i < ( sizeof( max_intensity )*8 ); i++ )
 			{
 				max_intensity = 2*max_intensity;
 			}
@@ -244,6 +241,7 @@ namespace wiselib
 			debug.debug( "diminish_amount (size %i) : %i", sizeof( diminish_amount ), diminish_amount );
 			debug.debug( "spread_penalty (size %i) : %i", sizeof( spread_penalty ), spread_penalty );
 			debug.debug( "intensity (size %i) : %i", sizeof( intensity ), intensity );
+			debug.debug( "max_intensity (size %ud) : %ud", sizeof( max_intensity ), max_intensity );
 			debug.debug( "start_time (size %i) : %i", sizeof( start_time ), start_time  );
 			debug.debug( "target id (size %i) : %x", sizeof( target_id ), target_id );
 			debug.debug( "recipient 1 id (size %i) : %i", sizeof( recipient_1_id), recipient_1_id );
@@ -253,7 +251,6 @@ namespace wiselib
 			current.print( debug );
 			parent.print( debug );
 			grandparent.print( debug );
-
 		}
 		// --------------------------------------------------------------------
 	private:

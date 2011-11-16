@@ -115,14 +115,14 @@ public:
 		self.get_node().get_position().set_buffer_from( buff );
 		uint8_t flags = NeighborDiscovery::NEW_PAYLOAD_BIDI|NeighborDiscovery::DROPPED_NB|NeighborDiscovery::LOST_NB_BIDI;
 		neighbor_discovery().init( radio(), clock(), timer(), debug() );
-		neighbor_discovery().template reg_event_callback<self_type,	&self_type::sync_neighbors> (2, flags, this );
-		neighbor_discovery().register_payload_space(2);
-		neighbor_discovery().set_payload(2, buff, self.get_node().get_position().get_buffer_size() );
+		neighbor_discovery().template reg_event_callback<self_type,	&self_type::sync_neighbors> ( 2, flags, this );
+		neighbor_discovery().register_payload_space( 2 );
+		neighbor_discovery().set_payload( 2, buff, self.get_node().get_position().get_buffer_size() );
 #ifdef PLTT_PASSIVE_DEBUG_NEIGHBORHOOD_DISCOVERY
 		neighbor_discovery().register_debug_callback( 0 );
 #endif
 		neighbor_discovery().enable();
-		timer().template set_timer<self_type, &self_type::neighbor_discovery_unregister_task> ( 30000, this, 0 );
+		//timer().template set_timer<self_type, &self_type::neighbor_discovery_unregister_task> ( nb_convergence_time, this, 0 );
 	}
 	// -----------------------------------------------------------------------
 	void neighbor_discovery_unregister_task( void* userdata = NULL )
@@ -389,6 +389,7 @@ public:
 		timer().template set_timer<self_type, &self_type::print_traces> ( 11000, this, 0 );
 	}
 	// -----------------------------------------------------------------------
+#ifndef PLTT_SECURE
 	void prepare_spread_trace( PLTT_Trace* t, const ExtendedData& exdata )
 	{
 #ifdef PLTT_PASSIVE_DEBUG_SPREAD
@@ -550,6 +551,7 @@ public:
 #endif
 		}
 	}
+#endif
 	// -----------------------------------------------------------------------
 #ifdef PLTT_SECURE
 	PLTT_SecureTrace* store_inhibit_secure_trace( PLTT_SecureTrace secure_trace, uint8_t inhibition_flag = 0 )
@@ -890,7 +892,6 @@ public:
 		}
 		debug().debug( "\nPLTT_Passive %x: End neighbors printout\n", self.get_node().get_id() );
 	}
-
 	// -----------------------------------------------------------------------
 	void init(Radio& radio, Timer& timer, Debug& debug, Rand& rand,
 			Clock& clock, NeighborDiscovery& neighbor_discovery)

@@ -1,5 +1,5 @@
 //#define PLTT_DEBUG
-#define PLTT_SECURE
+//#define PLTT_SECURE
 
 //target configuration
 //#define PLTT_TARGET_MINI_RUN
@@ -7,7 +7,7 @@
 //passive configuration
 #define CONFIG_SPREAD_RANDOM_RECEIVERS
 #ifndef PLTT_SECURE
-	#define CONFIG_PROACTIVE_INHIBITION
+	//#define CONFIG_PROACTIVE_INHIBITION
 #endif
 #define CONFIG_NEIGHBORHOOD_DISCOVERY_STABILITY_FILTER
 #define CONFIG_BACKOFF_LQI_WEIGHT
