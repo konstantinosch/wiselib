@@ -20,6 +20,7 @@
 #ifndef __PLTT_PASSIVE_H__
 #define __PLTT_PASSIVE_H__
 #include "PLTT_config_revision.h"
+#include "../neighbor_discovery/neighbor_discovery.h"
 #include "PLTT_message.h"
 #ifdef PLTT_SECURE
 #include "../privacy/privacy_message.h"

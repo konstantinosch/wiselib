@@ -721,112 +721,112 @@ debug().debug("TEST: id: %d stability: %d size of list of neighbors: %d\n",read<
 							break;
 #endif
 						}
-//#ifdef ENABLE_STABILITY_THRESHOLDS
-//						else if (neighbor_id == from) {
-//
-//
-//							it->stability = read<OsModel, block_data_t, uint16_t > (recvmsg->payload()+bytes_read);
-////							debug().debug( "Debug::echo::received_beacon::%d  stability %d threshold %d\n", radio().id(), it->stability, max_stability_threshold);
-//							/*
-//							if (radio().id()==4&& from==9)
-//							debug().debug( "Debug::echo::XXXXXX %d from %d stability %d iLinkAssoc %d linkAssoc %d\n",
-//									radio().id(), bytes_read, nb_size_bytes , get_ilink_assoc(from), it->inverse_link_assoc);*/
-//
-//							bytes_read+=sizeof(uint16_t);
-//                                                        if (
-//								//((6 * node_stability > 5 * it->stability)
-//                                                                //&& ( 4 * node_stability < 5 * it->stability))
-//                                                                //&&
-//								(it->stability > max_stability_threshold) &&
-//								(node_stability > max_stability_threshold)
-//								) {
-//                                                            contains_my_id = true;
-//                                                        }
-//
-///*							if (radio().id()==4 && from==9) {
-//							debug().debug( "Debug::echo::YES %d got beacon from %d size= %d \n", radio().id(), bytes_read, nb_size_bytes);
-////							exit(1);
-//							}*/
-//						}
-//#endif
-//#ifdef CALCULATE_INVERSE_STABILITY
-//						else {
-//							bytes_read+=sizeof(uint8_t);
-//						}
-//#endif
-//					}
-//
-//					if (!it->stable) {
-//						continue;
-//					}
-//#ifdef DEBUG_ECHO
-//#ifdef ISENSE
-//					debug().debug( "Debug::echo NODE %x has bidirectional communication with %x", radio().id(), from);
-//#else
-//#endif
-//					debug().debug( "Debug::echo NODE %d has bidirectional communication with %d\n", radio().id(), from);
-//#endif
-//
-//					if (contains_my_id) {
-//						if (!it->bidi) {
-//							it->bidi = true;
-//							notify_listeners(NEW_NB_BIDI, from, 0, 0);
-//						}
-//
-//					}
-//					else {
-//						if (it->bidi) {
-//							it->bidi = false;
-//							notify_listeners(LOST_NB_BIDI, from, 0, 0);
-//						}
-//					}
-//
-//					uint8_t * alg_pl = recvmsg->payload()
-//							+ recvmsg->nb_list_size();
-//					for (int i = 0; i < recvmsg->get_pg_payloads_num(); i++) {
-//
-//#ifdef DEBUG_PIGGYBACKING
-//						debug().debug( "Debug::echo NODE %d: new payload from %d with alg_id %d and size %d ",
-//								radio().id(), from, *alg_pl, *(alg_pl+1) );
-//
-//						debug().debug( " [");
-//						for (uint8_t j = 1; j<= *(alg_pl + 1); j++) {
-//							debug().debug( "%d ", *(alg_pl + j + 1) );
-//						}
-//						debug().debug( "]\n");
-//#endif
-//
-//						for (reg_alg_iterator_t it = registered_apps.begin(); it
-//								!= registered_apps.end(); it++) {
-//
-//							if ((it->alg_id == *alg_pl)
-//									&& (it->event_notifier_callback != 0)) {
-//								if ((it->events_flag & (uint8_t) NEW_PAYLOAD)
-//										== (uint8_t) NEW_PAYLOAD) {
-//									it->event_notifier_callback(NEW_PAYLOAD,
-//											from, *(alg_pl + 1), alg_pl + 2);
-//								} else if (((it->events_flag
-//										& (uint8_t) NEW_PAYLOAD_BIDI)
-//										== (uint8_t) NEW_PAYLOAD_BIDI)
-//										&& is_neighbor_bidi(from)) {
-//									it->event_notifier_callback(
-//											NEW_PAYLOAD_BIDI, from, *(alg_pl
-//													+ 1), alg_pl + 2);
-//								}
-//							}
-//						}
-//
-//						alg_pl += *(alg_pl + 1) + 2;
-//
-//#ifdef DEBUG_ECHO
-//#ifdef ISENSE
-//						debug().debug( "Debug::echo NODE %x has bidirectional communication with %x", radio().id(), from);
-//#else
-//						debug().debug( "Debug::echo NODE %d has bidirectional communication with %d\n", radio().id(), from);
-//#endif
-//#endif
-//					}
-//					break;
+#ifdef ENABLE_STABILITY_THRESHOLDS
+						else if (neighbor_id == from) {
+
+
+							it->stability = read<OsModel, block_data_t, uint16_t > (recvmsg->payload()+bytes_read);
+//							debug().debug( "Debug::echo::received_beacon::%d  stability %d threshold %d\n", radio().id(), it->stability, max_stability_threshold);
+							/*
+							if (radio().id()==4&& from==9)
+							debug().debug( "Debug::echo::XXXXXX %d from %d stability %d iLinkAssoc %d linkAssoc %d\n",
+									radio().id(), bytes_read, nb_size_bytes , get_ilink_assoc(from), it->inverse_link_assoc);*/
+
+							bytes_read+=sizeof(uint16_t);
+                                                        if (
+								//((6 * node_stability > 5 * it->stability)
+                                                                //&& ( 4 * node_stability < 5 * it->stability))
+                                                                //&&
+								(it->stability > max_stability_threshold) &&
+								(node_stability > max_stability_threshold)
+								) {
+                                                            contains_my_id = true;
+                                                        }
+
+/*							if (radio().id()==4 && from==9) {
+							debug().debug( "Debug::echo::YES %d got beacon from %d size= %d \n", radio().id(), bytes_read, nb_size_bytes);
+//							exit(1);
+							}*/
+						}
+#endif
+#ifdef CALCULATE_INVERSE_STABILITY
+						else {
+							bytes_read+=sizeof(uint8_t);
+						}
+#endif
+					}
+
+					if (!it->stable) {
+						continue;
+					}
+#ifdef DEBUG_ECHO
+#ifdef ISENSE
+					debug().debug( "Debug::echo NODE %x has bidirectional communication with %x", radio().id(), from);
+#else
+#endif
+					debug().debug( "Debug::echo NODE %d has bidirectional communication with %d\n", radio().id(), from);
+#endif
+
+					if (contains_my_id) {
+						if (!it->bidi) {
+							it->bidi = true;
+							notify_listeners(NEW_NB_BIDI, from, 0, 0);
+						}
+
+					}
+					else {
+						if (it->bidi) {
+							it->bidi = false;
+							notify_listeners(LOST_NB_BIDI, from, 0, 0);
+						}
+					}
+
+					uint8_t * alg_pl = recvmsg->payload()
+							+ recvmsg->nb_list_size();
+					for (int i = 0; i < recvmsg->get_pg_payloads_num(); i++) {
+
+#ifdef DEBUG_PIGGYBACKING
+						debug().debug( "Debug::echo NODE %d: new payload from %d with alg_id %d and size %d ",
+								radio().id(), from, *alg_pl, *(alg_pl+1) );
+
+						debug().debug( " [");
+						for (uint8_t j = 1; j<= *(alg_pl + 1); j++) {
+							debug().debug( "%d ", *(alg_pl + j + 1) );
+						}
+						debug().debug( "]\n");
+#endif
+
+						for (reg_alg_iterator_t it = registered_apps.begin(); it
+								!= registered_apps.end(); it++) {
+
+							if ((it->alg_id == *alg_pl)
+									&& (it->event_notifier_callback != 0)) {
+								if ((it->events_flag & (uint8_t) NEW_PAYLOAD)
+										== (uint8_t) NEW_PAYLOAD) {
+									it->event_notifier_callback(NEW_PAYLOAD,
+											from, *(alg_pl + 1), alg_pl + 2);
+								} else if (((it->events_flag
+										& (uint8_t) NEW_PAYLOAD_BIDI)
+										== (uint8_t) NEW_PAYLOAD_BIDI)
+										&& is_neighbor_bidi(from)) {
+									it->event_notifier_callback(
+											NEW_PAYLOAD_BIDI, from, *(alg_pl
+													+ 1), alg_pl + 2);
+								}
+							}
+						}
+
+						alg_pl += *(alg_pl + 1) + 2;
+
+#ifdef DEBUG_ECHO
+#ifdef ISENSE
+						debug().debug( "Debug::echo NODE %x has bidirectional communication with %x", radio().id(), from);
+#else
+						debug().debug( "Debug::echo NODE %d has bidirectional communication with %d\n", radio().id(), from);
+#endif
+#endif
+					}
+					break;
 				}
 
 			}
