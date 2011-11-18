@@ -35,6 +35,168 @@ namespace wiselib
 
 		class neighbor
 		{
+		public:
+			neighbor()	:
+				id							( 0 ),
+				total_beacons				( 0 ),
+				total_beacons_expected		( 0 ),
+				avg_LQI						( 0 ),
+				avg_LQI_inverse				( 0 ),
+				link_stab_ratio				( 0 ),
+				link_stab_ratio_inverse		( 0 ),
+				consecutive_beacons			( 0 ),
+				consecutive_beacons_lost	( 0 )
+			{}
+			// --------------------------------------------------------------------
+			neighbor(	node_id_t _id,
+						uint32_t _tbeac,
+						uint32_t _tbeac_exp,
+						uint8_t _alqi,
+						uint8_t _alqi_in,
+						uint8_t _lsratio,
+						uint8_t _lsration_in,
+						uint8_t _cb,
+						uint8_t _cb_lost )
+			{
+				id = _id;
+				total_beacons = _tbeac;
+				total_beacons_expected = _tbeac_exp;
+				avg_LQI = _alqi;
+				avg_LQI_inverse = _alqi_in;
+				link_stab_ratio = _lsratio;
+				link_stab_ratio_inverse = _lsration_in;
+				consecutive_beacons = _cb;
+				consecutive_beacons_lost =  _cb_lost;
+			}
+			// --------------------------------------------------------------------
+			~neighbor()
+			{}
+			// --------------------------------------------------------------------
+			node_id_t get_id()
+			{
+				return id;
+			}
+			// --------------------------------------------------------------------
+			void set_id( node_id_t _id )
+			{
+				id = _id;
+			}
+			// --------------------------------------------------------------------
+			uint32_t get_total_beacons()
+			{
+				return total_beacons;
+			}
+			// --------------------------------------------------------------------
+			void set_total_beacons( uint32_t _tbeac )
+			{
+				total_beacons = _tbeac;
+			}
+			// --------------------------------------------------------------------
+			uint32_t get_total_beacons_expected()
+			{
+				return total_beacons_expected;
+			}
+			// --------------------------------------------------------------------
+			void set_total_beacons_expected( uint32_t _tbeac_exp )
+			{
+				total_beacons_expected = _tbeac_exp;
+			}
+			// --------------------------------------------------------------------
+			uint8_t get_avg_LQI()
+			{
+				return avg_LQI;
+			}
+			// --------------------------------------------------------------------
+			void set_avg( uint8_t _alqi )
+			{
+				avg_LQI = _alqi;
+			}
+			// --------------------------------------------------------------------
+			uint8_t get_avg_LQI_inverse()
+			{
+				return avg_LQI_inverse;
+			}
+			// --------------------------------------------------------------------
+			void set_avg_LQI_inverse( uint8_t _alqi_in )
+			{
+				avg_LQI_inverse = _alqi_in;
+			}
+			// --------------------------------------------------------------------
+			uint8_t get_link_stab_ratio()
+			{
+				return link_stab_ratio;
+			}
+			// --------------------------------------------------------------------
+			void set_link_stab_ratio( uint8_t _lsratio )
+			{
+				link_stab_ratio = _lsratio;
+			}
+			// --------------------------------------------------------------------
+			uint8_t get_link_stab_ratio_inverse()
+			{
+				return link_stab_ratio_inverse;
+			}
+			// --------------------------------------------------------------------
+			void set_link_stab_ratio_inverse( uint8_t _lsratio_in )
+			{
+				link_stab_ratio_inverse = _lsratio_in;
+			}
+			// --------------------------------------------------------------------
+			uint8_t get_consecutive_beacons()
+			{
+				return consecutive_beacons;
+			}
+			// --------------------------------------------------------------------
+			void set_consecutive_beacons( uint8_t _cb )
+			{
+				consecutive_beacons = _cb;
+			}
+			// --------------------------------------------------------------------
+			uint8_t get_consecutive_beacons_lost()
+			{
+				return consecutive_beacons_lost;
+			}
+			// --------------------------------------------------------------------
+			void set_consecutive_beacons_lost( uint8_t _cb_lost )
+			{
+				consecutive_beacons_lost = _cb_lost;
+			}
+			// --------------------------------------------------------------------
+			block_data_t* serialize( block_data_t* _buff, size_t _offset = 0 )
+			{
+				uint8_t AVG_LQI_POS = 0;
+				uint8_t AVG_LQI_IN_POS = AVG_LQI_POS + sizeof(uint8_t);
+				uint8_t LINK_STAB_RATIO_POS = AVG_LQI_IN_POS + sizeof(uint8_t);
+				uint8_t LINK_STAB_RATIO_IN_POS = LINK_STAB_RATION_POS + sizeof(uint8_t);
+				write<Os, block_data_t, uint8_t>( _buff + AVG_LQI_POS + _offset, avg_LQI );
+				write<Os, block_data_t, uint8_t>( _buff + AVG_LQI_IN_POS + _offset, avg_LQI_inverse );
+				write<Os, block_data_t, uint8_t>( _buff + LINK_STAB_RATIO_POS + _offset, link_stab_ratio );
+				write<Os, block_data_t, uint8_t>( _buff + LINK_STAB_RATIO_IN_POS + _offset, link_stab_ratio_inverse );
+				return buff;
+			}
+			// --------------------------------------------------------------------
+			void de_serialize( block_data_t* _buff, size_t _offset = 0 )
+			{
+				uint8_t AVG_LQI_POS = 0;
+				uint8_t AVG_LQI_IN_POS = AVG_LQI_POS + sizeof(uint8_t);
+				uint8_t LINK_STAB_RATIO_POS = AVG_LQI_IN_POS + sizeof(uint8_t);
+				uint8_t LINK_STAB_RATIO_IN_POS = LINK_STAB_RATION_POS + sizeof(uint8_t);
+				avg_LQI = read<Os, block_data_t, uint8_t>( _buff + AVG_LQI_POS + _offset );
+				avg_LQI_inverse = read<Os, block_data_t, uint8_t>( _buff + AVG_LQI_IN_POS + _offset );
+				link_stab_ratio = read<Os, block_data_t, uint8_t>( _buff + LINK_STAB_RATIO_POS + _offset );
+				link_stab_ratio_inverse = read<Os, block_data_t, uint8_t>( _buff + LINK_STAB_RATIO_IN_POS + _offset );
+			}
+			// --------------------------------------------------------------------
+			uint8_t serial_size()
+			{
+				uint8_t AVG_LQI_POS = 0;
+				uint8_t AVG_LQI_IN_POS = AVG_LQI_POS + sizeof(uint8_t);
+				uint8_t LINK_STAB_RATIO_POS = AVG_LQI_IN_POS + sizeof(uint8_t);
+				uint8_t LINK_STAB_RATIO_IN_POS = LINK_STAB_RATION_POS + sizeof(uint8_t);
+				return LINK_STAB_RATIO_IN_POS + sizeof(uint8_t);
+			}
+			// --------------------------------------------------------------------
+		private:
 			node_id_t id;
 			uint32_t total_beacons;
 			uint32_t total_beacons_expected;
@@ -44,8 +206,6 @@ namespace wiselib
 			uint8_t link_stab_ratio_inverse;
 			uint8_t consecutive_beacons;
 			uint8_t consecutive_beacons_lost;
-			bool active;
-			bool bidi;
 		};
 		typedef vector_static<Os, neighbor, MAX_NEIGHBORS> neighbor_vector;
 		typedef typename neighbor_vector::iterator neighbor_vector_iterator;
@@ -66,27 +226,27 @@ namespace wiselib
 				consecutive_beacons_lost_threshold		( 5 )
 			{}
 			// --------------------------------------------------------------------
-			protocol_settings(	uint8_t maxLQI,
-								uint8_t minLQI,
-								uint8_t maxLQI_in,
-								uint8_t minLQI_in,
-								uint8_t maxlsr,
-								uint8_t minlsr,
-								uint8_t maxlsr_in,
-								uint8_t minlsr_in,
-								uint8_t cb,
-								uint8_t cblost	)
+			protocol_settings(	uint8_t _maxLQI,
+								uint8_t _minLQI,
+								uint8_t _maxLQI_in,
+								uint8_t _minLQI_in,
+								uint8_t _maxlsr,
+								uint8_t _minlsr,
+								uint8_t _maxlsr_in,
+								uint8_t _minlsr_in,
+								uint8_t _cb,
+								uint8_t _cblost	)
 			{
-				max_avg_LQI_threshold = maxLQI;
-				min_avg_LQI_threshold = minLQI;
-				max_avg_LQI_inverse_threshold = maxLQI_in;
-				min_avg_LQI_inverse_threshold = minLQI_in;
-				max_link_stab_ratio_threshold = maxlsr;
-				min_link_stab_ratio_threshold = minlsr;
-				max_link_stab_ratio_inverse_threshold = maxlsr_in;
-				min_link_stab_ratio_inverse_threshold = minlsr_in,
-				consecutive_beacons_threshold = cb;
-				consecutive_beacons_lost_threshold = cblost;
+				max_avg_LQI_threshold = _maxLQI;
+				min_avg_LQI_threshold = _minLQI;
+				max_avg_LQI_inverse_threshold = _maxLQI_in;
+				min_avg_LQI_inverse_threshold = _minLQI_in;
+				max_link_stab_ratio_threshold = _maxlsr;
+				min_link_stab_ratio_threshold = _minlsr;
+				max_link_stab_ratio_inverse_threshold = _maxlsr_in;
+				min_link_stab_ratio_inverse_threshold = _minlsr_in,
+				consecutive_beacons_threshold = _cb;
+				consecutive_beacons_lost_threshold = _cblost;
 			}
 			// --------------------------------------------------------------------
 			~protocol_settings()
@@ -97,9 +257,9 @@ namespace wiselib
 				return max_avg_LQI_threshold;
 			}
 			// --------------------------------------------------------------------
-			void set_max_avg_LQI_threshold( uint8_t maxLQI )
+			void set_max_avg_LQI_threshold( uint8_t _maxLQI )
 			{
-				max_avg_LQI_threshold = maxLQI;
+				max_avg_LQI_threshold = _maxLQI;
 			}
 			// --------------------------------------------------------------------
 			uint8_t get_min_avg_LQI_threshold()
@@ -107,9 +267,9 @@ namespace wiselib
 				return min_avg_LQI_threshold;
 			}
 			// --------------------------------------------------------------------
-			void set_min_avg_LQI_threshold( uint8_t minLQI )
+			void set_min_avg_LQI_threshold( uint8_t _minLQI )
 			{
-				min_avg_LQI_threshold = minLQI;
+				min_avg_LQI_threshold = _minLQI;
 			}
 			// --------------------------------------------------------------------
 			uint8_t get_max_avg_LQI_inverse_threshold()
@@ -117,9 +277,9 @@ namespace wiselib
 				return max_avg_LQI_inverse_threshold;
 			}
 			// --------------------------------------------------------------------
-			void set_max_avg_LQI_inverse_threshold( uint8_t maxLQI_in )
+			void set_max_avg_LQI_inverse_threshold( uint8_t _maxLQI_in )
 			{
-				max_avg_LQI_inverse_threshold = maxLQI_in;
+				max_avg_LQI_inverse_threshold = _maxLQI_in;
 			}
 			// --------------------------------------------------------------------
 			uint8_t get_min_avg_LQI_inverse_threshold()
@@ -127,9 +287,9 @@ namespace wiselib
 				return min_avg_LQI_inverse_threshold;
 			}
 			// --------------------------------------------------------------------
-			void set_min_avg_LQI_inverse_threshold( uint8_t minLQI_in )
+			void set_min_avg_LQI_inverse_threshold( uint8_t _minLQI_in )
 			{
-				min_avg_LQI_inverse_threshold = minLQI_in;
+				min_avg_LQI_inverse_threshold = _minLQI_in;
 			}
 			// --------------------------------------------------------------------
 			uint8_t get_max_link_stab_ratio_threshold()
@@ -137,9 +297,9 @@ namespace wiselib
 				return max_link_stab_ratio_threshold;
 			}
 			// --------------------------------------------------------------------
-			void set_max_link_stab_ratio_threshold( uint8_t maxlsr )
+			void set_max_link_stab_ratio_threshold( uint8_t _maxlsr )
 			{
-				max_link_stab_ratio_threshold = maxlsr;
+				max_link_stab_ratio_threshold = _maxlsr;
 			}
 			// --------------------------------------------------------------------
 			uint8_t get_min_link_stab_ratio_threshold()
@@ -147,9 +307,9 @@ namespace wiselib
 				return min_link_stab_ratio_threshold;
 			}
 			// --------------------------------------------------------------------
-			void set_min_link_stab_ratio_threshold( uint8_t minlsr )
+			void set_min_link_stab_ratio_threshold( uint8_t _minlsr )
 			{
-				min_link_stab_ratio_threshold = minlsr;
+				min_link_stab_ratio_threshold = _minlsr;
 			}
 			// --------------------------------------------------------------------
 			uint8_t get_max_link_stab_ratio_inverse_threshold()
@@ -157,9 +317,9 @@ namespace wiselib
 				return max_link_stab_ratio_inverse_threshold;
 			}
 			// --------------------------------------------------------------------
-			void set_max_link_stab_ratio_inverse_threshold( uint8_t maxlsr_in )
+			void set_max_link_stab_ratio_inverse_threshold( uint8_t _maxlsr_in )
 			{
-				max_link_stab_ratio_inverse_threshold = maxlsr_in;
+				max_link_stab_ratio_inverse_threshold = _maxlsr_in;
 			}
 			// --------------------------------------------------------------------
 			uint8_t get_min_link_stab_ratio_inverse_threshold()
@@ -167,9 +327,9 @@ namespace wiselib
 				return min_link_stab_ratio_inverse_threshold;
 			}
 			// --------------------------------------------------------------------
-			void set_min_link_stab_ratio_inverse_threshold( uint8_t minlsr_in )
+			void set_min_link_stab_ratio_inverse_threshold( uint8_t _minlsr_in )
 			{
-				min_link_stab_ratio_inverse_threshold = minlsr_in;
+				min_link_stab_ratio_inverse_threshold = _minlsr_in;
 			}
 			// --------------------------------------------------------------------
 			uint8_t get_consecutive_beacons_threshold()
@@ -192,18 +352,18 @@ namespace wiselib
 				consecutive_beacons_lost_threshold = cblost;
 			}
 			// --------------------------------------------------------------------
-			protocol_settings& operator=( const protocol_settings& _t)
+			protocol_settings& operator=( const protocol_settings& _psett)
 			{
-				max_avg_LQI_threshold = _t.max_avg_LQI_threshold;
-				min_avg_LQI_threshold = _t.min_avg_LQI_threshold;
-				max_avg_LQI_inverse_threshold = _t.max_avg_LQI_inverse_threshold;
-				min_avg_LQI_inverse_threshold = _t.min_avg_LQI_inverse_threshold;
-				max_link_stab_ratio_threshold = _t.max_link_stab_ratio_threshold;
-				min_link_stab_ratio_threshold = _t.min_link_stab_ratio_threshold;
-				max_link_stab_ratio_inverse_threshold = _t.max_link_stab_ratio_inverse_threshold;
-				min_link_stab_ratio_inverse_threshold = _t.min_link_stab_ratio_inverse_threshold;
-				consecutive_beacons_threshold = _t.consecutive_beacons_threshold;
-				consecutive_beacons_lost_threshold = _t.consecutive_beacons_lost_threshold;
+				max_avg_LQI_threshold = _psett.max_avg_LQI_threshold;
+				min_avg_LQI_threshold = _psett.min_avg_LQI_threshold;
+				max_avg_LQI_inverse_threshold = _psett.max_avg_LQI_inverse_threshold;
+				min_avg_LQI_inverse_threshold = _psett.min_avg_LQI_inverse_threshold;
+				max_link_stab_ratio_threshold = _psett.max_link_stab_ratio_threshold;
+				min_link_stab_ratio_threshold = _psett.min_link_stab_ratio_threshold;
+				max_link_stab_ratio_inverse_threshold = _psett.max_link_stab_ratio_inverse_threshold;
+				min_link_stab_ratio_inverse_threshold = _psett.min_link_stab_ratio_inverse_threshold;
+				consecutive_beacons_threshold = _psett.consecutive_beacons_threshold;
+				consecutive_beacons_lost_threshold = _psett.consecutive_beacons_lost_threshold;
 				return *this;
 			}
 			// --------------------------------------------------------------------
@@ -223,7 +383,10 @@ namespace wiselib
 		class protocol
 		{
 		public:
-			protocol()
+			protocol() :
+				prot_id			( 0 ),
+				events_flag		( NEW_NB | NEW_NB_BIDI | NEW_PAYLOAD | NEW_PAYLOAD_BIDI | LOST_NB | LOST_NB_BIDI ),
+				payload_size	( 0 )
 			{}
 			// --------------------------------------------------------------------
 			~protocol()
@@ -249,9 +412,93 @@ namespace wiselib
 				payload_size = _psize;
 			}
 			// --------------------------------------------------------------------
+			block_data_t* get_payload_data()
+			{
+				return payload_data;
+			}
+			// --------------------------------------------------------------------
+			void set_payload_data( block_data_t* _pdata )
+			{
+				write<Os, block_data_t, payload_size>( _pdata, payload_data );
+			}
+			// --------------------------------------------------------------------
+			void set_payload( block_data_t* _pdata, size_t _psize )
+			{
+				payload_size = _psize;
+				write<Os, block_data_t, payload_size>( _pdata, payload_data );
+			}
+			// --------------------------------------------------------------------
+			block_data_t* serialize( block_data_t* _buff, _offset = 0 )
+			{
+				uint8_t NEIGH_SIZE_POS = 0;
+				uint8_t NEIGH_VECTOR_POS = NEIGH_SIZE_POS + sizeof( size_t );
+				size_t neigh_size = neighborhood.size();
+				write<Os, block_data_t, size_t>( _buff + NEIGH_SIZE_POS + _offset, neigh_size );
+				for ( size_t i = 0; i < neigh_size; i++ )
+				{
+					neighborhood.at( i ).serialize( _buff, NEIGH_VECTOR_POS + i * neighborhood.at( i ).serial_size() + _offset );
+				}
+				return buff;
+			}
+			// --------------------------------------------------------------------
+			void de_serialize( block_data_t* _buff, _offset )
+			{
+				uint8_t NEIGH_SIZE_POS = 0;
+				uint8_t NEIGH_VECTOR_POS = NEIGH_SIZE_POS + sizeof( size_t );
+				size_t neigh_size = read<Os, block_data_t, size_t>( buff + NEIGH_SIZE_POS + _offset );
+				neighborhood.clear();
+				neighbor n;
+				uint8_t NEIGH_ELEMS_POS = NEIGH_VECTOR_POS;
+				for ( size_t i = 0; i < neigh_size; i++ )
+				{
+					n.de_serialize( buff + NEIGH_ELEMS_POS );
+					NEIGH_ELEMS_POS = NEIGH_ELEMS_POS + n.serial_size();
+					neighborhood.push_back( n );
+				}
+			}
+			// --------------------------------------------------------------------
+			void serial_size()
+			{
+				uint8_t NEIGH_SIZE_POS = 0;
+				uint8_t NEIGH_VECTOR_POS = NEIGH_SIZE_POS + sizeof( size_t );
+				uint8_t NEIGH_ELEMS_POS = NEIGH_VECTOR_POS;
+				for ( neighbor_vector_iterator it = neighborhood.begin(); it != neighborhood.end(); ++it )
+				{
+					NEIGH_ELEMS_POS = it->serial_size() + NEIGH_ELEMS_POS;
+				}
+				return NEIGH_ELEMS_POS;
+			}
+			// --------------------------------------------------------------------
+			protocol& operator=( const protocol& _p )
+			{
+				prot_id = _p.prot_id;
+				write<Os, block_data_t, payload_size>( _p.payload_data, payload_data );
+				payload_size = _p.payload_size;
+				event_notifier_callback = _p.event_notifier_callback;
+				events_flag = _p.events_flag;
+				settings = _p.settings;
+				neighborhood.clear();
+				for ( neighbor_vector_iterator it; it < _p.neighborhood.size(); ++it )
+				{
+					neighborhood.push_back( *it );
+				}
+				return *this;
+			}
+			// --------------------------------------------------------------------
 		private:
+
+			enum event_codes
+			{
+				NEW_NB = 1,
+				NEW_NB_BIDI = 2,
+				NEW_PAYLOAD = 4,
+				NEW_PAYLOAD_BIDI = 8,
+				LOST_NB = 16,
+				LOST_NB_BIDI = 32
+			};
+
 			uint8_t prot_id;
-			uint8_t paylod_data[MAX_PROTOCOL_PAYLOAD];
+			block_data_t* payload_data[MAX_PROTOCOL_PAYLOAD];
 			uint8_t payload_size;
 			event_notifier_delegate_t event_notifier_callback;
 			uint8_t events_flag;
@@ -272,7 +519,7 @@ namespace wiselib
 		void enable()
 		{
 			radio().enable_radio();
-			recv_callback_id_ = radio().template reg_recv_callback<self_t, &self_t::receive>(this);
+			recv_callback_id_ = radio().template reg_recv_callback<self_t, &self_t::receive>( this );
 			set_status( SEARCHING );
 			beacon( 0 );
 		};
@@ -285,33 +532,33 @@ namespace wiselib
             radio().template unreg_recv_callback( recv_callback_id_ );
         };
     	// --------------------------------------------------------------------
-    	void send(node_id_t destination, size_t len, block_data_t *data, message_id_t msg_id)
+    	void send( node_id_t _dest, size_t _len, block_data_t* _data, message_id_t _msg_id )
     	{
     		Message message;
-    		message.set_msg_id(msg_id);
-    		message.set_payload(len, data);
-    		radio().send( destination, message.buffer_size(), (uint8_t*) &message );
+    		message.set_msg_id( _msg_id );
+    		message.set_payload( _len, _data );
+    		radio().send( _dest, message.buffer_size(), (uint8_t*) &message );
     	}
     	// --------------------------------------------------------------------
-		void beacon( void* data )
+		void beacon( void* _data )
 		{
 		}
 		// --------------------------------------------------------------------
-        void receive( node_id_t from, size_t len, block_data_t * msg, ExData const &ex )
+        void receive( node_id_t _from, size_t _len, block_data_t * _msg, ExData const &_ex )
         {
         }
         // --------------------------------------------------------------------
-		uint8_t register_protocol( uint8_t _prot_id )
+		uint8_t register_protocol_id( uint8_t _prot_id )
 		{
 			if ( protocols.max_size() == protocols.size() )
 			{
-				return RGD_LIST_FULL;
+				return PROT_LIST_FULL;
 			}
-			for ( size_t i = 0; i < protocols.size(); i++ )
+			for ( protocol_vector_iterator it = protocols.begin(); it != protocols.end(); ++it )
 			{
-				if ( protocols.at(i).prot_id ==  _prot_id )
+				if (it->prot_id == _prot_id )
 				{
-					return RGD_NUM_INUSE;
+					return PROT_NUM_IN_USE;
 				}
 			}
 			protocol p;
@@ -323,7 +570,7 @@ namespace wiselib
 			return SUCCESS;
 		}
 		// --------------------------------------------------------------------
-		uint8_t unregister_protocol( uint8_t _prot_id )
+		uint8_t unregister_protocol_id( uint8_t _prot_id )
 		{
 			for ( protocol_vector_iterator it = protocols.begin(); it != protocols.end(); ++it )
 			{
@@ -333,21 +580,116 @@ namespace wiselib
 					return SUCCESS;
 				}
 			}
-			return INV_ALG_ID;
+			return INV_PROT_ID;
 		}
 		// --------------------------------------------------------------------
-		uint8_t set_payload( uint8_t payload_id, uint8_t *data, uint8_t len )
+		uint8_t register_protocol_settings( protocol_settings _psett )
 		{
-//			for ( reg_alg_iterator_t it = registered_apps.begin(); it != registered_apps.end(); it++ )
-//			{
-//				if ( it->alg_id == payload_id )
-//				{
-//					memcpy( it->data, data, len );
-//					it->size = len;
-//					return 0;
-//				}
-//			}
-			return INV_ALG_ID;
+			for ( protocol_vector_iterator it = protocols.begin(); it != protocols.end(); ++it )
+			{
+				if ( it->prot_id == _prot_id )
+				{
+					it->settings = _psett;
+					return SUCCESS;
+				}
+			}
+			return INV_PROT_ID;
+		}
+		// --------------------------------------------------------------------
+		uint8_t register_protocol_payload( uint8_t _prot_id, block_data_t* _pdata, size_t _psize )
+		{
+			total_payload_size = 0;
+			for ( protocol_vector_iterator it = protocols.begin(); it != protocols.end(); ++it )
+			{
+				total_payload_size = it->get_payload_size() + total_payload_size;
+			}
+			if ( total_payload_size + sizeof(messsage_id_t) + sizeof(size_t) + _psize > Radio::MAX_MSG_LENGTH )
+			{
+				return NO_PAYLOAD_SPACE;
+			}
+			for ( protocol_vector_iterator it = protocols.begin(); it != protocols.end(); ++it )
+			{
+				if ( it->prot_id == _prot_id )
+				{
+					it->set_payload( _pdata, _psize );
+					return SUCCESS;
+				}
+			}
+			return INV_PROT_ID;
+		}
+		// --------------------------------------------------------------------
+		uint8_t remaining_protocol_payload()
+		{
+			total_payload_size = 0;
+			for ( protocol_vector_iterator it = protocols.begin(); it != protocols.end(); ++it )
+			{
+				total_payload_size = it->get_payload_size() + total_payload_size;
+			}
+			return Radio::MAX_MSG_LENGTH - ( total_payload_size + sizeof(messsage_id_t) + sizeof(size_t) );
+		}
+		// --------------------------------------------------------------------
+		template<class T, void(T::*TMethod)(uint8_t, node_id_t, uint8_t, uint8_t*) >
+		uint8_t reg_protocol_event_callback( uint8_t _prot_id, uint8_t _events_flag, T *_obj_pnt )
+		{
+			for ( protocol_vector_iterator it = protocols.begin(); it != protocols.end(); ++it )
+			{
+				if ( it->prot_id == _prot_id )
+				{
+					it->event_notifier_callback = event_notifier_delegate_t::template from_method<T, TMethod > ( _obj_pnt );
+					it->events_flag = _events_flag;
+					return SUCCESS;
+				}
+			}
+			return INV_PROT_ID;
+		}
+		// --------------------------------------------------------------------
+        void unreg_protocol_event_callback( uint8_t _prot_id )
+		{
+			for ( protocol_vector_iterator it = protocols.begin(); it != protocols.end(); ++it )
+			{
+				if ( it->prot_id == _prot_id )
+				{
+					it->event_notifier_callback = event_notifier_delegate_t();
+					it->events_flag = 	protocol::NEW_NB | protocol::NEW_NB_BIDI |
+										protocol::NEW_PAYLOAD | protocol::NEW_PAYLOAD_BIDI |
+										protocol::LOST_NB | protocol::LOST_NB_BIDI;
+					return SUCCESS;
+				}
+			}
+			return INV_PROT_ID;
+		}
+		// --------------------------------------------------------------------
+        template<class T, void(T::*TMethod)(uint8_t, node_id_t, uint8_t, uint8_t*) >
+        uint8_t register_protocol( uint8_t _prot_id, uint8_t _psett, block_data_t* _pdata, size_t _psize, uint8_t _events_flag, T *_obj_pnt )
+		{
+        	if ( protocols.max_size() == protocols.size() )
+			{
+				return PROT_LIST_FULL;
+			}
+			total_payload_size = 0;
+			for ( protocol_vector_iterator it = protocols.begin(); it != protocols.end(); ++it )
+			{
+				total_payload_size = it->get_payload_size() + total_payload_size;
+			}
+			if ( total_payload_size + sizeof(messsage_id_t) + sizeof(size_t) + _psize > Radio::MAX_MSG_LENGTH )
+			{
+				return NO_PAYLOAD_SPACE;
+			}
+			for ( protocol_vector_iterator it = protocols.begin(); it != protocols.end(); ++it )
+			{
+				if ( it->prot_id == _prot_id )
+				{
+					return PROT_NUM_IN_USE;
+				}
+			}
+			protocol p;
+			p.prot_id = _prot_id;
+			p.settings = _psett;
+			p.set_payload( _pdata, _psize );
+			p.event_notifier_callback = event_notifier_delegate_t::template from_method<T, TMethod > ( _obj_pnt );
+			p.events_flag = _events_flag;
+			protocols.push_back( p );
+			return SUCCESS;
 		}
 		// --------------------------------------------------------------------
 		void set_status( int _st )
@@ -413,22 +755,11 @@ namespace wiselib
 
 		enum error_codes
 		{
-			SUCCESS = 0, /*!< The method return with no errors */
-			RGD_NUM_INUSE = 1, /*!< This app number is already registered */
-			RGD_LIST_FULL = 2, /*!< The list with the registered apps is full*/
-			INV_ALG_ID = 3 /*!< The alg id is invalid*/
-		};
-
-		enum event_codes
-		{
-			NEW_NB = 1, /*!< Event code for a newly added stable neighbor */
-			NEW_NB_BIDI = 2, /*!< Event code for a newly added bidi neighbor */
-			DROPPED_NB = 4, /*!< Event code for a neighbor removed from nb list */
-			NEW_PAYLOAD = 8, /*!< Event code for a newly arrived pg payload */
-			NEW_PAYLOAD_BIDI = 16, /*!< Event code for a newly arrived pg payload from a bidi neighbor */
-			LOST_NB_BIDI = 32, /*!< Event code generated when we loose bidi comm with a nb */
-			NB_READY = 64, /*!< Event code generated after the nb module has generated a stable nhd * Useful for starting other modules that must wait until the nb has * produced a stable neighborhood */
-			DEFAULT = 5 /*!< Event code for NEW_NB + DROPED_NB*/
+			SUCCESS = 0,
+			PROT_NUM_IN_USE = 1,
+			PROT_LIST_FULL = 2,
+			INV_PROT_ID = 3,
+			NO_PAYLOAD_SPACE = 4
 		};
 
 		enum neighbor_discovery_status

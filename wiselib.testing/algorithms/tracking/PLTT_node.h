@@ -76,6 +76,7 @@ namespace wiselib
 			size_t len = read<Os, block_data_t, size_t>( buff + PLTT_NODE_SIZE_POS + offset );
 			node.get_from_buffer( buff, NODE_POS + offset );
 			PLTT_NodeTarget nt;
+			target_list.clear();
 			for ( uint16_t i = 0; i < ( ( len - node.get_buffer_size() - 1 ) / nt.get_buffer_size() ); i++ )
 			{
 				nt.get_from_buffer( buff, TARGET_LIST_POS + nt.get_buffer_size() * i + offset );
