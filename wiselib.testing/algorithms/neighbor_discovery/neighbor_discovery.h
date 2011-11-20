@@ -167,12 +167,12 @@ namespace wiselib
 				uint8_t AVG_LQI_POS = 0;
 				uint8_t AVG_LQI_IN_POS = AVG_LQI_POS + sizeof(uint8_t);
 				uint8_t LINK_STAB_RATIO_POS = AVG_LQI_IN_POS + sizeof(uint8_t);
-				uint8_t LINK_STAB_RATIO_IN_POS = LINK_STAB_RATION_POS + sizeof(uint8_t);
+				uint8_t LINK_STAB_RATIO_IN_POS = LINK_STAB_RATIO_POS + sizeof(uint8_t);
 				write<Os, block_data_t, uint8_t>( _buff + AVG_LQI_POS + _offset, avg_LQI );
 				write<Os, block_data_t, uint8_t>( _buff + AVG_LQI_IN_POS + _offset, avg_LQI_inverse );
 				write<Os, block_data_t, uint8_t>( _buff + LINK_STAB_RATIO_POS + _offset, link_stab_ratio );
 				write<Os, block_data_t, uint8_t>( _buff + LINK_STAB_RATIO_IN_POS + _offset, link_stab_ratio_inverse );
-				return buff;
+				return _buff;
 			}
 			// --------------------------------------------------------------------
 			void de_serialize( block_data_t* _buff, size_t _offset = 0 )
@@ -180,7 +180,7 @@ namespace wiselib
 				uint8_t AVG_LQI_POS = 0;
 				uint8_t AVG_LQI_IN_POS = AVG_LQI_POS + sizeof(uint8_t);
 				uint8_t LINK_STAB_RATIO_POS = AVG_LQI_IN_POS + sizeof(uint8_t);
-				uint8_t LINK_STAB_RATIO_IN_POS = LINK_STAB_RATION_POS + sizeof(uint8_t);
+				uint8_t LINK_STAB_RATIO_IN_POS = LINK_STAB_RATIO_POS + sizeof(uint8_t);
 				avg_LQI = read<Os, block_data_t, uint8_t>( _buff + AVG_LQI_POS + _offset );
 				avg_LQI_inverse = read<Os, block_data_t, uint8_t>( _buff + AVG_LQI_IN_POS + _offset );
 				link_stab_ratio = read<Os, block_data_t, uint8_t>( _buff + LINK_STAB_RATIO_POS + _offset );
@@ -192,7 +192,7 @@ namespace wiselib
 				uint8_t AVG_LQI_POS = 0;
 				uint8_t AVG_LQI_IN_POS = AVG_LQI_POS + sizeof(uint8_t);
 				uint8_t LINK_STAB_RATIO_POS = AVG_LQI_IN_POS + sizeof(uint8_t);
-				uint8_t LINK_STAB_RATIO_IN_POS = LINK_STAB_RATION_POS + sizeof(uint8_t);
+				uint8_t LINK_STAB_RATIO_IN_POS = LINK_STAB_RATIO_POS + sizeof(uint8_t);
 				return LINK_STAB_RATIO_IN_POS + sizeof(uint8_t);
 			}
 			// --------------------------------------------------------------------
@@ -337,19 +337,19 @@ namespace wiselib
 				return consecutive_beacons_threshold;
 			}
 			// --------------------------------------------------------------------
-			void set_consecutive_beacons_threshold()
+			void set_consecutive_beacons_threshold( uint8_t _cb )
 			{
-				consecutive_beacons_threshold = cb;
+				consecutive_beacons_threshold = _cb;
 			}
 			// --------------------------------------------------------------------
-			void get_consecutive_beacons_lost_threshold()
+			uint8_t get_consecutive_beacons_lost_threshold()
 			{
 				return consecutive_beacons_lost_threshold;
 			}
 			// --------------------------------------------------------------------
-			uint8_t set_consecutive_beacons_lost_threshold()
+			void set_consecutive_beacons_lost_threshold( uint8_t _cblost )
 			{
-				consecutive_beacons_lost_threshold = cblost;
+				consecutive_beacons_lost_threshold = _cblost;
 			}
 			// --------------------------------------------------------------------
 			protocol_settings& operator=( const protocol_settings& _psett)
@@ -419,16 +419,22 @@ namespace wiselib
 			// --------------------------------------------------------------------
 			void set_payload_data( block_data_t* _pdata )
 			{
-				write<Os, block_data_t, payload_size>( _pdata, payload_data );
+				for ( uint8_t i = 0; i < payload_size; i++ )
+				{
+					payload_data[i] = _pdata[i];
+				}
 			}
 			// --------------------------------------------------------------------
 			void set_payload( block_data_t* _pdata, size_t _psize )
 			{
 				payload_size = _psize;
-				write<Os, block_data_t, payload_size>( _pdata, payload_data );
+				for ( uint8_t i = 0; i < payload_size; i++ )
+				{
+					payload_data[i] = _pdata[i];
+				}
 			}
 			// --------------------------------------------------------------------
-			block_data_t* serialize( block_data_t* _buff, _offset = 0 )
+			block_data_t* serialize( block_data_t* _buff, size_t _offset = 0 )
 			{
 				uint8_t NEIGH_SIZE_POS = 0;
 				uint8_t NEIGH_VECTOR_POS = NEIGH_SIZE_POS + sizeof( size_t );
@@ -438,20 +444,20 @@ namespace wiselib
 				{
 					neighborhood.at( i ).serialize( _buff, NEIGH_VECTOR_POS + i * neighborhood.at( i ).serial_size() + _offset );
 				}
-				return buff;
+				return _buff;
 			}
 			// --------------------------------------------------------------------
-			void de_serialize( block_data_t* _buff, _offset )
+			void de_serialize( block_data_t* _buff, size_t _offset )
 			{
 				uint8_t NEIGH_SIZE_POS = 0;
 				uint8_t NEIGH_VECTOR_POS = NEIGH_SIZE_POS + sizeof( size_t );
-				size_t neigh_size = read<Os, block_data_t, size_t>( buff + NEIGH_SIZE_POS + _offset );
+				size_t neigh_size = read<Os, block_data_t, size_t>( _buff + NEIGH_SIZE_POS + _offset );
 				neighborhood.clear();
 				neighbor n;
 				uint8_t NEIGH_ELEMS_POS = NEIGH_VECTOR_POS;
 				for ( size_t i = 0; i < neigh_size; i++ )
 				{
-					n.de_serialize( buff + NEIGH_ELEMS_POS );
+					n.de_serialize( _buff + NEIGH_ELEMS_POS );
 					NEIGH_ELEMS_POS = NEIGH_ELEMS_POS + n.serial_size();
 					neighborhood.push_back( n );
 				}
@@ -472,8 +478,11 @@ namespace wiselib
 			protocol& operator=( const protocol& _p )
 			{
 				prot_id = _p.prot_id;
-				write<Os, block_data_t, payload_size>( _p.payload_data, payload_data );
 				payload_size = _p.payload_size;
+				for ( uint8_t i = 0; i < payload_size; i++ )
+				{
+					payload_data[i] = _p.payload_data[i];
+				}
 				event_notifier_callback = _p.event_notifier_callback;
 				events_flag = _p.events_flag;
 				settings = _p.settings;
@@ -524,30 +533,30 @@ namespace wiselib
 			beacon( 0 );
 		};
 		// --------------------------------------------------------------------
-        void disable()
-        {
-            set_status( WAITING );
-            //TODO
-            //clear the lists
-            radio().template unreg_recv_callback( recv_callback_id_ );
-        };
-    	// --------------------------------------------------------------------
-    	void send( node_id_t _dest, size_t _len, block_data_t* _data, message_id_t _msg_id )
-    	{
-    		Message message;
-    		message.set_msg_id( _msg_id );
-    		message.set_payload( _len, _data );
-    		radio().send( _dest, message.buffer_size(), (uint8_t*) &message );
-    	}
-    	// --------------------------------------------------------------------
+		void disable()
+		{
+			set_status( WAITING );
+			//TODO
+			//clear the lists
+			radio().template unreg_recv_callback( recv_callback_id_ );
+		};
+		// --------------------------------------------------------------------
+		void send( node_id_t _dest, size_t _len, block_data_t* _data, message_id_t _msg_id )
+		{
+			Message message;
+			message.set_msg_id( _msg_id );
+			message.set_payload( _len, _data );
+			radio().send( _dest, message.buffer_size(), (uint8_t*) &message );
+		}
+		// --------------------------------------------------------------------
 		void beacon( void* _data )
 		{
 		}
 		// --------------------------------------------------------------------
-        void receive( node_id_t _from, size_t _len, block_data_t * _msg, ExData const &_ex )
-        {
-        }
-        // --------------------------------------------------------------------
+		void receive( node_id_t _from, size_t _len, block_data_t * _msg, ExData const &_ex )
+		{
+		}
+		// --------------------------------------------------------------------
 		uint8_t register_protocol_id( uint8_t _prot_id )
 		{
 			if ( protocols.max_size() == protocols.size() )
@@ -583,7 +592,7 @@ namespace wiselib
 			return INV_PROT_ID;
 		}
 		// --------------------------------------------------------------------
-		uint8_t register_protocol_settings( protocol_settings _psett )
+		uint8_t register_protocol_settings( uint8_t _prot_id, protocol_settings _psett )
 		{
 			for ( protocol_vector_iterator it = protocols.begin(); it != protocols.end(); ++it )
 			{
@@ -598,12 +607,12 @@ namespace wiselib
 		// --------------------------------------------------------------------
 		uint8_t register_protocol_payload( uint8_t _prot_id, block_data_t* _pdata, size_t _psize )
 		{
-			total_payload_size = 0;
+			uint8_t total_payload_size = 0;
 			for ( protocol_vector_iterator it = protocols.begin(); it != protocols.end(); ++it )
 			{
 				total_payload_size = it->get_payload_size() + total_payload_size;
 			}
-			if ( total_payload_size + sizeof(messsage_id_t) + sizeof(size_t) + _psize > Radio::MAX_MSG_LENGTH )
+			if ( total_payload_size + sizeof(message_id_t) + sizeof(size_t) + _psize > Radio::MAX_MSG_LENGTH )
 			{
 				return NO_PAYLOAD_SPACE;
 			}
@@ -620,12 +629,12 @@ namespace wiselib
 		// --------------------------------------------------------------------
 		uint8_t remaining_protocol_payload()
 		{
-			total_payload_size = 0;
+			uint8_t total_payload_size = 0;
 			for ( protocol_vector_iterator it = protocols.begin(); it != protocols.end(); ++it )
 			{
 				total_payload_size = it->get_payload_size() + total_payload_size;
 			}
-			return Radio::MAX_MSG_LENGTH - ( total_payload_size + sizeof(messsage_id_t) + sizeof(size_t) );
+			return Radio::MAX_MSG_LENGTH - ( total_payload_size + sizeof(message_id_t) + sizeof(size_t) );
 		}
 		// --------------------------------------------------------------------
 		template<class T, void(T::*TMethod)(uint8_t, node_id_t, uint8_t, uint8_t*) >
@@ -666,12 +675,12 @@ namespace wiselib
 			{
 				return PROT_LIST_FULL;
 			}
-			total_payload_size = 0;
+			uint8_t total_payload_size = 0;
 			for ( protocol_vector_iterator it = protocols.begin(); it != protocols.end(); ++it )
 			{
 				total_payload_size = it->get_payload_size() + total_payload_size;
 			}
-			if ( total_payload_size + sizeof(messsage_id_t) + sizeof(size_t) + _psize > Radio::MAX_MSG_LENGTH )
+			if ( total_payload_size + sizeof(message_id_t) + sizeof(size_t) + _psize > Radio::MAX_MSG_LENGTH )
 			{
 				return NO_PAYLOAD_SPACE;
 			}
