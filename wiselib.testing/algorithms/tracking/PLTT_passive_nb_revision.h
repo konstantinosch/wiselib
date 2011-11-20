@@ -35,7 +35,7 @@ template<typename Os_P, typename Node_P, typename PLTT_Node_P,
 		typename PLTT_SecureTrace_P,
 		typename PLTT_SecureTraceList_P,
 #endif
-		typename NeighborDiscovery_P, typename Timer_P, typename Radio_P,
+		typename NeighborDiscovery_old_P, typename Timer_P, typename Radio_P,
 		typename Rand_P, typename Clock_P, typename Debug_P>
 class PLTT_PassiveType
 {
@@ -63,8 +63,8 @@ public:
 	typedef typename PLTT_NodeTarget::IntensityNumber IntensityNumber;
 	typedef typename PLTT_Node::PLTT_NodeTargetList PLTT_NodeTargetList;
 	typedef typename PLTT_Node::PLTT_NodeTargetListIterator PLTT_NodeTargetListIterator;
-	typedef NeighborDiscovery_P NeighborDiscovery;
-	typedef typename NeighborDiscovery::node_info_vector_t NB_node_info_vector;
+	typedef NeighborDiscovery_old_P NeighborDiscovery_old;
+	typedef typename NeighborDiscovery_old::node_info_vector_t NB_node_info_vector;
 	typedef typename NB_node_info_vector::iterator NB_iterator;
 	typedef Timer_P Timer;
 	typedef Clock_P Clock;
@@ -79,11 +79,19 @@ public:
 	typedef typename NodeList::iterator NodeList_Iterator;
 	typedef PLTT_MessageType<Os, Radio> Message;
 #ifdef PLTT_SECURE
-	typedef PLTT_PassiveType<Os, Node, PLTT_Node, PLTT_NodeList, PLTT_Trace, PLTT_TraceList, PLTT_SecureTrace, PLTT_SecureTraceList, NeighborDiscovery, Timer, Radio, Rand, Clock, Debug> self_type;
+	typedef PLTT_PassiveType<Os, Node, PLTT_Node, PLTT_NodeList, PLTT_Trace, PLTT_TraceList, PLTT_SecureTrace, PLTT_SecureTraceList, NeighborDiscovery_old, Timer, Radio, Rand, Clock, Debug> self_type;
 	typedef PrivacyMessageType<Os, Radio> PrivacyMessage;
 #else
-	typedef PLTT_PassiveType<Os, Node, PLTT_Node, PLTT_NodeList, PLTT_Trace, PLTT_TraceList, NeighborDiscovery, Timer, Radio, Rand, Clock, Debug> self_type;
+	typedef PLTT_PassiveType<Os, Node, PLTT_Node, PLTT_NodeList, PLTT_Trace, PLTT_TraceList, NeighborDiscovery_old, Timer, Radio, Rand, Clock, Debug> self_type;
 #endif
+
+
+	typedef NeighborDiscovery<Os, Radio, Timer, Debug> NeighborDiscovery;
+	typedef typename NeighborDiscovery::protocol_settings protocol_settings;
+	typedef typename NeighborDiscovery::neighbor neighbor;
+	typedef typename NeighborDiscovery::protocol protocol;
+
+
 	// -----------------------------------------------------------------------
 	PLTT_PassiveType() :
 		radio_callback_id_(0), seconds_counter(1)
@@ -99,22 +107,69 @@ public:
 #ifdef PLTT_PASSIVE_DEBUG_MISC
 		debug().debug( "PLTT_Passive %x: Boot \n", self.get_node().get_id() );
 #endif
+		protocol_settings ps;
+		//ps.print( debug() );
+		//debug().debug( "-------------------------------------------------");
+		//debug().debug( "protocol_settings:");
+		//debug().debug( "max_avg_LQI_threshold : %i", ps.get_max_avg_LQI_threshold() );
+		//debug().debug( "min_avg_LQI_threshold : %i", ps.get_min_avg_LQI_threshold() );
+		//debug().debug( "max_avg_LQI_inverse_threshold : %i", ps.get_max_avg_LQI_inverse_threshold() );
+		//debug().debug( "min_avg_LQI_inverse_threshold : %i", ps.get_min_avg_LQI_inverse_threshold() );
+		//debug().debug( "max_link_stab_ratio_threshold : %i", ps.get_max_link_stab_ratio_threshold() );
+		//debug().debug( "min_link_stab_ratio_threshold : %i", ps.get_min_link_stab_ratio_threshold() );
+		//debug().debug( "max_link_stab_ratio_inverse_threshold : %i", ps.get_max_link_stab_ratio_inverse_threshold() );
+		//debug().debug( "min_link_stab_ratio_inverse_threshold : %i", ps.get_min_link_stab_ratio_inverse_threshold() );
+		//debug().debug( "consecutive_beacons_threshold : %i", ps.get_consecutive_beacons_threshold() );
+		//debug().debug( "consecutive_beacons_lost_threshold : %i", ps.get_consecutive_beacons_lost_threshold() );
+		//debug().debug( "events_flag : %i ", ps.get_events_flag() );
+		//debug().debug( "payload_size : %i ", ps.get_payload_size() );
+		//for ( uint8_t i = 0; i < ps.get_payload_size(); i++ )
+		//{
+		//	debug().debug( "payload %i 'th byte : %i", i, ps.get_payload_data()[i] );
+		//}
+		//debug().debug( "-------------------------------------------------");
+		neighbor n1(10,20,30,40,50,60,70,80,90);
+		block_data_t buff[100];
+		//debug().debug( "protocol_settings:");
+		ps.set_max_avg_LQI_threshold(1);
+		ps.set_min_avg_LQI_threshold(2);
+		ps.set_max_avg_LQI_inverse_threshold(3);
+		ps.set_min_avg_LQI_inverse_threshold(4);
+		ps.set_max_link_stab_ratio_threshold(5);
+		ps.set_min_link_stab_ratio_threshold(6);
+		ps.set_max_link_stab_ratio_inverse_threshold(7);
+		ps.set_min_link_stab_ratio_inverse_threshold(8);
+		ps.set_consecutive_beacons_threshold( 9 );
+		ps.set_consecutive_beacons_lost_threshold( 10 );
+		ps.set_events_flag( 50 );
+		ps.set_payload( n1.serialize( buff, 46 ), n1.serial_size(), 46 );
+		//ps.print( debug() );
+		//debug().debug( "-------------------------------------------------");
+		//n1.print( debug() );
+		//debug().debug( "-------------------------------------------------");
+		protocol_settings ps2;
+		//ps2.print( debug() );
+		//debug().debug( "-------------------------------------------------");
+		ps2 = ps;
+		//ps2.print( debug() );
+		protocol p;
+
 		radio().enable_radio();
 		TxPower power;
 		power.set_dB( transmission_power_dB);
 		radio().set_power( power );
 		millis_t r = rand()() % random_enable_timer_range;
-		timer().template set_timer<self_type, &self_type::neighbor_discovery_enable_task> (r, this, 0);
+		timer().template set_timer<self_type, &self_type::neighbor_discovery_oldenable_task> (r, this, 0);
 	}
 	// -----------------------------------------------------------------------
-	void neighbor_discovery_enable_task(void* userdata = NULL)
+	void neighbor_discovery_oldenable_task(void* userdata = NULL)
 	{
 #ifdef PLTT_PASSIVE_DEBUG_NEIGHBORHOOD_DISCOVERY
 		debug().debug( "PLTT_Passive %x: Neighbor discovery enable task \n", self.get_node().get_id() );
 #endif
 		block_data_t buff[Radio::MAX_MESSAGE_LENGTH];
 		self.get_node().get_position().set_buffer_from( buff );
-		uint8_t flags = NeighborDiscovery::NEW_PAYLOAD_BIDI|NeighborDiscovery::DROPPED_NB|NeighborDiscovery::LOST_NB_BIDI;
+		uint8_t flags = NeighborDiscovery_old::NEW_PAYLOAD_BIDI|NeighborDiscovery_old::DROPPED_NB|NeighborDiscovery_old::LOST_NB_BIDI;
 		neighbor_discovery().init( radio(), clock(), timer(), debug() );
 		neighbor_discovery().template reg_event_callback<self_type,	&self_type::sync_neighbors> ( 2, flags, this );
 		neighbor_discovery().register_payload_space( 2 );
@@ -123,10 +178,10 @@ public:
 		neighbor_discovery().register_debug_callback( 0 );
 #endif
 		neighbor_discovery().enable();
-		//timer().template set_timer<self_type, &self_type::neighbor_discovery_unregister_task> ( nb_convergence_time, this, 0 );
+		//timer().template set_timer<self_type, &self_type::neighbor_discovery_oldunregister_task> ( nb_convergence_time, this, 0 );
 	}
 	// -----------------------------------------------------------------------
-	void neighbor_discovery_unregister_task( void* userdata = NULL )
+	void neighbor_discovery_oldunregister_task( void* userdata = NULL )
 	{
 #ifdef PLTT_PASSIVE_DEBUG_NEIGHBORHOOD_DISCOVERY
 		debug().debug( "PLTT_Passive %x: Neighbor discovery unregister task \n", self.get_node().get_id() );
@@ -280,7 +335,7 @@ public:
 		#ifdef PLTT_PASSIVE_DEBUG_NEIGHBORHOOD_DISCOVERY
 		debug().debug( "PLTT_Passive %x: Sync neighbors\n", self.get_node().get_id() );
 		#endif
-		if ( event == NeighborDiscovery::DROPPED_NB || event == NeighborDiscovery::LOST_NB_BIDI )
+		if ( event == NeighborDiscovery_old::DROPPED_NB || event == NeighborDiscovery_old::LOST_NB_BIDI )
 		{
 			PLTT_NodeListIterator i = neighbors.begin();
 			while ( i != neighbors.end() )
@@ -296,7 +351,7 @@ public:
 				++i;
 			}
 		}
-		else if ( event == NeighborDiscovery::NEW_PAYLOAD_BIDI )
+		else if ( event == NeighborDiscovery_old::NEW_PAYLOAD_BIDI )
 		{
 			PLTT_NodeListIterator i = neighbors.begin();
 			while ( i != neighbors.end() )
@@ -895,14 +950,14 @@ public:
 	}
 	// -----------------------------------------------------------------------
 	void init(Radio& radio, Timer& timer, Debug& debug, Rand& rand,
-			Clock& clock, NeighborDiscovery& neighbor_discovery)
+			Clock& clock, NeighborDiscovery_old& neighbor_discovery)
 	{
 		radio_ = &radio;
 		timer_ = &timer;
 		debug_ = &debug;
 		rand_ = &rand;
 		clock_ = &clock;
-		neighbor_discovery_ = &neighbor_discovery;
+		neighbor_discovery_old = &neighbor_discovery;
 	}
 	// -----------------------------------------------------------------------
 	PLTT_NodeList* get_neighbors()
@@ -1062,9 +1117,9 @@ private:
 		return *clock_;
 	}
 	// -----------------------------------------------------------------------
-	NeighborDiscovery& neighbor_discovery()
+	NeighborDiscovery_old& neighbor_discovery()
 	{
-		return *neighbor_discovery_;
+		return *neighbor_discovery_old;
 	}
 	// -----------------------------------------------------------------------
 	Radio * radio_;
@@ -1072,6 +1127,7 @@ private:
 	Debug * debug_;
 	Rand * rand_;
 	Clock * clock_;
+	NeighborDiscovery_old * neighbor_discovery_old;
 	NeighborDiscovery * neighbor_discovery_;
 	enum MessageIds
 	{
