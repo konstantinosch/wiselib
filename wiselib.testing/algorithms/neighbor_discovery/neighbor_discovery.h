@@ -187,7 +187,7 @@ namespace wiselib
 				link_stab_ratio_inverse = read<Os, block_data_t, uint8_t>( _buff + LINK_STAB_RATIO_IN_POS + _offset );
 			}
 			// --------------------------------------------------------------------
-			uint8_t serial_size()
+			size_t serial_size()
 			{
 				uint8_t AVG_LQI_POS = 0;
 				uint8_t AVG_LQI_IN_POS = AVG_LQI_POS + sizeof(uint8_t);
@@ -252,6 +252,7 @@ namespace wiselib
 								uint8_t _minlsr_in,
 								uint8_t _cb,
 								uint8_t _cblost,
+								uint8_t _ef,
 								uint8_t _psize,
 								block_data_t* _pdata,
 								uint8_t _offset = 0	)
@@ -266,7 +267,7 @@ namespace wiselib
 				min_link_stab_ratio_inverse_threshold = _minlsr_in,
 				consecutive_beacons_threshold = _cb;
 				consecutive_beacons_lost_threshold = _cblost;
-				events_flag = NEW_NB | NEW_NB_BIDI | NEW_PAYLOAD | NEW_PAYLOAD_BIDI | LOST_NB | LOST_NB_BIDI;
+				events_flag = _ef;
 				payload_size = _psize;
 				payload_offset = _offset;
 				for ( uint8_t i = 0 + _offset; i < payload_size + _offset; i++ )
@@ -422,7 +423,7 @@ namespace wiselib
 				}
 			}
 			// --------------------------------------------------------------------
-			protocol_settings& operator=( const protocol_settings& _psett)
+			protocol_settings& operator=( const protocol_settings& _psett )
 			{
 				max_avg_LQI_threshold = _psett.max_avg_LQI_threshold;
 				min_avg_LQI_threshold = _psett.min_avg_LQI_threshold;
@@ -500,12 +501,12 @@ namespace wiselib
 			~protocol()
 			{}
 			// --------------------------------------------------------------------
-			uint8_t get_prot_id()
+			uint8_t get_protocol_id()
 			{
 				return prot_id;
 			}
 			// --------------------------------------------------------------------
-			void set_prot_id( uint8_t _pid )
+			void set_protocol_id( uint8_t _pid )
 			{
 				prot_id = _pid;
 			}
@@ -515,9 +516,10 @@ namespace wiselib
 				return event_notifier_callback;
 			}
 			// --------------------------------------------------------------------
-			void set_event_notifier_callback( event_notifier_delegate_t _enc )
+			template<class T, void(T::*TMethod)(uint8_t, node_id_t, uint8_t, uint8_t*) >
+			void set_event_notifier_callback( T *_obj_pnt )
 			{
-				event_notifier_callback = _enc;
+				event_notifier_callback = event_notifier_delegate_t::template from_method<T, TMethod > ( _obj_pnt );
 			}
 			// --------------------------------------------------------------------
 			protocol_settings get_protocol_settings()
@@ -538,7 +540,7 @@ namespace wiselib
 			void set_neighborhood( neighbor_vector& _nv )
 			{
 				neighborhood.clear();
-				for ( neighbor_vector_iterator it; it < _nv.size(); ++it )
+				for ( neighbor_vector_iterator it = _nv.begin(); it != _nv.end(); ++it )
 				{
 					neighborhood.push_back( *it );
 				}
@@ -570,7 +572,7 @@ namespace wiselib
 				return _buff;
 			}
 			// --------------------------------------------------------------------
-			void de_serialize( block_data_t* _buff, size_t _offset )
+			void de_serialize( block_data_t* _buff, size_t _offset = 0 )
 			{
 				uint8_t NEIGH_SIZE_POS = 0;
 				uint8_t NEIGH_VECTOR_POS = NEIGH_SIZE_POS + sizeof( size_t );
@@ -580,13 +582,13 @@ namespace wiselib
 				uint8_t NEIGH_ELEMS_POS = NEIGH_VECTOR_POS;
 				for ( size_t i = 0; i < neigh_size; i++ )
 				{
-					n.de_serialize( _buff + NEIGH_ELEMS_POS );
+					n.de_serialize( _buff + NEIGH_ELEMS_POS + _offset );
 					NEIGH_ELEMS_POS = NEIGH_ELEMS_POS + n.serial_size();
 					neighborhood.push_back( n );
 				}
 			}
 			// --------------------------------------------------------------------
-			void serial_size()
+			size_t serial_size()
 			{
 				uint8_t NEIGH_SIZE_POS = 0;
 				uint8_t NEIGH_VECTOR_POS = NEIGH_SIZE_POS + sizeof( size_t );
@@ -596,6 +598,21 @@ namespace wiselib
 					NEIGH_ELEMS_POS = it->serial_size() + NEIGH_ELEMS_POS;
 				}
 				return NEIGH_ELEMS_POS;
+			}
+			// --------------------------------------------------------------------
+			void print( Debug& debug )
+			{
+				debug.debug( "prot_id : %i", prot_id );
+				//debug.debug( "event_notifier_callback %x", event_notifier_callback );
+				debug.debug( "settings :");
+				settings.print( debug );
+				debug.debug( "neighborhood :");
+				for ( neighbor_vector_iterator it = neighborhood.begin(); it != neighborhood.end(); ++it )
+				{
+					debug.debug("------------------");
+					it->print( debug );
+				}
+				debug.debug("------------------");
 			}
 			// --------------------------------------------------------------------
 		private:
@@ -641,6 +658,7 @@ namespace wiselib
 		// --------------------------------------------------------------------
 		void beacon( void* _data )
 		{
+			timer().template set_timer<self_t, &self_t::beacon> ( beacon_period, this, 0 );
 		}
 		// --------------------------------------------------------------------
 		void receive( node_id_t _from, size_t _len, block_data_t * _msg, ExData const &_ex )

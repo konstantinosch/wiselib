@@ -90,6 +90,9 @@ public:
 	typedef typename NeighborDiscovery::protocol_settings protocol_settings;
 	typedef typename NeighborDiscovery::neighbor neighbor;
 	typedef typename NeighborDiscovery::protocol protocol;
+	typedef typename NeighborDiscovery::neighbor_vector neighbor_vector;
+	typedef typename NeighborDiscovery::neighbor_vector_iterator neighbor_vector_iterator;
+
 
 
 	// -----------------------------------------------------------------------
@@ -128,7 +131,23 @@ public:
 		//	debug().debug( "payload %i 'th byte : %i", i, ps.get_payload_data()[i] );
 		//}
 		//debug().debug( "-------------------------------------------------");
-		neighbor n1(10,20,30,40,50,60,70,80,90);
+		neighbor n0(10,20,30,40,50,60,70,80,90);
+		neighbor n1(11,21,31,41,51,61,71,81,91);
+		neighbor n2(12,22,32,42,52,62,72,82,92);
+		neighbor n3(13,23,33,43,53,63,73,83,93);
+		neighbor n4(14,24,34,44,54,64,74,84,94);
+		neighbor n5(15,25,35,45,55,65,75,85,95);
+		neighbor n6(16,26,36,46,56,66,76,86,96);
+		neighbor n7(17,27,37,47,57,67,77,87,97);
+		neighbor_vector neighs;
+		neighs.push_back( n1 );
+		neighs.push_back( n2 );
+		neighs.push_back( n3 );
+		neighs.push_back( n4 );
+		neighs.push_back( n5 );
+		neighs.push_back( n6 );
+		neighs.push_back( n7 );
+
 		block_data_t buff[100];
 		//debug().debug( "protocol_settings:");
 		ps.set_max_avg_LQI_threshold(1);
@@ -152,14 +171,45 @@ public:
 		//debug().debug( "-------------------------------------------------");
 		ps2 = ps;
 		//ps2.print( debug() );
-		protocol p;
+		protocol p1;
+		p1.template set_event_notifier_callback<self_type, &self_type::sync_neighbors>( this );
+		uint8_t event = 0;
+		node_id_t from = 0;
+		size_t len = 0;
+		block_data_t* data;
+		p1.get_event_notifier_callback()(event, from, len, data);
+		p1.set_protocol_id( 1 );
+		p1.set_protocol_settings( ps2 );
+		p1.set_neighborhood( neighs );
+		protocol p2 = p1;
+		//p2.print( debug() );
+		p2.get_event_notifier_callback()(event, from, len, data);
 
-		radio().enable_radio();
-		TxPower power;
-		power.set_dB( transmission_power_dB);
-		radio().set_power( power );
-		millis_t r = rand()() % random_enable_timer_range;
-		timer().template set_timer<self_type, &self_type::neighbor_discovery_oldenable_task> (r, this, 0);
+		block_data_t bouff[100];
+		protocol p3;
+		p3.de_serialize( p2.serialize( bouff, 37 ), 37 );
+		debug().debug(" protocol serial_size : %i", p3.serial_size() );
+		debug().debug(" neighbor serial_size : %i", n1.serial_size() );
+		p3.print( debug() );
+
+//		debug().debug(" prot_id : %i", p1.get_protocol_id() );
+//		debug().debug(" protocol_settings :");
+//		p1.get_protocol_settings().print( debug() );
+//		debug().debug(" neighborhood : ");
+//		for ( neighbor_vector_iterator it = p1.get_neighborhood()->begin(); it != p1.get_neighborhood()->end(); ++it )
+//		{
+//			debug().debug("----------^^--------");
+//			it->print( debug() );
+//		}
+//		debug().debug("------------------");
+
+		//radio().enable_radio();
+		//TxPower power;
+		//power.set_dB( transmission_power_dB);
+		//radio().set_power( power );
+		//millis_t r = rand()() % random_enable_timer_range;
+		//timer().template set_timer<self_type, &self_type::neighbor_discovery_oldenable_task> (r, this, 0);
+
 	}
 	// -----------------------------------------------------------------------
 	void neighbor_discovery_oldenable_task(void* userdata = NULL)
@@ -332,44 +382,45 @@ public:
 	// -----------------------------------------------------------------------
 	void sync_neighbors( uint8_t event, node_id_t from, uint8_t len, uint8_t* data )
 	{
-		#ifdef PLTT_PASSIVE_DEBUG_NEIGHBORHOOD_DISCOVERY
-		debug().debug( "PLTT_Passive %x: Sync neighbors\n", self.get_node().get_id() );
-		#endif
-		if ( event == NeighborDiscovery_old::DROPPED_NB || event == NeighborDiscovery_old::LOST_NB_BIDI )
-		{
-			PLTT_NodeListIterator i = neighbors.begin();
-			while ( i != neighbors.end() )
-			{
-				if ( i->get_node().get_id() == from )
-				{
-					#ifdef PLTT_PASSIVE_DEBUG_NEIGHBORHOOD_DISCOVERY
-					debug().debug( "PLTT_Passive %x: Erased neighbor %x due to BIDI / DROP requirements", self.get_node().get_id(), from );
-					#endif
-					neighbors.erase( i );
-					return;
-				}
-				++i;
-			}
-		}
-		else if ( event == NeighborDiscovery_old::NEW_PAYLOAD_BIDI )
-		{
-			PLTT_NodeListIterator i = neighbors.begin();
-			while ( i != neighbors.end() )
-			{
-				if ( i->get_node().get_id() == from )
-				{
-					Position p;
-					p.get_from_buffer( data );
-					i->get_node().set_position( p );
-					return;
-				}
-				++i;
-			}
-			Position p;
-			p.get_from_buffer( data );
-			Node n = Node( from , p );
-			neighbors.push_back( PLTT_Node( n ) );
-		}
+//		#ifdef PLTT_PASSIVE_DEBUG_NEIGHBORHOOD_DISCOVERY
+//		debug().debug( "PLTT_Passive %x: Sync neighbors\n", self.get_node().get_id() );
+//		#endif
+//		if ( event == NeighborDiscovery_old::DROPPED_NB || event == NeighborDiscovery_old::LOST_NB_BIDI )
+//		{
+//			PLTT_NodeListIterator i = neighbors.begin();
+//			while ( i != neighbors.end() )
+//			{
+//				if ( i->get_node().get_id() == from )
+//				{
+//					#ifdef PLTT_PASSIVE_DEBUG_NEIGHBORHOOD_DISCOVERY
+//					debug().debug( "PLTT_Passive %x: Erased neighbor %x due to BIDI / DROP requirements", self.get_node().get_id(), from );
+//					#endif
+//					neighbors.erase( i );
+//					return;
+//				}
+//				++i;
+//			}
+//		}
+//		else if ( event == NeighborDiscovery_old::NEW_PAYLOAD_BIDI )
+//		{
+//			PLTT_NodeListIterator i = neighbors.begin();
+//			while ( i != neighbors.end() )
+//			{
+//				if ( i->get_node().get_id() == from )
+//				{
+//					Position p;
+//					p.get_from_buffer( data );
+//					i->get_node().set_position( p );
+//					return;
+//				}
+//				++i;
+//			}
+//			Position p;
+//			p.get_from_buffer( data );
+//			Node n = Node( from , p );
+//			neighbors.push_back( PLTT_Node( n ) );
+//		}
+		debug().debug( "in callback");
 	}
 	// -----------------------------------------------------------------------
 	PLTT_Trace* store_inhibit_trace( PLTT_Trace trace, uint8_t inhibition_flag = 0 )
