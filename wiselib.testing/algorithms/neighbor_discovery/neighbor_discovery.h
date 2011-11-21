@@ -49,14 +49,14 @@ namespace wiselib
 			{}
 			// --------------------------------------------------------------------
 			neighbor(	node_id_t _id,
-						uint32_t _tbeac,
-						uint32_t _tbeac_exp,
-						uint8_t _alqi,
-						uint8_t _alqi_in,
-						uint8_t _lsratio,
-						uint8_t _lsration_in,
-						uint8_t _cb,
-						uint8_t _cb_lost )
+					uint32_t _tbeac,
+					uint32_t _tbeac_exp,
+					uint8_t _alqi,
+					uint8_t _alqi_in,
+					uint8_t _lsratio,
+					uint8_t _lsratio_in,
+					uint8_t _cb,
+					uint8_t _cb_lost )
 			{
 				id = _id;
 				total_beacons = _tbeac;
@@ -64,7 +64,7 @@ namespace wiselib
 				avg_LQI = _alqi;
 				avg_LQI_inverse = _alqi_in;
 				link_stab_ratio = _lsratio;
-				link_stab_ratio_inverse = _lsration_in;
+				link_stab_ratio_inverse = _lsratio_in;
 				consecutive_beacons = _cb;
 				consecutive_beacons_lost =  _cb_lost;
 			}
@@ -162,6 +162,20 @@ namespace wiselib
 				consecutive_beacons_lost = _cb_lost;
 			}
 			// --------------------------------------------------------------------
+			neighbor& operator=( const neighbor& _n )
+			{
+				id = _n.id;
+				total_beacons = _n.total_beacons;
+				total_beacons_expected = _n.total_beacons_expected;
+				avg_LQI = _n.avg_LQI;
+				avg_LQI_inverse = _n.avg_LQI_inverse;
+				link_stab_ratio = _n.link_stab_ratio;
+				link_stab_ratio_inverse = _n.link_stab_ratio_inverse;
+				consecutive_beacons = _n.consecutive_beacons;
+				consecutive_beacons_lost = _n.consecutive_beacons_lost;
+				return *this;
+			}
+			// --------------------------------------------------------------------
 			block_data_t* serialize( block_data_t* _buff, size_t _offset = 0 )
 			{
 				uint8_t AVG_LQI_POS = 0;
@@ -237,9 +251,9 @@ namespace wiselib
 				min_link_stab_ratio_inverse_threshold	( 0 ),
 				consecutive_beacons_threshold 			( 5 ),
 				consecutive_beacons_lost_threshold		( 5 ),
-				events_flag		( NEW_NB | NEW_NB_BIDI | NEW_PAYLOAD | NEW_PAYLOAD_BIDI | LOST_NB | LOST_NB_BIDI ),
-				payload_size	( 0 ),
-				payload_offset	( 0 )
+				events_flag								( NEW_NB | NEW_NB_BIDI | NEW_PAYLOAD | NEW_PAYLOAD_BIDI | LOST_NB | LOST_NB_BIDI ),
+				payload_size							( 0 ),
+				payload_offset							( 0 )
 			{}
 			// --------------------------------------------------------------------
 			protocol_settings(	uint8_t _maxLQI,
@@ -389,7 +403,7 @@ namespace wiselib
 				events_flag = _ef;
 			}
 			// --------------------------------------------------------------------
-			size_t get_payload_size()
+			uint8_t get_payload_size()
 			{
 				return payload_size;
 			}
@@ -491,11 +505,12 @@ namespace wiselib
 			uint8_t payload_offset;
 		};
 
-		class protocol
+		class protocol //fully tested
 		{
 		public:
 			protocol() :
-				prot_id			( 0 )
+				prot_id					( 0 ),
+				event_notifier_callback	( event_notifier_delegate_t::template from_method<protocol, &protocol::null_callback > ( this ) )
 			{}
 			// --------------------------------------------------------------------
 			~protocol()
@@ -522,6 +537,11 @@ namespace wiselib
 				event_notifier_callback = event_notifier_delegate_t::template from_method<T, TMethod > ( _obj_pnt );
 			}
 			// --------------------------------------------------------------------
+			void set_event_notifier_callback( event_notifier_delegate_t _enc )
+			{
+				event_notifier_callback = _enc;
+			}
+			// --------------------------------------------------------------------
 			protocol_settings get_protocol_settings()
 			{
 				return settings;
@@ -537,13 +557,9 @@ namespace wiselib
 				return &neighborhood;
 			}
 			// --------------------------------------------------------------------
-			void set_neighborhood( neighbor_vector& _nv )
+			void set_neighborhood( neighbor_vector _nv )
 			{
-				neighborhood.clear();
-				for ( neighbor_vector_iterator it = _nv.begin(); it != _nv.end(); ++it )
-				{
-					neighborhood.push_back( *it );
-				}
+				neighborhood = _nv;
 			}
 			// --------------------------------------------------------------------
 			protocol& operator=( const protocol& _p )
@@ -551,11 +567,7 @@ namespace wiselib
 				prot_id = _p.prot_id;
 				event_notifier_callback = _p.event_notifier_callback;
 				settings = _p.settings;
-				neighborhood.clear();
-				for ( neighbor_vector_iterator it; it < _p.neighborhood.size(); ++it )
-				{
-					neighborhood.push_back( *it );
-				}
+				neighborhood = _p.neighborhood;
 				return *this;
 			}
 			// --------------------------------------------------------------------
@@ -603,7 +615,6 @@ namespace wiselib
 			void print( Debug& debug )
 			{
 				debug.debug( "prot_id : %i", prot_id );
-				//debug.debug( "event_notifier_callback %x", event_notifier_callback );
 				debug.debug( "settings :");
 				settings.print( debug );
 				debug.debug( "neighborhood :");
@@ -614,6 +625,9 @@ namespace wiselib
 				}
 				debug.debug("------------------");
 			}
+			// --------------------------------------------------------------------
+			void null_callback( uint8_t null_event, node_id_t null_node_id, uint8_t null_len, uint8_t* null_data )
+			{}
 			// --------------------------------------------------------------------
 		private:
 			uint8_t prot_id;
@@ -636,15 +650,14 @@ namespace wiselib
 		{
 			radio().enable_radio();
 			recv_callback_id_ = radio().template reg_recv_callback<self_t, &self_t::receive>( this );
-			set_status( SEARCHING );
+			set_status( ACTIVE );
 			beacon( 0 );
 		};
 		// --------------------------------------------------------------------
 		void disable()
 		{
 			set_status( WAITING );
-			//TODO
-			//clear the lists
+			protocols.clear();
 			radio().template unreg_recv_callback( recv_callback_id_ );
 		};
 		// --------------------------------------------------------------------
@@ -658,171 +671,113 @@ namespace wiselib
 		// --------------------------------------------------------------------
 		void beacon( void* _data )
 		{
-			timer().template set_timer<self_t, &self_t::beacon> ( beacon_period, this, 0 );
+			if ( get_status() == ACTIVE )
+			{
+				timer().template set_timer<self_t, &self_t::beacon> ( beacon_period, this, 0 );
+			}
 		}
 		// --------------------------------------------------------------------
 		void receive( node_id_t _from, size_t _len, block_data_t * _msg, ExData const &_ex )
 		{
 		}
 		// --------------------------------------------------------------------
-		uint8_t register_protocol_id( uint8_t _prot_id )
-		{
-//			if ( protocols.max_size() == protocols.size() )
-//			{
-//				return PROT_LIST_FULL;
-//			}
-//			for ( protocol_vector_iterator it = protocols.begin(); it != protocols.end(); ++it )
-//			{
-//				if (it->prot_id == _prot_id )
-//				{
-//					return PROT_NUM_IN_USE;
-//				}
-//			}
-//			protocol p;
-//			p.prot_id = _prot_id;
-//			p.payload_size  = 0;
-//			p.events_flag = 0;
-//			p.event_notifier_callback = event_notifier_delegate_t();
-//			protocols.push_back( p );
-			return SUCCESS;
-		}
-		// --------------------------------------------------------------------
-		uint8_t unregister_protocol_id( uint8_t _prot_id )
-		{
-//			for ( protocol_vector_iterator it = protocols.begin(); it != protocols.end(); ++it )
-//			{
-//				if ( it->prot_id == _prot_id )
-//				{
-//					protocols.erase( it );
-//					return SUCCESS;
-//				}
-//			}
-			return INV_PROT_ID;
-		}
-		// --------------------------------------------------------------------
-		uint8_t register_protocol_settings( uint8_t _prot_id, protocol_settings _psett )
-		{
-//			for ( protocol_vector_iterator it = protocols.begin(); it != protocols.end(); ++it )
-//			{
-//				if ( it->prot_id == _prot_id )
-//				{
-//					it->settings = _psett;
-//					return SUCCESS;
-//				}
-//			}
-			return INV_PROT_ID;
-		}
-		// --------------------------------------------------------------------
-		uint8_t register_protocol_payload( uint8_t _prot_id, block_data_t* _pdata, size_t _psize )
-		{
-//			uint8_t total_payload_size = 0;
-//			for ( protocol_vector_iterator it = protocols.begin(); it != protocols.end(); ++it )
-//			{
-//				total_payload_size = it->get_payload_size() + total_payload_size;
-//			}
-//			if ( total_payload_size + sizeof(message_id_t) + sizeof(size_t) + _psize > Radio::MAX_MSG_LENGTH )
-//			{
-//				return NO_PAYLOAD_SPACE;
-//			}
-//			for ( protocol_vector_iterator it = protocols.begin(); it != protocols.end(); ++it )
-//			{
-//				if ( it->prot_id == _prot_id )
-//				{
-//					it->set_payload( _pdata, _psize );
-//					return SUCCESS;
-//				}
-//			}
-			return INV_PROT_ID;
-		}
-		// --------------------------------------------------------------------
-		uint8_t remaining_protocol_payload()
-		{
-//			uint8_t total_payload_size = 0;
-//			for ( protocol_vector_iterator it = protocols.begin(); it != protocols.end(); ++it )
-//			{
-//				total_payload_size = it->get_payload_size() + total_payload_size;
-//			}
-//			return Radio::MAX_MSG_LENGTH - ( total_payload_size + sizeof(message_id_t) + sizeof(size_t) );
-			return 0;
-		}
-		// --------------------------------------------------------------------
 		template<class T, void(T::*TMethod)(uint8_t, node_id_t, uint8_t, uint8_t*) >
-		uint8_t reg_protocol_event_callback( uint8_t _prot_id, uint8_t _events_flag, T *_obj_pnt )
+		uint8_t register_protocol( uint8_t _prot_id, protocol_settings _psett, T *_obj_pnt )
 		{
-//			for ( protocol_vector_iterator it = protocols.begin(); it != protocols.end(); ++it )
-//			{
-//				if ( it->prot_id == _prot_id )
-//				{
-//					it->event_notifier_callback = event_notifier_delegate_t::template from_method<T, TMethod > ( _obj_pnt );
-//					it->events_flag = _events_flag;
-//					return SUCCESS;
-//				}
-//			}
-			return INV_PROT_ID;
-		}
-		// --------------------------------------------------------------------
-        void unreg_protocol_event_callback( uint8_t _prot_id )
-		{
-//			for ( protocol_vector_iterator it = protocols.begin(); it != protocols.end(); ++it )
-//			{
-//				if ( it->prot_id == _prot_id )
-//				{
-//					it->event_notifier_callback = event_notifier_delegate_t();
-//					it->events_flag = 	protocol::NEW_NB | protocol::NEW_NB_BIDI |
-//										protocol::NEW_PAYLOAD | protocol::NEW_PAYLOAD_BIDI |
-//										protocol::LOST_NB | protocol::LOST_NB_BIDI;
-//					return SUCCESS;
-//				}
-//			}
-			return INV_PROT_ID;
-		}
-		// --------------------------------------------------------------------
-        template<class T, void(T::*TMethod)(uint8_t, node_id_t, uint8_t, uint8_t*) >
-        uint8_t register_protocol( uint8_t _prot_id, uint8_t _psett, block_data_t* _pdata, size_t _psize, uint8_t _events_flag, T *_obj_pnt )
-		{
-//        	if ( protocols.max_size() == protocols.size() )
-//			{
-//				return PROT_LIST_FULL;
-//			}
-//			uint8_t total_payload_size = 0;
-//			for ( protocol_vector_iterator it = protocols.begin(); it != protocols.end(); ++it )
-//			{
-//				total_payload_size = it->get_payload_size() + total_payload_size;
-//			}
-//			if ( total_payload_size + sizeof(message_id_t) + sizeof(size_t) + _psize > Radio::MAX_MSG_LENGTH )
-//			{
-//				return NO_PAYLOAD_SPACE;
-//			}
-//			for ( protocol_vector_iterator it = protocols.begin(); it != protocols.end(); ++it )
-//			{
-//				if ( it->prot_id == _prot_id )
-//				{
-//					return PROT_NUM_IN_USE;
-//				}
-//			}
-//			protocol p;
-//			p.prot_id = _prot_id;
-//			p.settings = _psett;
-//			p.set_payload( _pdata, _psize );
-//			p.event_notifier_callback = event_notifier_delegate_t::template from_method<T, TMethod > ( _obj_pnt );
-//			p.events_flag = _events_flag;
-//			protocols.push_back( p );
+			if ( protocols.max_size() == protocols.size() )
+			{
+				return PROT_LIST_FULL;
+			}
+			if ( _psett.get_payload_size() > protocol_max_payload_size )
+			{
+				return PAYLOAD_SIZE_OUT_OF_BOUNDS;
+			}
+			uint8_t total_payload_size = 0;
+			for ( protocol_vector_iterator it = protocols.begin(); it != protocols.end(); ++it )
+			{
+				total_payload_size = it->get_protocol_settings().get_payload_size() + total_payload_size;
+			}
+			if ( total_payload_size + sizeof(message_id_t) + sizeof(size_t) + _psett.get_payload_size() > Radio::MAX_MSG_LENGTH )
+			{
+				return NO_PAYLOAD_SPACE;
+			}
+			for ( protocol_vector_iterator it = protocols.begin(); it != protocols.end(); ++it )
+			{
+				if ( it->get_protocol_id() == _prot_id )
+				{
+					return PROT_NUM_IN_USE;
+				}
+			}
+			protocol p;
+			p.set_protocol_id( _prot_id );
+			p.set_protocol_settings( _psett );
+			p.set_event_notifier_callback( event_notifier_delegate_t::template from_method<T, TMethod > ( _obj_pnt ) );
+			protocols.push_back( p );
 			return SUCCESS;
 		}
 		// --------------------------------------------------------------------
-		void set_status( int _st )
+		uint8_t register_protocol( protocol p )
 		{
-			status = _st;
-		};
+			if ( protocols.max_size() == protocols.size() )
+			{
+				return PROT_LIST_FULL;
+			}
+			if ( p.get_protocol_settings().get_payload_size() > protocol_max_payload_size )
+			{
+				return PAYLOAD_SIZE_OUT_OF_BOUNDS;
+			}
+			uint8_t total_payload_size = 0;
+			for ( protocol_vector_iterator it = protocols.begin(); it != protocols.end(); ++it )
+			{
+				total_payload_size = it->get_protocol_settings().get_payload_size() + total_payload_size;
+			}
+			if ( total_payload_size + sizeof(message_id_t) + sizeof(size_t) + p.get_protocol_settings().get_payload_size() > Radio::MAX_MESSAGE_LENGTH )
+			{
+				return NO_PAYLOAD_SPACE;
+			}
+			for ( protocol_vector_iterator it = protocols.begin(); it != protocols.end(); ++it )
+			{
+				if ( it->get_protocol_id() == p.get_protocol_id() )
+				{
+					return PROT_NUM_IN_USE;
+				}
+			}
+			protocols.push_back( p );
+			return SUCCESS;
+		}
+		// --------------------------------------------------------------------
+		uint8_t unregister_protocol( uint8_t _prot_id )
+		{
+			for ( protocol_vector_iterator it = protocols.begin(); it != protocols.end(); ++it )
+			{
+				if ( it->get_protocol_id() == _prot_id )
+				{
+					protocols.erase( it );
+					return SUCCESS;
+				}
+			}
+			return INV_PROT_ID;
+		}
+		// --------------------------------------------------------------------
+		protocol get_protocol( uint8_t _prot_id )
+		{
+			for ( protocol_vector_iterator it = protocols.begin(); it != protocols.end(); ++it )
+			{
+				if ( it->get_protocol_id() == _prot_id )
+				{
+					return *it;
+				}
+			}
+		}
 		// --------------------------------------------------------------------
 		int get_status()
 		{
 			return status;
 		};
 		// --------------------------------------------------------------------
-		void set_beacon_period( millis_t _bp )
+		void set_status( int _st )
 		{
-			beacon_period =_bp;
+			status = _st;
 		};
 		// --------------------------------------------------------------------
 		millis_t get_beacon_period()
@@ -830,9 +785,9 @@ namespace wiselib
 			return beacon_period;
 		};
 		// --------------------------------------------------------------------
-		void set_transmission_power_dB( uint8_t _tpdB )
+		void set_beacon_period( millis_t _bp )
 		{
-			transmission_power_dB =_tpdB;
+			beacon_period =_bp;
 		};
 		// --------------------------------------------------------------------
 		uint8_t get_transmission_power_dB()
@@ -840,15 +795,30 @@ namespace wiselib
 			return transmission_power_dB;
 		};
 		// --------------------------------------------------------------------
-		void set_channel( uint8_t _ch )
+		void set_transmission_power_dB( uint8_t _tpdB )
 		{
-			channel =_ch;
+			transmission_power_dB =_tpdB;
 		};
 		// --------------------------------------------------------------------
 		uint8_t get_channel()
 		{
 			return channel;
 		};
+		// --------------------------------------------------------------------
+		void set_channel( uint8_t _ch )
+		{
+			channel =_ch;
+		};
+		// --------------------------------------------------------------------
+		uint8_t get_protocol_max_payload_size()
+		{
+			return protocol_max_payload_size;
+		}
+		// --------------------------------------------------------------------
+		void set_protocol_max_payload_size( uint8_t _pmps )
+		{
+			protocol_max_payload_size = _pmps;
+		}
 		// --------------------------------------------------------------------
 		Radio& radio()
 		{
@@ -870,28 +840,27 @@ namespace wiselib
 			return *debug_;
 		}
 		// --------------------------------------------------------------------
-
 		enum error_codes
 		{
 			SUCCESS = 0,
 			PROT_NUM_IN_USE = 1,
 			PROT_LIST_FULL = 2,
 			INV_PROT_ID = 3,
-			NO_PAYLOAD_SPACE = 4
+			NO_PAYLOAD_SPACE = 4,
+			PAYLOAD_SIZE_OUT_OF_BOUNDS = 5
 		};
-
 		enum neighbor_discovery_status
 		{
-			SEARCHING = 1,
+			ACTIVE = 1,
 			WAITING = 0
 		};
-
 		uint32_t recv_callback_id_;
         uint8_t status;
         millis_t beacon_period;
         uint8_t channel;
         uint8_t transmission_power_dB;
         protocol_vector protocols;
+        uint8_t protocol_max_payload_size;
         Radio * radio_;
         Clock * clock_;
         Timer * timer_;

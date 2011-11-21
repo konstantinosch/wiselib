@@ -172,26 +172,34 @@ public:
 		ps2 = ps;
 		//ps2.print( debug() );
 		protocol p1;
-		p1.template set_event_notifier_callback<self_type, &self_type::sync_neighbors>( this );
+
+
+
+		//p1.template set_event_notifier_callback<self_type, &self_type::sync_neighbors>( this );
 		uint8_t event = 0;
 		node_id_t from = 0;
 		size_t len = 0;
-		block_data_t* data;
-		p1.get_event_notifier_callback()(event, from, len, data);
+		block_data_t* data = NULL;
+
 		p1.set_protocol_id( 1 );
 		p1.set_protocol_settings( ps2 );
 		p1.set_neighborhood( neighs );
-		protocol p2 = p1;
-		//p2.print( debug() );
-		p2.get_event_notifier_callback()(event, from, len, data);
 
+		protocol p2 = p1;
+		p2.template set_event_notifier_callback<self_type, &self_type::sync_neighbors>( this );
+		p2.get_event_notifier_callback()(event, from, len, data);
+		p1.get_event_notifier_callback()(event, from, len, data);
+		p2.print( debug() );
 		block_data_t bouff[100];
 		protocol p3;
 		p3.de_serialize( p2.serialize( bouff, 37 ), 37 );
 		debug().debug(" protocol serial_size : %i", p3.serial_size() );
 		debug().debug(" neighbor serial_size : %i", n1.serial_size() );
 		p3.print( debug() );
-
+		NeighborDiscovery nb;
+		nb.register_protocol( p1 );
+		//nb.register_protocol( p2 );
+		//nb.register_protocol( p3 );
 //		debug().debug(" prot_id : %i", p1.get_protocol_id() );
 //		debug().debug(" protocol_settings :");
 //		p1.get_protocol_settings().print( debug() );
