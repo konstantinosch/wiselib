@@ -49,14 +49,14 @@ namespace wiselib
 			{}
 			// --------------------------------------------------------------------
 			neighbor(	node_id_t _id,
-					uint32_t _tbeac,
-					uint32_t _tbeac_exp,
-					uint8_t _alqi,
-					uint8_t _alqi_in,
-					uint8_t _lsratio,
-					uint8_t _lsratio_in,
-					uint8_t _cb,
-					uint8_t _cb_lost )
+						uint32_t _tbeac,
+						uint32_t _tbeac_exp,
+						uint8_t _alqi,
+						uint8_t _alqi_in,
+						uint8_t _lsratio,
+						uint8_t _lsratio_in,
+						uint8_t _cb,
+						uint8_t _cb_lost )
 			{
 				id = _id;
 				total_beacons = _tbeac;
@@ -552,9 +552,14 @@ namespace wiselib
 				settings = _ps;
 			}
 			// --------------------------------------------------------------------
-			inline neighbor_vector* get_neighborhood()
+			inline neighbor_vector* get_neighborhood_ref()
 			{
 				return &neighborhood;
+			}
+			// --------------------------------------------------------------------
+			inline neighbor_vector get_neighborhood()
+			{
+				return neighborhood;
 			}
 			// --------------------------------------------------------------------
 			void set_neighborhood( neighbor_vector _nv )
