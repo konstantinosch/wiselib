@@ -552,12 +552,12 @@ namespace wiselib
 				settings = _ps;
 			}
 			// --------------------------------------------------------------------
-			inline neighbor_vector* get_neighborhood_ref()
+			neighbor_vector* get_neighborhood_ref()
 			{
 				return &neighborhood;
 			}
 			// --------------------------------------------------------------------
-			inline neighbor_vector get_neighborhood()
+			neighbor_vector get_neighborhood()
 			{
 				return neighborhood;
 			}

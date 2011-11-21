@@ -198,6 +198,18 @@ public:
 		p3.print( debug() );
 		NeighborDiscovery nb;
 		nb.register_protocol( p1 );
+		debug().debug( "blaa");
+		for ( neighbor_vector_iterator it = p3.get_neighborhood_ref()->begin(); it != p3.get_neighborhood_ref()->end(); ++it )
+		{
+			it->print( debug() );
+		}
+		debug().debug( "blaaoum");
+		neighbor_vector nv = p3.get_neighborhood();
+		for ( neighbor_vector_iterator it = nv.begin(); it != nv.end(); ++it )
+		{
+			it->print( debug() );
+		}
+
 		//nb.register_protocol( p2 );
 		//nb.register_protocol( p3 );
 //		debug().debug(" prot_id : %i", p1.get_protocol_id() );
