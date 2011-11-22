@@ -186,32 +186,44 @@ public:
 		p1.set_neighborhood( neighs );
 
 		protocol p2 = p1;
+		p1.template set_event_notifier_callback<self_type, &self_type::sync_neighbors>( this );
 		p2.template set_event_notifier_callback<self_type, &self_type::sync_neighbors>( this );
 		p2.get_event_notifier_callback()(event, from, len, data);
 		p1.get_event_notifier_callback()(event, from, len, data);
-		p2.print( debug() );
-		block_data_t bouff[100];
-		protocol p3;
-		p3.de_serialize( p2.serialize( bouff, 37 ), 37 );
-		debug().debug(" protocol serial_size : %i", p3.serial_size() );
-		debug().debug(" neighbor serial_size : %i", n1.serial_size() );
-		p3.print( debug() );
+		//p2.print( debug() );
+		//block_data_t bouff[100];
+		//protocol p3;
+		//p3.de_serialize( p2.serialize( bouff, 37 ), 37 );
+		//debug().debug(" protocol serial_size : %i", p3.serial_size() );
+		//debug().debug(" neighbor serial_size : %i", n1.serial_size() );
+		//p3.print( debug() );
 		NeighborDiscovery nb;
-		nb.register_protocol( p1 );
-		debug().debug( "blaa");
-		for ( neighbor_vector_iterator it = p3.get_neighborhood_ref()->begin(); it != p3.get_neighborhood_ref()->end(); ++it )
-		{
-			it->print( debug() );
-		}
-		debug().debug( "blaaoum");
-		neighbor_vector nv = p3.get_neighborhood();
-		for ( neighbor_vector_iterator it = nv.begin(); it != nv.end(); ++it )
-		{
-			it->print( debug() );
-		}
+		debug().debug(" reg prot %i", nb.register_protocol( p1 ) );
+		//debug().debug( "blaa");
+		//for ( neighbor_vector_iterator it = p3.get_neighborhood_ref()->begin(); it != p3.get_neighborhood_ref()->end(); ++it )
+		//{
+		//	it->print( debug() );
+		//}
+		//debug().debug( "blaaoum");
+		//neighbor_vector nv = p3.get_neighborhood();
+		//for ( neighbor_vector_iterator it = nv.begin(); it != nv.end(); ++it )
+		//{
+		//	it->print( debug() );
+		//}
 
 		//nb.register_protocol( p2 );
 		//nb.register_protocol( p3 );
+		debug().debug("blaaaaaaa");
+		protocol* ptr = NULL;
+		protocol** ptr_ptr = &ptr;
+		if ( nb.get_protocol_ref( 1, ptr_ptr ) == NeighborDiscovery::SUCCESS )
+		{
+			debug().debug( " in ");
+			(*ptr_ptr)->get_event_notifier_callback()( event, from, len, data);
+			(*ptr_ptr)->print ( debug() );
+		}
+
+
 //		debug().debug(" prot_id : %i", p1.get_protocol_id() );
 //		debug().debug(" protocol_settings :");
 //		p1.get_protocol_settings().print( debug() );
