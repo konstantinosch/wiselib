@@ -110,12 +110,17 @@ public:
 #ifdef PLTT_PASSIVE_DEBUG_MISC
 		debug().debug( "PLTT_Passive %x: Boot \n", self.get_node().get_id() );
 #endif
-		NeighborDiscovery n;
-		n.enable();
+		//NeighborDiscovery n;
+		//n.enable();
 		//clock().seconds();
 		//radio().enable_radio();
-		//TxPower power;
+		TxPower power;
 		//power.set_dB( transmission_power_dB);
+		for (int i = 40; i > -100; i-- )
+		{
+			power.set_dB( -40 );
+			debug().debug( "db : %i vs %i", i, power.to_dB() );
+		}
 		//radio().set_power( power );
 		//millis_t r = rand()() % random_enable_timer_range;
 		//timer().template set_timer<self_type, &self_type::neighbor_discovery_oldenable_task> (r, this, 0);

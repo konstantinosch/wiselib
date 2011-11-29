@@ -1,7 +1,11 @@
 //	An implementation of a neighbor discovery protocol for providing neighbor information
-//	to multiple adaptive protocols... Documentation is available at: ahahahahahahahhhaaa...
+//	to multiple adaptive protocols.
 //
 //	complaints: chantzis.konstantinos@googlemail.com
+//
+//
+//
+//  P.S. I am not responsible for your misery. Oh and WISELIB blah blah blah...
 
 #ifndef NEIGHBOR_DISCOVERY_H
 #define	NEIGHBOR_DISCOVERY_H
@@ -52,7 +56,9 @@ namespace wiselib
 				consecutive_beacons				( 0 ),
 				consecutive_beacons_lost		( 0 ),
 				beacon_period					( 0 ),
-				beacon_period_update_counter	( 0 )
+				beacon_period_update_counter	( 0 ),
+				overflow_strategy				( RATIO_DIVIDER ),
+				ratio_divider					( 1 )
 			{}
 			// --------------------------------------------------------------------
 			neighbor(	node_id_t _id,
@@ -66,7 +72,9 @@ namespace wiselib
 						uint8_t _cb_lost,
 						millis_t _bp,
 						time_t _lb,
-						uint32_t _bpuc )
+						uint32_t _bpuc,
+						uint16_t _ofs,
+						uint32_t _rd )
 			{
 				id = _id;
 				total_beacons = _tbeac;
@@ -80,6 +88,8 @@ namespace wiselib
 				beacon_period = _bp;
 				last_beacon = _lb;
 				beacon_period_update_counter = _bpuc;
+				overflow_strategy = _ofs;
+				ratio_divider = _rd;
 			}
 			// --------------------------------------------------------------------
 			~neighbor()
@@ -101,8 +111,11 @@ namespace wiselib
 			}
 			void inc_total_beacons( uint32_t _tbeac = 1 )
 			{
-				//TODO OVERFLOW STRATEGY HERE
 				total_beacons = total_beacons + _tbeac;
+				if ( total_beacons == 0xffffffff )
+				{
+					resolve_overflow_strategy();
+				}
 			}
 			// --------------------------------------------------------------------
 			void set_total_beacons( uint32_t _tbeac )
@@ -117,8 +130,11 @@ namespace wiselib
 			// --------------------------------------------------------------------
 			void inc_total_beacons_expected( uint32_t _tbeac_exp = 1 )
 			{
-				//TODO OVERFLOW STRATEGY HERE
 				total_beacons_expected = total_beacons_expected + _tbeac_exp;
+				if ( total_beacons_expected == 0xffffffff )
+				{
+					resolve_overflow_strategy();
+				}
 			}
 			// --------------------------------------------------------------------
 			void set_total_beacons_expected( uint32_t _tbeac_exp )
@@ -243,6 +259,69 @@ namespace wiselib
 			{
 				beacon_period_update_counter = _bpuc;
 			}
+			// --------------------------------------------------------------------
+			uint8_t get_overflow_strategy()
+			{
+				return overflow_strategy;
+			}
+			// --------------------------------------------------------------------
+			void set_overflow_strategy( uint8_t _ofs )
+			{
+				overflow_strategy = _ofs;
+			}
+			// --------------------------------------------------------------------
+			uint32_t get_ratio_divider()
+			{
+				return ratio_divider;
+			}
+			// --------------------------------------------------------------------
+			void set_ratio_divider( uint32_t _rd )
+			{
+				if ( _rd == 0 )
+				{
+					_rd = 1;
+				}
+				ratio_divider = _rd;
+			}
+			// --------------------------------------------------------------------
+			void resolve_overflow_strategy()
+			{
+				if ( overflow_strategy & RESET_TOTAL_BEACONS )
+				{
+					total_beacons = 0;
+				}
+				if ( overflow_strategy & RESET_TOTAL_BEACONS_EXPECTED )
+				{
+					total_beacons_expected = 0;
+				}
+				if ( overflow_strategy & RESET_AVG_LQI )
+				{
+					avg_LQI = 0;
+				}
+				if ( overflow_strategy & RESET_AVG_LQI_INVERSE )
+				{
+					avg_LQI_inverse = 0;
+				}
+				if ( overflow_strategy & RESET_STAB )
+				{
+					link_stab_ratio = 0;
+				}
+				if ( overflow_strategy & RESET_STAB_INVERSE )
+				{
+					link_stab_ratio_inverse = 0;
+				}
+				if ( overflow_strategy == RATIO_DIVIDER )
+				{
+					total_beacons = total_beacons / get_ratio_divider();
+					total_beacons_expected = total_beacons_expected / get_ratio_divider();
+				}
+				else
+				{
+					total_beacons = total_beacons / get_ratio_divider();
+					total_beacons_expected = total_beacons_expected / get_ratio_divider();
+				}
+			}
+			// --------------------------------------------------------------------
 			neighbor& operator=( const neighbor& _n )
 			{
 				id = _n.id;
@@ -257,6 +336,8 @@ namespace wiselib
 				beacon_period = _n.beacon_period;
 				last_beacon = _n.last_beacon;
 				beacon_period_update_counter = _n.beacon_period_update_counter;
+				overflow_strategy = _n.overflow_strategy;
+				ratio_divider = _n.ratio_divider;
 				return *this;
 			}
 			// --------------------------------------------------------------------
@@ -290,7 +371,7 @@ namespace wiselib
 				link_stab_ratio = read<Os, block_data_t, uint8_t>( _buff + LINK_STAB_RATIO_POS + _offset );
 				link_stab_ratio_inverse = read<Os, block_data_t, uint8_t>( _buff + LINK_STAB_RATIO_IN_POS + _offset );
 				beacon_period = read<Os, block_data_t, millis_t>( _buff + BEACON_PERIOD_POS + _offset );
-				beacon_period_update_counter = write<Os, block_data_t, uint32_t>( _buff + BEACON_PERIOD_UPDATE_COUNTER_POS + _offset );
+				beacon_period_update_counter = read<Os, block_data_t, uint32_t>( _buff + BEACON_PERIOD_UPDATE_COUNTER_POS + _offset );
 			}
 			// --------------------------------------------------------------------
 			size_t serial_size()
@@ -318,9 +399,21 @@ namespace wiselib
 				debug.debug( "beacon_period : %d", beacon_period );
 				debug.debug( "last_beacon : %d", last_beacon );
 				debug.debug( "beacon_period_update_counter : %d", beacon_period_update_counter );
+				debug.debug( "overflow_strategy : %i", overflow_strategy );
+				debug.debug( "ratio_divider : %i", ratio_divider );
 			}
 			// --------------------------------------------------------------------
 		private:
+			enum overflow_strategy
+			{
+				RESET_TOTAL_BEACONS = 1,
+				RESET_TOTAL_BEACONS_EXPECTED = 2,
+				RESET_STAB = 4,
+				RESET_STAB_INVERSE = 6,
+				RESET_AVG_LQI = 8,
+				RESET_AVG_LQI_INVERSE = 16,
+				RATIO_DIVIDER = 32
+			};
 			node_id_t id;
 			uint32_t total_beacons;
 			uint32_t total_beacons_expected;
@@ -331,8 +424,10 @@ namespace wiselib
 			uint8_t consecutive_beacons;
 			uint8_t consecutive_beacons_lost;
 			millis_t beacon_period;
-			millis_t last_beacon;
+			time_t last_beacon;
 			uint32_t beacon_period_update_counter;
+			uint8_t overflow_strategy;
+			uint32_t ratio_divider;
 		};
 		typedef vector_static<Os, neighbor, NB_MAX_NEIGHBORS> neighbor_vector;
 		typedef typename neighbor_vector::iterator neighbor_vector_iterator;
@@ -402,30 +497,7 @@ namespace wiselib
 						payload_data[i] = _pdata[i];
 					}
 				}
-				if ( _tp_dB > 6 )
-				{
-					proposed_transmission_power_dB = 6;
-				}
-				else if ( _tp_dB < -30 )
-				{
-					proposed_transmission_power_dB = -30;
-				}
-				else
-				{
-					int8_t i = 6;
-					while( i >= -30 )
-					{
-						if ( ( ( i - _tp_dB ) <= 3 ) && ( ( i -_tp_dB ) >= 0 ) )
-						{
-							proposed_transmission_power_dB = i;
-						}
-						else if ( ( ( i - _tp_dB ) > 3 ) && ( ( i -_tp_dB ) <= 6 ) )
-						{
-							proposed_transmission_power_dB = i - 6;
-						}
-						i = i - 6;
-					}
-				}
+				proposed_transmission_power_dB = 6;
 				proposed_transmission_power_dB_weight = _tp_dB_w;
 				proposed_beacon_period = _pb;
 				proposed_beacon_period_weight = _pb_w;
@@ -551,30 +623,7 @@ namespace wiselib
 			// --------------------------------------------------------------------
 			void set_proposed_transmission_power_dB( int8_t _tp_dB )
 			{
-				if ( _tp_dB > 6 )
-				{
-					proposed_transmission_power_dB = 6;
-				}
-				else if ( _tp_dB < -30 )
-				{
-					proposed_transmission_power_dB = -30;
-				}
-				else
-				{
-					int8_t i = 6;
-					while( i >= -30 )
-					{
-						if ( ( ( i - _tp_dB ) <= 3 ) && ( ( i -_tp_dB ) >= 0 ) )
-						{
-							proposed_transmission_power_dB = i;
-						}
-						else if ( ( ( i - _tp_dB ) > 3 ) && ( ( i -_tp_dB ) <= 6 ) )
-						{
-							proposed_transmission_power_dB = i - 6;
-						}
-						i = i - 6;
-					}
-				}
+				proposed_transmission_power_dB = 6;
 			}
 			// --------------------------------------------------------------------
 			uint8_t get_proposed_transmission_power_dB_weight()
@@ -942,7 +991,7 @@ namespace wiselib
 			message.set_msg_id( _msg_id );
 			message.set_payload( _len, _data );
 			TxPower power;
-			power.set_dB( get_transmission_power_dB );
+			power.set_dB( get_transmission_power_dB() );
 			radio().set_channel( get_channel() );
 			radio().set_power( power );
 			radio().send( _dest, message.buffer_size(), (uint8_t*) &message );
@@ -1206,9 +1255,9 @@ namespace wiselib
 				millis_t least = 0xfff;
 				for ( protocol_vector_iterator it = protocols.begin(); it != protocols.end(); ++it )
 				{
-					if ( it->get_proposed_beacon_period() < least )
+					if ( it->get_protocol_settings_ref()->get_proposed_beacon_period() < least )
 					{
-						least = it->get_proposed_beacon_period();
+						least = it->get_protocol_settings_ref()->get_proposed_beacon_period();
 					}
 				}
 				return least;
@@ -1219,7 +1268,7 @@ namespace wiselib
 				sum = num = 0;
 				for ( protocol_vector_iterator it = protocols.begin(); it != protocols.end(); ++it )
 				{
-					sum = it->get_proposed_beacon_period() + sum;
+					sum = it->get_protocol_settings_ref()->get_proposed_beacon_period() + sum;
 					num = num + 1;
 				}
 				millis_t mean = sum / num;
@@ -1231,8 +1280,8 @@ namespace wiselib
 				sum = num = 0;
 				for ( protocol_vector_iterator it = protocols.begin(); it != protocols.end(); ++it )
 				{
-					sum = it->get_proposed_beacon_period() * it->get_proposed_beacon_period_weight() + sum;
-					num = it->get_proposed_beacon_period_weight() + num;
+					sum = it->get_protocol_settings_ref()->get_proposed_beacon_period() * it->get_protocol_settings_ref()->get_proposed_beacon_period_weight() + sum;
+					num = it->get_protocol_settings_ref()->get_proposed_beacon_period_weight() + num;
 				}
 				millis_t weighted_mean = sum / num;
 				return weighted_mean;
@@ -1243,34 +1292,6 @@ namespace wiselib
 		void set_beacon_period( millis_t _bp )
 		{
 			beacon_period =_bp;
-		}
-		// --------------------------------------------------------------------
-		int8_t normalize_transmission_power_dB( int8_t _tp_dB )
-		{
-			if ( _tp_dB > 6 )
-			{
-				return 6;
-			}
-			else if ( _tp_dB < -30 )
-			{
-				return -30;
-			}
-			else
-			{
-				int8_t i = 6;
-				while( i >= -30 )
-				{
-					if ( ( ( i - _tp_dB ) <= 3 ) && ( ( i -_tp_dB ) >= 0 ) )
-					{
-						return i;
-					}
-					else if ( ( ( i - _tp_dB ) > 3 ) && ( ( i -_tp_dB ) <= 6 ) )
-					{
-						return ( i - 6 );
-					}
-					return - 6;
-				}
-			}
 		}
 		// --------------------------------------------------------------------
 		int8_t get_transmission_power_dB()
@@ -1284,9 +1305,9 @@ namespace wiselib
 				int8_t least = 128;
 				for ( protocol_vector_iterator it = protocols.begin(); it != protocols.end(); ++it )
 				{
-					if ( it->get_proposed_transmission_power_dB() < least )
+					if ( it->get_protocol_settings_ref()->get_proposed_transmission_power_dB() < least )
 					{
-						least = it->get_proposed_transmission_power_dB();
+						least = it->get_protocol_settings_ref()->get_proposed_transmission_power_dB();
 					}
 				}
 				return least;
@@ -1297,11 +1318,11 @@ namespace wiselib
 				sum = num = 0;
 				for ( protocol_vector_iterator it = protocols.begin(); it != protocols.end(); ++it )
 				{
-					sum = it->get_proposed_transmission_power_dB() + sum;
+					sum = it->get_protocol_settings_ref()->get_proposed_transmission_power_dB() + sum;
 					num = num + 1;
 				}
 				int8_t mean = sum / num;
-				return self_t::normalize_transmission_power_dB( mean );
+				return mean;
 			}
 			else if ( transmission_power_dB_strategy == WEIGHTED_MEAN_TRANSM )
 			{
@@ -1309,18 +1330,18 @@ namespace wiselib
 				sum = num = 0;
 				for ( protocol_vector_iterator it = protocols.begin(); it != protocols.end(); ++it )
 				{
-					sum = it->get_proposed_transmission_power_dB() * it->get_proposed_transmission_power_dB_weight() + sum;
-					num = it->get_proposed_transmission_power_dB_weight() + num;
+					sum = it->get_protocol_settings_ref()->get_proposed_transmission_power_dB() * it->get_protocol_settings_ref()->get_proposed_transmission_power_dB_weight() + sum;
+					num = it->get_protocol_settings_ref()->get_proposed_transmission_power_dB_weight() + num;
 				}
 				int8_t weighted_mean = sum / num;
-				return self_t::normalize_transmission_power_dB( weighted_mean );
+				return weighted_mean;
 			}
 			return transmission_power_dB;
 		}
 		// --------------------------------------------------------------------
 		void set_transmission_power_dB( int8_t _tp_dB )
 		{
-			 transmission_power_dB = normalize_transmission_power_dB( _tp_dB );
+			 transmission_power_dB = _tp_dB;
 		}
 		// --------------------------------------------------------------------
 		uint8_t get_channel()
