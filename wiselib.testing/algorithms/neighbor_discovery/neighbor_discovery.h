@@ -5,7 +5,7 @@
 //
 //
 //
-//  P.S. I am not responsible for your misery. Oh and WISELIB blah blah blah...
+//  P.S. I am not responsible for your misery.
 
 #ifndef NEIGHBOR_DISCOVERY_H
 #define	NEIGHBOR_DISCOVERY_H
@@ -42,10 +42,14 @@ namespace wiselib
 		typedef NeighborDiscovery<Os, Radio, Timer, Debug> self_t;
 		typedef NeighborDiscovery_MessageType<Os, Radio> Message;
 
-		class neighbor
+		// --------------------------------------------------------------------
+		// --------------------------------------------------------------------
+		// --------------------------------------------------------------------
+
+		class Neighbor
 		{
 		public:
-			neighbor()	:
+			Neighbor()	:
 				id								( 0 ),
 				total_beacons					( 0 ),
 				total_beacons_expected			( 0 ),
@@ -56,12 +60,10 @@ namespace wiselib
 				consecutive_beacons				( 0 ),
 				consecutive_beacons_lost		( 0 ),
 				beacon_period					( 0 ),
-				beacon_period_update_counter	( 0 ),
-				overflow_strategy				( RATIO_DIVIDER ),
-				ratio_divider					( 1 )
+				beacon_period_update_counter	( 0 )
 			{}
 			// --------------------------------------------------------------------
-			neighbor(	node_id_t _id,
+			Neighbor(	node_id_t _id,
 						uint32_t _tbeac,
 						uint32_t _tbeac_exp,
 						uint8_t _alqi,
@@ -72,9 +74,7 @@ namespace wiselib
 						uint8_t _cb_lost,
 						millis_t _bp,
 						time_t _lb,
-						uint32_t _bpuc,
-						uint16_t _ofs,
-						uint32_t _rd )
+						uint32_t _bpuc )
 			{
 				id = _id;
 				total_beacons = _tbeac;
@@ -88,11 +88,9 @@ namespace wiselib
 				beacon_period = _bp;
 				last_beacon = _lb;
 				beacon_period_update_counter = _bpuc;
-				overflow_strategy = _ofs;
-				ratio_divider = _rd;
 			}
 			// --------------------------------------------------------------------
-			~neighbor()
+			~Neighbor()
 			{}
 			// --------------------------------------------------------------------
 			node_id_t get_id()
@@ -260,68 +258,6 @@ namespace wiselib
 				beacon_period_update_counter = _bpuc;
 			}
 			// --------------------------------------------------------------------
-			uint8_t get_overflow_strategy()
-			{
-				return overflow_strategy;
-			}
-			// --------------------------------------------------------------------
-			void set_overflow_strategy( uint8_t _ofs )
-			{
-				overflow_strategy = _ofs;
-			}
-			// --------------------------------------------------------------------
-			uint32_t get_ratio_divider()
-			{
-				return ratio_divider;
-			}
-			// --------------------------------------------------------------------
-			void set_ratio_divider( uint32_t _rd )
-			{
-				if ( _rd == 0 )
-				{
-					_rd = 1;
-				}
-				ratio_divider = _rd;
-			}
-			// --------------------------------------------------------------------
-			void resolve_overflow_strategy()
-			{
-				if ( overflow_strategy & RESET_TOTAL_BEACONS )
-				{
-					total_beacons = 0;
-				}
-				if ( overflow_strategy & RESET_TOTAL_BEACONS_EXPECTED )
-				{
-					total_beacons_expected = 0;
-				}
-				if ( overflow_strategy & RESET_AVG_LQI )
-				{
-					avg_LQI = 0;
-				}
-				if ( overflow_strategy & RESET_AVG_LQI_INVERSE )
-				{
-					avg_LQI_inverse = 0;
-				}
-				if ( overflow_strategy & RESET_STAB )
-				{
-					link_stab_ratio = 0;
-				}
-				if ( overflow_strategy & RESET_STAB_INVERSE )
-				{
-					link_stab_ratio_inverse = 0;
-				}
-				if ( overflow_strategy == RATIO_DIVIDER )
-				{
-					total_beacons = total_beacons / get_ratio_divider();
-					total_beacons_expected = total_beacons_expected / get_ratio_divider();
-				}
-				else
-				{
-					total_beacons = total_beacons / get_ratio_divider();
-					total_beacons_expected = total_beacons_expected / get_ratio_divider();
-				}
-			}
-			// --------------------------------------------------------------------
 			neighbor& operator=( const neighbor& _n )
 			{
 				id = _n.id;
@@ -336,8 +272,6 @@ namespace wiselib
 				beacon_period = _n.beacon_period;
 				last_beacon = _n.last_beacon;
 				beacon_period_update_counter = _n.beacon_period_update_counter;
-				overflow_strategy = _n.overflow_strategy;
-				ratio_divider = _n.ratio_divider;
 				return *this;
 			}
 			// --------------------------------------------------------------------
@@ -353,8 +287,6 @@ namespace wiselib
 				write<Os, block_data_t, uint8_t>( _buff + AVG_LQI_IN_POS + _offset, avg_LQI_inverse );
 				write<Os, block_data_t, uint8_t>( _buff + LINK_STAB_RATIO_POS + _offset, link_stab_ratio );
 				write<Os, block_data_t, uint8_t>( _buff + LINK_STAB_RATIO_IN_POS + _offset, link_stab_ratio_inverse );
-				write<Os, block_data_t, millis_t>( _buff + BEACON_PERIOD_POS + _offset, beacon_period );
-				write<Os, block_data_t, uint32_t>( _buff + BEACON_PERIOD_UPDATE_COUNTER_POS + _offset, beacon_period_update_counter );
 				return _buff;
 			}
 			// --------------------------------------------------------------------
@@ -370,8 +302,6 @@ namespace wiselib
 				avg_LQI_inverse = read<Os, block_data_t, uint8_t>( _buff + AVG_LQI_IN_POS + _offset );
 				link_stab_ratio = read<Os, block_data_t, uint8_t>( _buff + LINK_STAB_RATIO_POS + _offset );
 				link_stab_ratio_inverse = read<Os, block_data_t, uint8_t>( _buff + LINK_STAB_RATIO_IN_POS + _offset );
-				beacon_period = read<Os, block_data_t, millis_t>( _buff + BEACON_PERIOD_POS + _offset );
-				beacon_period_update_counter = read<Os, block_data_t, uint32_t>( _buff + BEACON_PERIOD_UPDATE_COUNTER_POS + _offset );
 			}
 			// --------------------------------------------------------------------
 			size_t serial_size()
@@ -380,9 +310,7 @@ namespace wiselib
 				uint8_t AVG_LQI_IN_POS = AVG_LQI_POS + sizeof(uint8_t);
 				uint8_t LINK_STAB_RATIO_POS = AVG_LQI_IN_POS + sizeof(uint8_t);
 				uint8_t LINK_STAB_RATIO_IN_POS = LINK_STAB_RATIO_POS + sizeof(uint8_t);
-				uint8_t BEACON_PERIOD_POS = LINK_STAB_RATIO_IN_POS + sizeof(uint8_t);
-				uint8_t BEACON_PERIOD_UPDATE_COUNTER_POS = BEACON_PERIOD_POS + sizeof(millis_t);
-				return BEACON_PERIOD_UPDATE_COUNTER_POS + sizeof(uint32_t);
+				return LINK_STAB_RATION_IN_POS + sizeof( uint8_t );
 			}
 			// --------------------------------------------------------------------
 			void print( Debug& debug )
@@ -399,21 +327,10 @@ namespace wiselib
 				debug.debug( "beacon_period : %d", beacon_period );
 				debug.debug( "last_beacon : %d", last_beacon );
 				debug.debug( "beacon_period_update_counter : %d", beacon_period_update_counter );
-				debug.debug( "overflow_strategy : %i", overflow_strategy );
-				debug.debug( "ratio_divider : %i", ratio_divider );
 			}
 			// --------------------------------------------------------------------
 		private:
-			enum overflow_strategy
-			{
-				RESET_TOTAL_BEACONS = 1,
-				RESET_TOTAL_BEACONS_EXPECTED = 2,
-				RESET_STAB = 4,
-				RESET_STAB_INVERSE = 6,
-				RESET_AVG_LQI = 8,
-				RESET_AVG_LQI_INVERSE = 16,
-				RATIO_DIVIDER = 32
-			};
+
 			node_id_t id;
 			uint32_t total_beacons;
 			uint32_t total_beacons_expected;
@@ -426,11 +343,156 @@ namespace wiselib
 			millis_t beacon_period;
 			time_t last_beacon;
 			uint32_t beacon_period_update_counter;
-			uint8_t overflow_strategy;
-			uint32_t ratio_divider;
+			typedef vector_static<Os, Neighbor, NB_MAX_NEIGHBORS> Neighbor_vector;
+			typedef typename Neighbor_vector::iterator Neighbor_vector_iterator;
 		};
-		typedef vector_static<Os, neighbor, NB_MAX_NEIGHBORS> neighbor_vector;
-		typedef typename neighbor_vector::iterator neighbor_vector_iterator;
+
+		// --------------------------------------------------------------------
+		// --------------------------------------------------------------------
+		// --------------------------------------------------------------------
+
+		class ProtocolPayload
+		{
+		public:
+			ProtocolPayload() :
+				payload_size		( NB_MAX_PROTOCOL_PAYLOAD_SIZE )
+			{}
+			// --------------------------------------------------------------------
+			ProtocolPayload( size_t _ps, block_data_t* _pd, size_t _offset = 0 )
+			{
+				if ( _psize <= NB_MAX_PROTOCOL_PAYLOAD_SIZE )
+				{
+					payload_size = _psize;
+					for ( size_t i = 0; i < payload_size; i++ )
+					{
+						payload_data[i] = _pdata[i + _offset];
+					}
+				}
+			}
+			// --------------------------------------------------------------------
+			~ProtocolPayload()
+			{}
+			// --------------------------------------------------------------------
+			uint8_t get_protocol_id()
+			{
+				return prot_id;
+			}
+			// --------------------------------------------------------------------
+			void set_protocol_id( uint8_t _pid )
+			{
+				protocol_id = _pid;
+			}
+			// --------------------------------------------------------------------
+			size_t get_payload_size()
+			{
+				return payload_size;
+			}
+			// --------------------------------------------------------------------
+			size_t get_max_payload_size()
+			{
+				return NB_MAX_PROTOCOL_PAYLOAD_SIZE;
+			}
+			// --------------------------------------------------------------------
+			void set_payload_size( size_t _psize )
+			{
+				if ( _psize <= NB_MAX_PROTOCOL_PAYLOAD_SIZE )
+				{
+					payload_size = _psize;
+				}
+			}
+			// --------------------------------------------------------------------
+			block_data_t* get_payload_data()
+			{
+				return payload_data;
+			}
+			// --------------------------------------------------------------------
+			void set_payload_data( block_data_t* _pdata, size_t _offset = 0 )
+			{
+				for ( size_t i = 0; i < payload_size; i++ )
+				{
+					payload_data[i] = _pdata[i + _offset];
+				}
+			}
+			// --------------------------------------------------------------------
+			void set_payload( block_data_t* _pdata, size_t _psize, size_t _offset = 0 )
+			{
+				if ( _psize <= NB_MAX_PROTOCOL_PAYLOAD_SIZE )
+				{
+					payload_size = _psize;
+					for ( size_t i = 0; i < payload_size; i++ )
+					{
+						payload_data[i] = _pdata[i + _offset];
+					}
+				}
+			}
+			// --------------------------------------------------------------------
+			ProtocolPayload& operator=( const protocol_payload& _pp )
+			{
+				protocol_id = _pp.protocol_id;
+				payload_size = _pp.payload_size;
+				for ( size_t i = 0 ; i < payload_size; i++ )
+				{
+					payload_data[i] = _pp.payload_data[i];
+				}
+			}
+			// --------------------------------------------------------------------
+			void print( Debug& debug )
+			{
+				debug.debug( "protocol_id : %i ", protocol_id );
+				debug.debug( "payload_size : %i ", payload_size );
+				for ( size_t i = 0; i < payload_size; i++ )
+				{
+					debug.debug( "payload %i 'th byte : %i", i, payload_data[i] );
+				}
+			}
+			// --------------------------------------------------------------------
+			block_data_t* serialize( block_data_t* _buff, size_t _offset = 0 )
+			{
+				uint8_t PROTOCOL_ID_POS = 0;
+				uint8_t PAYLOAD_SIZE_POS = PROTOCOL_ID_POS + sizeof(uint8_t);
+				uint8_t PAYLOAD_DATA_POS = PAYLOAD_SIZE_POS + sizeof(size_t);
+				write<Os, block_data_t, uint8_t>( _buff + PROTOCOL_ID_POS + _offset, protocol_id );
+				write<Os, block_data_t, size_t>( _buff + PAYLOAD_SIZE_POS + _offset, payload_size );
+				for ( size_t i = 0 ; i < payload_size; i++ )
+				{
+					_buff[i + _offset] = payload_data[i];
+				}
+				return _buff;
+			}
+			// --------------------------------------------------------------------
+			void de_serialize( block_data_t* _buff, size_t _offset = 0 )
+			{
+				uint8_t PROTOCOL_ID_POS = 0;
+				uint8_t PAYLOAD_SIZE_POS = PROTOCOL_ID_POS + sizeof(uint8_t);
+				uint8_t PAYLOAD_DATA_POS = PAYLOAD_SIZE_POS + sizeof(size_t);
+				protocol_id = read<Os, block_data_t, uint8_t>( _buff + PROTOCOL_ID_POS + _offset );
+				payload_size = read<Os, block_data_t, size_t>( _buff + PAYLOAD_SIZE_POS + _offset );
+				for ( size_t i = 0 ; i < payload_size; i++ )
+				{
+					 payload_data[i] = _buff[i + _offset];
+				}
+			}
+			// --------------------------------------------------------------------
+			size_t serial_size()
+			{
+				uint8_t PROTOCOL_ID_POS = 0;
+				uint8_t PAYLOAD_SIZE_POS = PROTOCOL_ID_POS + sizeof(uint8_t);
+				uint8_t PAYLOAD_DATA_POS = PAYLOAD_SIZE_POS + sizeof(size_t);
+				return PAYLOAD_DATA_POS + sizeof( block_data_t) * payload_size;
+			}
+			// --------------------------------------------------------------------
+		private:
+			uint8_t protocol_id;
+			size_t payload_size;
+			block_data_t payload_data[NB_MAX_PROTOCOL_PAYLOAD_SIZE];
+			size_t payload_offset;
+			typedef vector_static<Os, ProtocolPayload, NB_MAX_REGISTERED_PROTOCOLS> ProtocolPayload_vector;
+			typedef typename ProtocolPayload_vector::iterator ProtocolPayload_vector_iterator;
+		};
+
+		// --------------------------------------------------------------------
+		// --------------------------------------------------------------------
+		// --------------------------------------------------------------------
 
 		class protocol_settings
 		{
@@ -448,13 +510,12 @@ namespace wiselib
 				consecutive_beacons_lost_threshold		( NB_CONSECUTIVE_BEACONS_LOST_THRESHOLD ),
 				events_flag								(	NEW_NB	|	NEW_NB_BIDI		|	NEW_PAYLOAD		|	NEW_PAYLOAD_BIDI	|
 															LOST_NB	|	LOST_NB_BIDI	|	TRANS_DB_UPDATE	|	BEACON_PERIOD_UPDATE	),
-				payload_size							( NB_MAX_PROTOCOL_PAYLOAD_SIZE ),
-				max_payload_size						( NB_MAX_PROTOCOL_PAYLOAD_SIZE ),
 				proposed_transmission_power_dB			( NB_PROPOSED_TRANSMISSION_POWER_DB ),
 				proposed_transmission_power_dB_weight	( NB_PROPOSED_TRANSMISSION_POWER_DB_WEIGHT ),
 				proposed_beacon_period					( NB_PROPOSED_BEACON_PERIOD ),
 				proposed_beacon_period_weight			( NB_PROPOSED_BEACON_PERIOD_WEIGHT ),
-				payload_offset							( NB_PAYLOAD_OFFSET )
+				overflow_strategy						( RATIO_DIVIDER ),
+				ratio_divider							( NB_RATIO_DIVIDER )
 			{}
 			// --------------------------------------------------------------------
 			protocol_settings(	uint8_t _maxLQI,
@@ -468,13 +529,13 @@ namespace wiselib
 								uint8_t _cb,
 								uint8_t _cblost,
 								uint8_t _ef,
-								uint8_t _psize,
-								block_data_t* _pdata,
 								int8_t _tp_dB,
 								uint8_t _tp_dB_w,
 								millis_t _pb,
 								uint8_t _pb_w,
-								uint8_t _offset = 0 )
+								uint8_t _ofs,
+								uint32_t _rd,
+								ProtocolPayload _pp )
 			{
 				max_avg_LQI_threshold = _maxLQI;
 				min_avg_LQI_threshold = _minLQI;
@@ -487,20 +548,13 @@ namespace wiselib
 				consecutive_beacons_threshold = _cb;
 				consecutive_beacons_lost_threshold = _cblost;
 				events_flag = _ef;
-				max_payload_size = NB_MAX_PROTOCOL_PAYLOAD_SIZE;
-				if ( _psize + _offset <= max_payload_size )
-				{
-					payload_size = _psize;
-					payload_offset = _offset;
-					for ( uint8_t i = 0 + payload_offset; i < payload_size + payload_offset; i++ )
-					{
-						payload_data[i] = _pdata[i];
-					}
-				}
-				proposed_transmission_power_dB = 6;
+				proposed_transmission_power_dB = _tp_dB;
 				proposed_transmission_power_dB_weight = _tp_dB_w;
 				proposed_beacon_period = _pb;
 				proposed_beacon_period_weight = _pb_w;
+				overflow_strategy = _ofs;
+				ratio_divider = _rd;
+				protocol_payload = _pp;
 			}
 			// --------------------------------------------------------------------
 			~protocol_settings()
@@ -656,52 +710,28 @@ namespace wiselib
 				proposed_beacon_period_weight = _pbp_w;
 			}
 			// --------------------------------------------------------------------
-			uint8_t get_payload_size()
+			uint8_t get_overflow_strategy()
 			{
-				return payload_size;
+				return overflow_strategy;
 			}
 			// --------------------------------------------------------------------
-			uint8_t get_max_payload_size()
+			void set_overflow_strategy( uint8_t _ofs )
 			{
-				return max_payload_size;
+				overflow_strategy = _ofs;
 			}
 			// --------------------------------------------------------------------
-			void set_payload_size( uint8_t _psize )
+			uint32_t get_ratio_divider()
 			{
-				if ( _psize + payload_offset <= max_payload_size )
+				return ratio_divider;
+			}
+			// --------------------------------------------------------------------
+			void set_ratio_divider( uint32_t _rd )
+			{
+				if ( _rd == 0 )
 				{
-					payload_size = _psize;
+					_rd = 1;
 				}
-			}
-			// --------------------------------------------------------------------
-			block_data_t* get_payload_data()
-			{
-				return payload_data;
-			}
-			// --------------------------------------------------------------------
-			void set_payload_data( block_data_t* _pdata, uint8_t _offset = 0 )
-			{
-				if ( payload_size + _offset <= max_payload_size )
-				{
-					payload_offset = _offset;
-					for ( uint8_t i = 0 + payload_offset; i < payload_size + payload_offset; i++ )
-					{
-						payload_data[i] = _pdata[i];
-					}
-				}
-			}
-			// --------------------------------------------------------------------
-			void set_payload( block_data_t* _pdata, uint8_t _psize, uint8_t _offset = 0 )
-			{
-				if ( _psize + _offset <= max_payload_size )
-				{
-					payload_size = _psize;
-					payload_offset = _offset;
-					for ( uint8_t i = 0 + payload_offset; i < payload_size + payload_offset; i++ )
-					{
-						payload_data[i] = _pdata[i];
-					}
-				}
+				ratio_divider = _rd;
 			}
 			// --------------------------------------------------------------------
 			protocol_settings& operator=( const protocol_settings& _psett )
@@ -721,12 +751,8 @@ namespace wiselib
 				proposed_transmission_power_dB_weight = _psett.proposed_transmission_power_dB_weight;
 				proposed_beacon_period = _psett.proposed_beacon_period;
 				proposed_beacon_period_weight = _psett.proposed_beacon_period_weight;
-				payload_size = _psett.payload_size;
-				payload_offset = _psett.payload_offset;
-				for ( uint8_t i = 0 + payload_offset; i < payload_size + payload_offset; i++ )
-				{
-					payload_data[i] = _psett.payload_data[i];
-				}
+				overflow_strategy = _psett.overflow_strategy;
+				ratio_divider = _psett.ratio_divider;
 				return *this;
 			}
 			// --------------------------------------------------------------------
@@ -748,11 +774,8 @@ namespace wiselib
 				debug.debug( "transmission_power_dB_weight : %i ", proposed_transmission_power_dB_weight );
 				debug.debug( "proposed_beacon_period : %d ", proposed_beacon_period );
 				debug.debug( "proposed_beacon_period_weight : %i", proposed_beacon_period_weight );
-				debug.debug( "payload_size : %i ", payload_size );
-				for ( uint8_t i = 0 + payload_offset; i < payload_size + payload_offset; i++ )
-				{
-					debug.debug( "payload %i 'th byte : %i", i, payload_data[i] );
-				}
+				debug.debug( "overflow_strategy : %i", overflow_strategy );
+				debug.debug( "ratio_divider : %i", ratio_divider );
 			}
 		private:
 			enum event_codes
@@ -766,6 +789,16 @@ namespace wiselib
 				TRANS_DB_UPDATE = 64,
 				BEACON_PERIOD_UPDATE = 128
 			};
+			enum overflow_strategy
+			{
+				RESET_TOTAL_BEACONS = 1,
+				RESET_TOTAL_BEACONS_EXPECTED = 2,
+				RESET_STAB = 4,
+				RESET_STAB_INVERSE = 6,
+				RESET_AVG_LQI = 8,
+				RESET_AVG_LQI_INVERSE = 16,
+				RATIO_DIVIDER = 32
+			};
 			uint8_t max_avg_LQI_threshold;
 			uint8_t min_avg_LQI_threshold;
 			uint8_t max_avg_LQI_inverse_threshold;
@@ -777,14 +810,13 @@ namespace wiselib
 			uint8_t consecutive_beacons_threshold;
 			uint8_t consecutive_beacons_lost_threshold;
 			uint8_t events_flag;
-			uint8_t payload_size;
-			uint8_t max_payload_size;
-			block_data_t payload_data[NB_MAX_PROTOCOL_PAYLOAD_SIZE];
 			int8_t proposed_transmission_power_dB;
 			uint8_t proposed_transmission_power_dB_weight;
 			millis_t proposed_beacon_period;
 			uint8_t proposed_beacon_period_weight;
-			uint8_t payload_offset;
+			uint8_t overflow_strategy;
+			uint32_t ratio_divider;
+			ProtocolPayload protocol_payload;
 		};
 
 		class protocol
@@ -797,16 +829,6 @@ namespace wiselib
 			// --------------------------------------------------------------------
 			~protocol()
 			{}
-			// --------------------------------------------------------------------
-			uint8_t get_protocol_id()
-			{
-				return prot_id;
-			}
-			// --------------------------------------------------------------------
-			void set_protocol_id( uint8_t _pid )
-			{
-				prot_id = _pid;
-			}
 			// --------------------------------------------------------------------
 			event_notifier_delegate_t get_event_notifier_callback()
 			{
@@ -871,6 +893,47 @@ namespace wiselib
 				return NULL;
 			}
 			// --------------------------------------------------------------------
+			void resolve_overflow_strategy( node_id_t _nid )
+			{
+				neighbor * neigh_ref = get_neighbor_ref( _nid );
+				protocol_settings* prot_ref = get_protocol_settings_ref();
+
+				if ( prot_ref->get_overflow_strategy() & protocol_settings::RESET_TOTAL_BEACONS )
+				{
+					neigh_ref->set_total_beacons( 0 );
+				}
+				if ( prot_ref->get_overflow_strategy() & protocol_settings::RESET_TOTAL_BEACONS_EXPECTED )
+				{
+					neigh_ref->set_total_beacons_expected( 0 );
+				}
+				if ( prot_ref->get_overflow_strategy() & protocol_settings::RESET_AVG_LQI )
+				{
+					neigh_ref->set_avg_LQI( 0 );
+				}
+				if ( prot_ref->get_overflow_strategy() & protocol_settings::RESET_AVG_LQI_INVERSE )
+				{
+					neigh_ref->set_avg_LQI_inverse( 0 );
+				}
+				if ( prot_ref->get_overflow_strategy() & protocol_settings::RESET_STAB )
+				{
+					neigh_ref->set_link_stab_ratio( 0 );
+				}
+				if ( prot_ref->get_overflow_strategy() & protocol_settings::RESET_STAB_INVERSE )
+				{
+					neigh_ref->set_link_stab_ratio_inverse( 0 );
+				}
+				if ( prot_ref->get_overflow_strategy() == protocol_settings::RATIO_DIVIDER )
+				{
+					neigh_ref->set_total_beacons( neigh_ref->get_total_beacons() / prot_ref->get_ratio_divider() );
+					neigh_ref->set_total_beacons_expected( neigh_ref->get_total_beacons_expected() / prot_ref->get_ratio_divider() );
+				}
+				else
+				{
+					total_beacons = total_beacons / get_ratio_divider();
+					total_beacons_expected = total_beacons_expected / get_ratio_divider();
+				}
+			}
+			// --------------------------------------------------------------------
 			protocol& operator=( const protocol& _p )
 			{
 				prot_id = _p.prot_id;
@@ -878,47 +941,6 @@ namespace wiselib
 				settings = _p.settings;
 				neighborhood = _p.neighborhood;
 				return *this;
-			}
-			// --------------------------------------------------------------------
-			block_data_t* serialize( block_data_t* _buff, size_t _offset = 0 )
-			{
-				uint8_t NEIGH_SIZE_POS = 0;
-				uint8_t NEIGH_VECTOR_POS = NEIGH_SIZE_POS + sizeof( size_t );
-				size_t neigh_size = neighborhood.size();
-				write<Os, block_data_t, size_t>( _buff + NEIGH_SIZE_POS + _offset, neigh_size );
-				for ( size_t i = 0; i < neigh_size; i++ )
-				{
-					neighborhood.at( i ).serialize( _buff, NEIGH_VECTOR_POS + i * neighborhood.at( i ).serial_size() + _offset );
-				}
-				return _buff;
-			}
-			// --------------------------------------------------------------------
-			void de_serialize( block_data_t* _buff, size_t _offset = 0 )
-			{
-				uint8_t NEIGH_SIZE_POS = 0;
-				uint8_t NEIGH_VECTOR_POS = NEIGH_SIZE_POS + sizeof( size_t );
-				size_t neigh_size = read<Os, block_data_t, size_t>( _buff + NEIGH_SIZE_POS + _offset );
-				neighborhood.clear();
-				neighbor n;
-				uint8_t NEIGH_ELEMS_POS = NEIGH_VECTOR_POS;
-				for ( size_t i = 0; i < neigh_size; i++ )
-				{
-					n.de_serialize( _buff + NEIGH_ELEMS_POS + _offset );
-					NEIGH_ELEMS_POS = NEIGH_ELEMS_POS + n.serial_size();
-					neighborhood.push_back( n );
-				}
-			}
-			// --------------------------------------------------------------------
-			size_t serial_size()
-			{
-				uint8_t NEIGH_SIZE_POS = 0;
-				uint8_t NEIGH_VECTOR_POS = NEIGH_SIZE_POS + sizeof( size_t );
-				uint8_t NEIGH_ELEMS_POS = NEIGH_VECTOR_POS;
-				for ( neighbor_vector_iterator it = neighborhood.begin(); it != neighborhood.end(); ++it )
-				{
-					NEIGH_ELEMS_POS = it->serial_size() + NEIGH_ELEMS_POS;
-				}
-				return NEIGH_ELEMS_POS;
 			}
 			// --------------------------------------------------------------------
 			void print( Debug& debug )
@@ -947,6 +969,89 @@ namespace wiselib
 		typedef vector_static<Os, protocol, NB_MAX_REGISTERED_PROTOCOLS> protocol_vector;
 		typedef typename protocol_vector::iterator protocol_vector_iterator;
 		// --------------------------------------------------------------------
+		class beacon
+		{
+			public:
+				beacon() :
+					NB_beacon_period				( 0 ),
+					NB_beacon_period_update_counter ( 0 )
+				{}
+				// --------------------------------------------------------------------
+				~beacon()
+				{}
+				// --------------------------------------------------------------------
+				neighbor_vector get_NB_beacon_neighborhood()
+				{
+					return NB_beacon_neighborhood;
+				}
+				// --------------------------------------------------------------------
+				neighbor_vector* get_NB_beacon_neighborhood_ref()
+				{
+					return &NB_beacon_neighborhood;
+				}
+				// --------------------------------------------------------------------
+				void set_NB_beacon_neighborhood( neighbor_vector _nv )
+				{
+					NB_beacon_neighborhood = _nv;
+				}
+				// --------------------------------------------------------------------
+				uint8_t get_NB_beacon_period()
+				{
+					return NB_beacon_period;
+				}
+				// --------------------------------------------------------------------
+				void set_NB_beacon_period( uint8_t _bp )
+				{
+					NB_beacon_period = _bp;
+				}
+				// --------------------------------------------------------------------
+				uint32_t get_NB_beacon_period_update_counter()
+				{
+					return NB_beacon_period_update_counter;
+				}
+				// --------------------------------------------------------------------
+				void set_NB_beacon_period_update_counter( uint32_t _bpuc )
+				{
+					NB_beacon_period_update_counter = _bpuc;
+				}
+				// --------------------------------------------------------------------
+				NB_beacon_payload_vector get_NB_beacon_payloads()
+				{
+					return NB_beacon_payloads;
+				}
+				// --------------------------------------------------------------------
+				NB_beacon_payload_vector* get_NB_beacon_payloads_ref()
+				{
+					return &NB_beacon_payloads;
+				}
+				// --------------------------------------------------------------------
+				void set_NB_beacon_payloads_ref( NB_beacon_payload_vector _bpv )
+				{
+					NB_beacon_payloads = _bpv;
+				}
+				// --------------------------------------------------------------------
+				block_data_t* serialize( block_data_t* _buff, size_t _offset )
+				{
+					return _buff;
+				}
+				// --------------------------------------------------------------------
+				void de_serialize()
+				{
+
+				}
+				// --------------------------------------------------------------------
+				size_t serial_size()
+				{
+					return 0;
+				}
+				// --------------------------------------------------------------------
+			private:
+				NB_beacon_payload_vector NB_beacon_payloads;
+				neighbor_vector NB_beacon_neighborhood;
+				uint8_t NB_beacon_period;
+				uint32_t NB_beacon_period_update_counter;
+		}
+		// --------------------------------------------------------------------
 		NeighborDiscovery()	:
 			status								( WAITING_STATUS ),
 			beacon_period						( NB_BEACON_PERIOD ),
@@ -956,7 +1061,8 @@ namespace wiselib
 			transmission_power_dB_strategy		( FIXED_PERIOD ),
 			protocol_max_payload_size_strategy	( FIXED_PAYLOAD_SIZE ),
 			beacon_period_strategy				( FIXED_TRANSM ),
-			relax_millis						( NB_RELAX_MILLIS )
+			relax_millis						( NB_RELAX_MILLIS ),
+			beacon_period_update_counter		( 0 )
 		{};
 		// --------------------------------------------------------------------
 		~NeighborDiscovery()
@@ -972,7 +1078,7 @@ namespace wiselib
 			neighbor_vector neighbors;
 			neighbors.push_back( neighbor_self );
 			protocol nb_protocol;
-			nb_protocol.set_protocol_id( 0 );
+			nb_protocol.set_protocol_id( NB_PROTOCOL_ID );
 			nb_protocol.set_neighborhood( neighbors );
 			protocols.push_back( nb_protocol );
 			beacon();
@@ -1002,14 +1108,13 @@ namespace wiselib
 			if ( get_status() == ACTIVE_STATUS )
 			{
 				block_data_t buff[Radio::MAX_MESSAGE_LENGTH];
-				protocol** prot_ref = NULL;
-				uint8_t result = get_protocol_ref( 0, prot_ref );
-				if ( result == SUCCESS)
+				uint8_t result = serialize_beacon( buff );
+				if ( result != NULL )
 				{
-					(*prot_ref)->serialize( buff );
-					size_t len = (*prot_ref)->serial_size();
+					size_t len = serial_size();
 					send( Radio::BROADCAST_ADDRESS, len, buff, NB_MESSAGE );
 					timer().template set_timer<self_t, &self_t::beacon> ( get_beacon_period(), this, 0 );
+					inc_beacon_period_update_counter();
 				}
 			}
 		}
@@ -1101,6 +1206,9 @@ namespace wiselib
 									it1->set_link_stab_ratio_inverse( it2->get_link_stab_ratio() );
 								}
 							}
+							//TODO
+							//flag process
+							//notify_receiver();
 						}
 					}
 					if ( !found )
@@ -1125,9 +1233,83 @@ namespace wiselib
 							}
 						}
 						pit->get_neighborhood_ref()->push_back( new_neighbor );
+						//TODO
+						//flag process
+						//notify_receiver();
 					}
 				}
 			}
+		}
+		// --------------------------------------------------------------------
+		block_data_t* serialize_beacon( block_data_t* _buff, size_t _offset = 0 )
+		{
+			protocol** prot_ref;
+			uint8_t result = get_protocol_ref( NB_PROTOCOL_ID, prot_ref );
+			if ( result == SUCCESS )
+			{
+				uint8_t NEIGH_SIZE_POS = 0;
+				uint8_t NEIGH_VECTOR_POS = NEIGH_SIZE_POS + sizeof( size_t );
+				size_t neigh_size = prot_ref->get_neighborhood_ref().size();
+				write<Os, block_data_t, size_t>( _buff + NEIGH_SIZE_POS + _offset, neigh_size );
+				for ( size_t i = 0; i < neigh_size; i++ )
+				{
+					prot_ref->get_neighborhood_ref()->at( i ).serialize( _buff, NEIGH_VECTOR_POS + i * neighborhood.at( i ).serial_size() + _offset );
+				}
+				uint8_t BEACON_PERIOD_UPDATE_COUNTER_POS = NEIGH_ELEM_POS;
+				uint8_t BEACON_PERIOD_POS = BEACON_PERIOD_UPDATE_COUNTER_POS + sizeof(uint32_t);
+				write<Os, block_data_t, uint32_t>( _buff + BEACON_PERIOD_UPDATE_COUNTER_POS + _offset, beacon_period_update_counter );
+				write<Os, block_data_t, millis_t>( _buff + BEACON_PERIOD_POS + _offset, beacon_period );
+				return _buff;
+
+			}
+			return NULL;
+		}
+		// --------------------------------------------------------------------
+		void de_serialize_beacon( block_data_t* _buff, size_t _offset = 0 )
+		{
+
+			protocol** prot_ref;
+			get_protocol_ref( NB_PROTOCOL_ID, prot_ref );
+			if ( result == SUCCESS )
+			{
+				uint8_t NEIGH_SIZE_POS = 0;
+				uint8_t NEIGH_VECTOR_POS = NEIGH_SIZE_POS + sizeof( size_t );
+				size_t neigh_size = read<Os, block_data_t, size_t>( _buff + NEIGH_SIZE_POS + _offset );
+				prot_ref->get_neighborhood_ref()->clear();
+				neighbor n;
+				uint8_t NEIGH_ELEMS_POS = NEIGH_VECTOR_POS;
+				for ( size_t i = 0; i < neigh_size; i++ )
+				{
+					n.de_serialize( _buff + NEIGH_ELEMS_POS + _offset );
+					NEIGH_ELEMS_POS = NEIGH_ELEMS_POS + n.serial_size();
+					prot_ref->get_neighborhood_ref()->push_back( n );
+				}
+				uint8_t BEACON_PERIOD_UPDATE_COUNTER_POS = NEIGH_ELEM_POS;
+				uint8_t BEACON_PERIOD_POS = BEACON_PERIOD_UPDATE_COUNTER_POS + sizeof(uint32_t);
+				beacon_period_update_counter = read<Os, block_data_t, uint32_t>( _buff + BEACON_PERIOD_UPDATE_COUNTER_POS + _offset );
+				beacon_period = read<Os, block_data_t, millis_t>( _buff + BEACON_PERIOD_POS + _offset );
+
+			}
+		}
+		// --------------------------------------------------------------------
+		size_t beacon_serial_size()
+		{
+			protocol** prot_ref;
+			uint8_t result = get_protocol_ref( NB_PROTOCOL_ID, prot_ref );
+			if ( result == SUCCESS )
+			{
+				uint8_t NEIGH_SIZE_POS = 0;
+				uint8_t NEIGH_VECTOR_POS = NEIGH_SIZE_POS + sizeof( size_t );
+				uint8_t NEIGH_ELEMS_POS = NEIGH_VECTOR_POS;
+				for ( neighbor_vector_iterator it = prot_ref->get_neighborhood_ref()->begin(); it != prot_ref->get_neighborhood_ref()->end(); ++it )
+				{
+					NEIGH_ELEMS_POS = it->serial_size() + NEIGH_ELEMS_POS;
+				}
+				uint8_t BEACON_PERIOD_UPDATE_COUNTER_POS = NEIGH_ELEM_POS;
+				uint8_t BEACON_PERIOD_POS = BEACON_PERIOD_UPDATE_COUNTER_POS + sizeof(uint32_t);
+				return BEACON_PERIOD + sizeof( millis_t);
+			}
+			return 0;
 		}
 		// --------------------------------------------------------------------
 		template<class T, void(T::*TMethod)(uint8_t, node_id_t, uint8_t, uint8_t*) >
@@ -1420,6 +1602,16 @@ namespace wiselib
 			relax_millis = _lm;
 		}
 		// --------------------------------------------------------------------
+		uint32_t get_beacon_period_update_counter()
+		{
+			return beacon_period_update_counter;
+		}
+		// --------------------------------------------------------------------
+		void inc_beacon_period_update_counter()
+		{
+			beacon_period_update_counter++;
+		}
+		// --------------------------------------------------------------------
 		Radio& radio()
 		{
 			return *radio_;
@@ -1492,6 +1684,7 @@ namespace wiselib
         uint8_t transmission_power_dB_strategy;
         uint8_t protocol_max_payload_size_strategy;
         uint8_t beacon_period_strategy;
+        uint32_t beacon_period_update_counter;
         millis_t relax_millis;
         Radio * radio_;
         Clock * clock_;
