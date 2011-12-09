@@ -446,18 +446,47 @@ namespace wiselib {
 
     template<typename OsModel_P>
     void iSenseExtendedTxRadioModel<OsModel_P>::TxPower::set_dB(int db) {
-        if (db <= -30)
-            value = -30;
-        else if (db <= -24)
-            value = -24;
-        else if (db <= -18)
-            value = -18;
-        else if (db <= -12)
-            value = -12;
-        else if (db <= -6)
-            value = -6;
-        else
-            value = 0;
+//        if (db <= -30)
+//            value = -30;
+//        else if (db <= -24)
+//            value = -24;
+//        else if (db <= -18)
+//            value = -18;
+//        else if (db <= -12)
+//            value = -12;
+//        else if (db <= -6)
+//            value = -6;
+//        else
+//            value = 0;
+//
+
+		if ( db > 6 )
+		{
+			value = 6;
+		}
+		else if ( db < -30 )
+		{
+			value = -30;
+		}
+		else
+		{
+			int8_t i = 6;
+			while( i >= -30 )
+			{
+				if ( ( ( i - db ) <= 3 ) && ( ( i - db ) >= 0 ) )
+				{
+					value = i;
+				}
+				else if ( ( ( i - db ) > 3 ) && ( ( i - db ) <= 6 ) )
+				{
+					value = i - 6;
+				}
+				i = i - 6;
+			}
+		}
+
+
+
         //Another way: value=-(((-db)/6)*6);
     }
 

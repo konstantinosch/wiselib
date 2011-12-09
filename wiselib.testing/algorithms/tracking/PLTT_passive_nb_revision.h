@@ -75,6 +75,7 @@ public:
 	typedef typename Radio::ExtendedData ExtendedData;
 	typedef typename Timer::millis_t millis_t;
 	typedef typename Radio::TxPower TxPower;
+	typedef typename Clock::time_t time_t;
 	typedef wiselib::vector_static<Os, Node, 100> NodeList;
 	typedef typename NodeList::iterator NodeList_Iterator;
 	typedef PLTT_MessageType<Os, Radio> Message;
@@ -87,11 +88,15 @@ public:
 
 
 	typedef NeighborDiscovery<Os, Radio, Timer, Debug> NeighborDiscovery;
-	typedef typename NeighborDiscovery::protocol_settings protocol_settings;
-	typedef typename NeighborDiscovery::neighbor neighbor;
-	typedef typename NeighborDiscovery::protocol protocol;
-	typedef typename NeighborDiscovery::neighbor_vector neighbor_vector;
-	typedef typename NeighborDiscovery::neighbor_vector_iterator neighbor_vector_iterator;
+	typedef typename NeighborDiscovery::ProtocolSettings ProtocolSettings;
+	typedef typename NeighborDiscovery::Neighbor Neighbor;
+	typedef typename NeighborDiscovery::ProtocolPayload ProtocolPayload;
+	typedef typename NeighborDiscovery::Protocol Protocol;
+	typedef typename NeighborDiscovery::Neighbor_vector Neighbor_vector;
+	typedef typename NeighborDiscovery::Neighbor_vector_iterator Neighbor_vector_iterator;
+	typedef typename NeighborDiscovery::ProtocolPayload_vector ProtocolPayload_vector;
+	typedef typename NeighborDiscovery::ProtocolPayload_vector_iterator ProtocolPayload_vector_iterator;
+	typedef typename NeighborDiscovery::Beacon Beacon;
 
 
 
@@ -110,102 +115,18 @@ public:
 #ifdef PLTT_PASSIVE_DEBUG_MISC
 		debug().debug( "PLTT_Passive %x: Boot \n", self.get_node().get_id() );
 #endif
-		protocol_settings ps;
-		//ps.print( debug() );
-		//debug().debug( "-------------------------------------------------");
-		//debug().debug( "protocol_settings:");
-		//debug().debug( "max_avg_LQI_threshold : %i", ps.get_max_avg_LQI_threshold() );
-		//debug().debug( "min_avg_LQI_threshold : %i", ps.get_min_avg_LQI_threshold() );
-		//debug().debug( "max_avg_LQI_inverse_threshold : %i", ps.get_max_avg_LQI_inverse_threshold() );
-		//debug().debug( "min_avg_LQI_inverse_threshold : %i", ps.get_min_avg_LQI_inverse_threshold() );
-		//debug().debug( "max_link_stab_ratio_threshold : %i", ps.get_max_link_stab_ratio_threshold() );
-		//debug().debug( "min_link_stab_ratio_threshold : %i", ps.get_min_link_stab_ratio_threshold() );
-		//debug().debug( "max_link_stab_ratio_inverse_threshold : %i", ps.get_max_link_stab_ratio_inverse_threshold() );
-		//debug().debug( "min_link_stab_ratio_inverse_threshold : %i", ps.get_min_link_stab_ratio_inverse_threshold() );
-		//debug().debug( "consecutive_beacons_threshold : %i", ps.get_consecutive_beacons_threshold() );
-		//debug().debug( "consecutive_beacons_lost_threshold : %i", ps.get_consecutive_beacons_lost_threshold() );
-		//debug().debug( "events_flag : %i ", ps.get_events_flag() );
-		//debug().debug( "payload_size : %i ", ps.get_payload_size() );
-		//for ( uint8_t i = 0; i < ps.get_payload_size(); i++ )
-		//{
-		//	debug().debug( "payload %i 'th byte : %i", i, ps.get_payload_data()[i] );
-		//}
-		//debug().debug( "-------------------------------------------------");
-		neighbor n0(10,20,30,40,50,60,70,80,90);
-		neighbor n1(11,21,31,41,51,61,71,81,91);
-		neighbor n2(12,22,32,42,52,62,72,82,92);
-		neighbor n3(13,23,33,43,53,63,73,83,93);
-		neighbor n4(14,24,34,44,54,64,74,84,94);
-		neighbor n5(15,25,35,45,55,65,75,85,95);
-		neighbor n6(16,26,36,46,56,66,76,86,96);
-		neighbor n7(17,27,37,47,57,67,77,87,97);
-		neighbor_vector neighs;
-		neighs.push_back( n1 );
-		neighs.push_back( n2 );
-		neighs.push_back( n3 );
-		neighs.push_back( n4 );
-		neighs.push_back( n5 );
-		neighs.push_back( n6 );
-		neighs.push_back( n7 );
-
-		block_data_t buff[100];
-		//debug().debug( "protocol_settings:");
-		ps.set_max_avg_LQI_threshold(1);
-		ps.set_min_avg_LQI_threshold(2);
-		ps.set_max_avg_LQI_inverse_threshold(3);
-		ps.set_min_avg_LQI_inverse_threshold(4);
-		ps.set_max_link_stab_ratio_threshold(5);
-		ps.set_min_link_stab_ratio_threshold(6);
-		ps.set_max_link_stab_ratio_inverse_threshold(7);
-		ps.set_min_link_stab_ratio_inverse_threshold(8);
-		ps.set_consecutive_beacons_threshold( 9 );
-		ps.set_consecutive_beacons_lost_threshold( 10 );
-		ps.set_events_flag( 50 );
-		ps.set_payload( n1.serialize( buff, 46 ), n1.serial_size(), 46 );
-		//ps.print( debug() );
-		//debug().debug( "-------------------------------------------------");
-		//n1.print( debug() );
-		//debug().debug( "-------------------------------------------------");
-		protocol_settings ps2;
-		//ps2.print( debug() );
-		//debug().debug( "-------------------------------------------------");
-		ps2 = ps;
-		//ps2.print( debug() );
-		protocol p1;
-		p1.template set_event_notifier_callback<self_type, &self_type::sync_neighbors>( this );
-		uint8_t event = 0;
-		node_id_t from = 0;
-		size_t len = 0;
-		block_data_t* data;
-		p1.get_event_notifier_callback()(event, from, len, data);
-		p1.set_protocol_id( 1 );
-		p1.set_protocol_settings( ps2 );
-		p1.set_neighborhood( neighs );
-		protocol p2 = p1;
-		//p2.print( debug() );
-		p2.get_event_notifier_callback()(event, from, len, data);
-
-		block_data_t bouff[100];
-		protocol p3;
-		p3.de_serialize( p2.serialize( bouff, 37 ), 37 );
-		debug().debug(" protocol serial_size : %i", p3.serial_size() );
-		debug().debug(" neighbor serial_size : %i", n1.serial_size() );
-		p3.print( debug() );
-
-//		debug().debug(" prot_id : %i", p1.get_protocol_id() );
-//		debug().debug(" protocol_settings :");
-//		p1.get_protocol_settings().print( debug() );
-//		debug().debug(" neighborhood : ");
-//		for ( neighbor_vector_iterator it = p1.get_neighborhood()->begin(); it != p1.get_neighborhood()->end(); ++it )
-//		{
-//			debug().debug("----------^^--------");
-//			it->print( debug() );
-//		}
-//		debug().debug("------------------");
-
+		NeighborDiscovery nb;
+		nb.init( radio(), timer(), debug(), clock() );
+		nb.enable();
+		//clock().seconds();
 		//radio().enable_radio();
 		//TxPower power;
 		//power.set_dB( transmission_power_dB);
+	//	for (int i = 40; i > -100; i-- )
+	//	{
+	//		power.set_dB( -40 );
+	//		debug().debug( "db : %i vs %i", i, power.to_dB() );
+	//	}
 		//radio().set_power( power );
 		//millis_t r = rand()() % random_enable_timer_range;
 		//timer().template set_timer<self_type, &self_type::neighbor_discovery_oldenable_task> (r, this, 0);
