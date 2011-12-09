@@ -75,6 +75,7 @@ public:
 	typedef typename Radio::ExtendedData ExtendedData;
 	typedef typename Timer::millis_t millis_t;
 	typedef typename Radio::TxPower TxPower;
+	typedef typename Clock::time_t time_t;
 	typedef wiselib::vector_static<Os, Node, 100> NodeList;
 	typedef typename NodeList::iterator NodeList_Iterator;
 	typedef PLTT_MessageType<Os, Radio> Message;
@@ -87,11 +88,15 @@ public:
 
 
 	typedef NeighborDiscovery<Os, Radio, Timer, Debug> NeighborDiscovery;
-	typedef typename NeighborDiscovery::protocol_settings protocol_settings;
-	typedef typename NeighborDiscovery::neighbor neighbor;
-	typedef typename NeighborDiscovery::protocol protocol;
-	typedef typename NeighborDiscovery::neighbor_vector neighbor_vector;
-	typedef typename NeighborDiscovery::neighbor_vector_iterator neighbor_vector_iterator;
+	typedef typename NeighborDiscovery::ProtocolSettings ProtocolSettings;
+	typedef typename NeighborDiscovery::Neighbor Neighbor;
+	typedef typename NeighborDiscovery::ProtocolPayload ProtocolPayload;
+	typedef typename NeighborDiscovery::Protocol Protocol;
+	typedef typename NeighborDiscovery::Neighbor_vector Neighbor_vector;
+	typedef typename NeighborDiscovery::Neighbor_vector_iterator Neighbor_vector_iterator;
+	typedef typename NeighborDiscovery::ProtocolPayload_vector ProtocolPayload_vector;
+	typedef typename NeighborDiscovery::ProtocolPayload_vector_iterator ProtocolPayload_vector_iterator;
+	typedef typename NeighborDiscovery::Beacon Beacon;
 
 
 
@@ -110,17 +115,18 @@ public:
 #ifdef PLTT_PASSIVE_DEBUG_MISC
 		debug().debug( "PLTT_Passive %x: Boot \n", self.get_node().get_id() );
 #endif
-		//NeighborDiscovery n;
-		//n.enable();
+		NeighborDiscovery nb;
+		nb.init( radio(), timer(), debug(), clock() );
+		nb.enable();
 		//clock().seconds();
 		//radio().enable_radio();
-		TxPower power;
+		//TxPower power;
 		//power.set_dB( transmission_power_dB);
-		for (int i = 40; i > -100; i-- )
-		{
-			power.set_dB( -40 );
-			debug().debug( "db : %i vs %i", i, power.to_dB() );
-		}
+	//	for (int i = 40; i > -100; i-- )
+	//	{
+	//		power.set_dB( -40 );
+	//		debug().debug( "db : %i vs %i", i, power.to_dB() );
+	//	}
 		//radio().set_power( power );
 		//millis_t r = rand()() % random_enable_timer_range;
 		//timer().template set_timer<self_type, &self_type::neighbor_discovery_oldenable_task> (r, this, 0);
