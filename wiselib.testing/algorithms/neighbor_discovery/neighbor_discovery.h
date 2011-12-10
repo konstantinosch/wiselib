@@ -74,8 +74,8 @@ namespace wiselib
 			ProtocolPayload pp;
 			pp.set_protocol_id( NB_PROTOCOL_ID );
 			pp.set_payload_size( 0 );
-			uint8_t ef = 			ProtocolSettings::NEW_NB|ProtocolSettings::NEW_NB_BIDI|ProtocolSettings::NEW_PAYLOAD|ProtocolSettings::NEW_PAYLOAD_BIDI|
-									ProtocolSettings::LOST_NB|ProtocolSettings::LOST_NB_BIDI|ProtocolSettings::TRANS_DB_UPDATE|ProtocolSettings::BEACON_PERIOD_UPDATE;
+			uint8_t ef = 			ProtocolSettings::NEW_NB_NO_BIDI|ProtocolSettings::NEW_NB_BIDI|ProtocolSettings::NEW_PAYLOAD_NO_BIDI|ProtocolSettings::NEW_PAYLOAD_BIDI|
+									ProtocolSettings::LOST_NB_NO_BIDI|ProtocolSettings::LOST_NB_BIDI|ProtocolSettings::TRANS_DB_UPDATE|ProtocolSettings::BEACON_PERIOD_UPDATE;
 			ProtocolSettings ps( 255, 0, 255, 0, 100, 0, 100, 0, 5, 5, ef, -6, 100, 3000, 100, ProtocolSettings::RATIO_DIVIDER, 2, pp );
 			p.set_protocol_id( NB_PROTOCOL_ID );
 			p.set_neighborhood( neighbors );
@@ -241,7 +241,7 @@ namespace wiselib
 							( ( ( ( new_neighbor.get_consecutive_beacons() == 0 ) && ( new_neighbor.get_consecutive_beacons_lost() <= pit->get_protocol_settings_ref()->get_consecutive_beacons_lost_threshold() ) ) ) ||
 							( ( ( new_neighbor.get_consecutive_beacons() == pit->get_protocol_settings_ref()->get_consecutive_beacons_threshold() ) && ( new_neighbor.get_consecutive_beacons_lost() == 0 ) ) ) ) )
 					{
-						events_flag = events_flag | ProtocolSettings::NEW_NB;
+						events_flag = events_flag | ProtocolSettings::NEW_NB_NO_BIDI;
 						if (	( ( new_neighbor.get_avg_LQI_inverse() <= pit->get_protocol_settings_ref()->get_max_avg_LQI_inverse_threshold() ) || ( new_neighbor.get_avg_LQI_inverse() >= pit->get_protocol_settings_ref()->get_min_avg_LQI_inverse_threshold() ) ) &&
 								( ( new_neighbor.get_link_stab_ratio_inverse() <= pit->get_protocol_settings_ref()->get_max_link_stab_ratio_inverse_threshold() ) || ( new_neighbor.get_link_stab_ratio_inverse() >= pit->get_protocol_settings_ref()->get_max_link_stab_ratio_inverse_threshold() ) ) )
 						{
@@ -254,7 +254,7 @@ namespace wiselib
 					}
 					else
 					{
-						events_flag = events_flag | ProtocolSettings::LOST_NB;
+						events_flag = events_flag | ProtocolSettings::LOST_NB_NO_BIDI;
 						events_flag = events_flag | ProtocolSettings::LOST_NB_BIDI;
 					}
 				}
