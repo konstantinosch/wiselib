@@ -34,8 +34,7 @@ namespace wiselib
 			min_link_stab_ratio_inverse_threshold	( NB_MIN_LINK_STAB_RATIO_INVERSE_THRESHOLD ),
 			consecutive_beacons_threshold 			( NB_CONSECUTIVE_BEACONS_THRESHOLD ),
 			consecutive_beacons_lost_threshold		( NB_CONSECUTIVE_BEACONS_LOST_THRESHOLD ),
-			events_flag								(	NEW_NB_NO_BIDI	|	NEW_NB_BIDI		|	NEW_PAYLOAD_NO_BIDI		|	NEW_PAYLOAD_BIDI	|
-														LOST_NB_NO_BIDI	|	LOST_NB_BIDI	|	TRANS_DB_UPDATE			|	BEACON_PERIOD_UPDATE	),
+			events_flag								( NEW_NB | UPDATE_NB | NEW_PAYLOAD | LOST_NB | TRANS_DB_UPDATE | BEACON_PERIOD_UPDATE ),
 			proposed_transmission_power_dB			( NB_PROPOSED_TRANSMISSION_POWER_DB ),
 			proposed_transmission_power_dB_weight	( NB_PROPOSED_TRANSMISSION_POWER_DB_WEIGHT ),
 			proposed_beacon_period					( NB_PROPOSED_BEACON_PERIOD ),
@@ -336,14 +335,12 @@ namespace wiselib
 		// --------------------------------------------------------------------
 		enum event_codes
 		{
-			NEW_NB_NO_BIDI = 1,
-			NEW_NB_BIDI = 2,
-			NEW_PAYLOAD_NO_BIDI = 4,
-			NEW_PAYLOAD_BIDI = 8,
-			LOST_NB_NO_BIDI = 16,
-			LOST_NB_BIDI = 32,
-			TRANS_DB_UPDATE = 64,
-			BEACON_PERIOD_UPDATE = 128
+			NEW_NB = 1,
+			UPDATE_NB = 2,
+			NEW_PAYLOAD = 4,
+			LOST_NB = 8,
+			TRANS_DB_UPDATE = 16,
+			BEACON_PERIOD_UPDATE = 32
 		};
 		// --------------------------------------------------------------------
 	private:
