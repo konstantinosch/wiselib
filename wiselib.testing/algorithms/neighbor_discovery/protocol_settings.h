@@ -40,7 +40,10 @@ namespace wiselib
 			proposed_beacon_period					( NB_PROPOSED_BEACON_PERIOD ),
 			proposed_beacon_period_weight			( NB_PROPOSED_BEACON_PERIOD_WEIGHT ),
 			overflow_strategy						( RATIO_DIVIDER ),
-			ratio_divider							( NB_RATIO_DIVIDER )
+			ratio_divider							( NB_RATIO_DIVIDER ),
+			dead_time_strategy						( MEAN_DEAD_TIME_PERIOD ),
+			old_dead_time_period_weight				( NB_OLD_DEAD_TIME_PERIOD_WEIGHT ),
+			new_dead_time_period_weight				( NB_NEW_DEAD_TIME_PERIOD_WEIGHT )
 		{}
 		// --------------------------------------------------------------------
 		ProtocolSettings(	uint8_t _maxLQI,
@@ -60,6 +63,9 @@ namespace wiselib
 							uint8_t _pb_w,
 							uint8_t _ofs,
 							uint32_t _rd,
+							uint8_t _dt_s,
+							uint8_t _odtp_w,
+							uint8_t _ndtp_w,
 							ProtocolPayload _pp )
 		{
 			max_avg_LQI_threshold = _maxLQI;
@@ -79,6 +85,9 @@ namespace wiselib
 			proposed_beacon_period_weight = _pb_w;
 			overflow_strategy = _ofs;
 			ratio_divider = _rd;
+			dead_time_strategy = _dt_s;
+			old_dead_time_period_weight = _odtp_w;
+			new_dead_time_period_weight = _ndtp_w;
 			protocol_payload = _pp;
 		}
 		// --------------------------------------------------------------------
@@ -259,6 +268,43 @@ namespace wiselib
 			ratio_divider = _rd;
 		}
 		// --------------------------------------------------------------------
+		void set_dead_time_strategy( uint8_t _dd_s )
+		{
+			if ( _dd_s > DT_STRATEGY_NUM_VALUES )
+			{
+				dead_time_strategy = MEAN_DEAD_TIME_PERIOD;
+			}
+			else
+			{
+				dead_time_strategy = _dd_s;
+			}
+		}
+		// --------------------------------------------------------------------
+		uint8_t get_dead_time_strategy()
+		{
+			return dead_time_strategy;
+		}
+		// --------------------------------------------------------------------
+		void set_old_dead_time_period_weight( uint8_t _odtp_w )
+		{
+			old_dead_time_period_weight = _odtp_w;
+		}
+		// --------------------------------------------------------------------
+		uint8_t get_old_dead_time_period_weight()
+		{
+			return old_dead_time_period_weight;
+		}
+		// --------------------------------------------------------------------
+		void set_new_dead_time_period_weight( uint8_t _ndtp_w )
+		{
+			new_dead_time_period_weight = _ndtp_w;
+		}
+		// --------------------------------------------------------------------
+		uint8_t get_new_dead_time_period_weight()
+		{
+			return new_dead_time_period_weight;
+		}
+		// --------------------------------------------------------------------
 		ProtocolPayload get_protocol_payload()
 		{
 			return protocol_payload;
@@ -293,6 +339,9 @@ namespace wiselib
 			proposed_beacon_period_weight = _psett.proposed_beacon_period_weight;
 			overflow_strategy = _psett.overflow_strategy;
 			ratio_divider = _psett.ratio_divider;
+			dead_time_strategy	= _psett.dead_time_strategy;
+			old_dead_time_period_weight	= _psett.old_dead_time_period_weight;
+			new_dead_time_period_weight	= _psett.new_dead_time_period_weight;
 			protocol_payload = _psett.protocol_payload;
 			return *this;
 		}
@@ -318,6 +367,9 @@ namespace wiselib
 			debug.debug( "proposed_beacon_period_weight : %d", proposed_beacon_period_weight );
 			debug.debug( "overflow_strategy : %d", overflow_strategy );
 			debug.debug( "ratio_divider : %d", ratio_divider );
+			debug.debug( "dead_time_strategy : %d", dead_time_strategy );
+			debug.debug( "old_dead_time_period_weight : %d", old_dead_time_period_weight );
+			debug.debug( "new_dead_time_period_weight : %d", new_dead_time_period_weight );
 			protocol_payload.print( debug );
 			debug.debug( "-------------------------------------------------------");
 		}
@@ -343,6 +395,15 @@ namespace wiselib
 			BEACON_PERIOD_UPDATE = 32
 		};
 		// --------------------------------------------------------------------
+		enum dead_time_strategies
+		{
+			NEW_DEAD_TIME_PERIOD,
+			OLD_DEAD_TIME_PERIOD,
+			MEAN_DEAD_TIME_PERIOD,
+			WEIGHTED_MEAN_DEAD_TIME_PERIOD,
+			DT_STRATEGY_NUM_VALUES
+		};
+		// --------------------------------------------------------------------
 	private:
 		uint8_t max_avg_LQI_threshold;
 		uint8_t min_avg_LQI_threshold;
@@ -361,7 +422,17 @@ namespace wiselib
 		uint8_t proposed_beacon_period_weight;
 		uint8_t overflow_strategy;
 		uint32_t ratio_divider;
+		uint8_t dead_time_strategy;
+		uint8_t old_dead_time_period_weight;
+		uint8_t new_dead_time_period_weight;
 		ProtocolPayload protocol_payload;
 	};
 }
 #endif
+
+
+
+
+
+
+

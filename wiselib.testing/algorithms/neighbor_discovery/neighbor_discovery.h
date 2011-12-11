@@ -74,9 +74,8 @@ namespace wiselib
 			ProtocolPayload pp;
 			pp.set_protocol_id( NB_PROTOCOL_ID );
 			pp.set_payload_size( 0 );
-			uint8_t ef = 			ProtocolSettings::NEW_NB|ProtocolSettings::UPDATE_NB|ProtocolSettings::NEW_PAYLOAD|
-									ProtocolSettings::LOST_NB|ProtocolSettings::TRANS_DB_UPDATE|ProtocolSettings::BEACON_PERIOD_UPDATE;
-			ProtocolSettings ps( 255, 0, 255, 0, 100, 0, 100, 0, 5, 5, ef, -6, 100, 3000, 100, ProtocolSettings::RATIO_DIVIDER, 2, pp );
+			uint8_t ef = ProtocolSettings::NEW_NB|ProtocolSettings::UPDATE_NB|ProtocolSettings::NEW_PAYLOAD|ProtocolSettings::LOST_NB|ProtocolSettings::TRANS_DB_UPDATE|ProtocolSettings::BEACON_PERIOD_UPDATE;
+			ProtocolSettings ps( 255, 0, 255, 0, 100, 0, 100, 0, 1, 1, ef, -6, 100, 3000, 100, ProtocolSettings::RATIO_DIVIDER, 2, ProtocolSettings::MEAN_DEAD_TIME_PERIOD, 100, 100, pp );
 			p.set_protocol_id( NB_PROTOCOL_ID );
 			p.set_neighborhood( neighbors );
 			p.set_protocol_settings( ps );
@@ -119,6 +118,7 @@ namespace wiselib
 #ifdef NB_DEBUG_BEACONS
 					debug().debug("NeighborDiscovery-beacons %x - Protocol exists.", radio().id() );
 #endif
+					//p_ptr->print( debug() );
 					millis_t bp = get_beacon_period();
 					Neighbor* n = p_ptr->get_neighbor_ref( radio().id() );
 					if ( n != NULL )
@@ -193,25 +193,92 @@ namespace wiselib
 							debug().debug("NeighborDiscovery-receive %x - Neighbor %x is known.", radio().id(), _from );
 #endif
 							uint32_t dead_time = ( clock().seconds( current_time ) - clock().seconds( nit->get_last_beacon() ) ) * 1000 + ( clock().milliseconds( current_time ) - clock().milliseconds( nit->get_last_beacon() ) );
-							if ( ( dead_time < beacon.get_beacon_period() + NB_RELAX_MILLIS ) && ( dead_time > beacon.get_beacon_period() - NB_RELAX_MILLIS ) )
+							if ( beacon.get_beacon_period() == nit->get_beacon_period() )
 							{
+								if ( ( dead_time < beacon.get_beacon_period() + NB_RELAX_MILLIS ) && ( dead_time > beacon.get_beacon_period() - NB_RELAX_MILLIS ) )
+								{
 #ifdef NB_DEBUG_RECEIVE
+									debug().debug("NeighborDiscovery-receive %x - Neighbor %x is on time same as advertised.", radio().id(), _from );
 #endif
-								new_neighbor.set_id( _from );
-								new_neighbor.inc_total_beacons();
-								new_neighbor.inc_total_beacons_expected();
-								new_neighbor.set_avg_LQI( beacon_lqi );
-								new_neighbor.set_link_stab_ratio();
-								new_neighbor.inc_consecutive_beacons();
-								new_neighbor.set_consecutive_beacons_lost( 0 );
-								new_neighbor.set_beacon_period( beacon.get_beacon_period() );
-								new_neighbor.set_beacon_period_update_counter( beacon.get_beacon_period_update_counter() );
-								new_neighbor.set_last_beacon( current_time );
+									new_neighbor.set_id( _from );
+									new_neighbor.inc_total_beacons();
+									new_neighbor.inc_total_beacons_expected();
+									new_neighbor.set_avg_LQI( beacon_lqi );
+									new_neighbor.set_link_stab_ratio();
+									new_neighbor.inc_consecutive_beacons();
+									new_neighbor.set_consecutive_beacons_lost( 0 );
+									new_neighbor.set_beacon_period( beacon.get_beacon_period() );
+									new_neighbor.set_beacon_period_update_counter( beacon.get_beacon_period_update_counter() );
+									new_neighbor.set_last_beacon( current_time );
+								}
+								else
+								{
+#ifdef NB_DEBUG_RECEIVE
+									debug().debug("NeighborDiscovery-receive %x - Neighbor %x was late same as advertised.", radio().id(), _from );
+#endif
+									new_neighbor.inc_total_beacons();
+									new_neighbor.inc_total_beacons_expected( dead_time / nit->get_beacon_period() );
+									new_neighbor.set_avg_LQI( beacon_lqi );
+									new_neighbor.set_link_stab_ratio();
+									new_neighbor.set_consecutive_beacons( 0 );
+									new_neighbor.inc_consecutive_beacons_lost( dead_time / nit->get_beacon_period() );
+									new_neighbor.set_beacon_period( beacon.get_beacon_period() );
+									new_neighbor.set_beacon_period_update_counter( beacon.get_beacon_period_update_counter() );
+									new_neighbor.set_last_beacon( current_time );
+								}
 							}
 							else
 							{
+if ( ( dead_time < beacon.get_beacon_period() + NB_RELAX_MILLIS ) && ( dead_time > beacon.get_beacon_period() - NB_RELAX_MILLIS ) )
+								{
 #ifdef NB_DEBUG_RECEIVE
+									debug().debug("NeighborDiscovery-receive %x - Neighbor %x is on time same as advertised.", radio().id(), _from );
 #endif
+									new_neighbor.set_id( _from );
+									new_neighbor.inc_total_beacons();
+									new_neighbor.inc_total_beacons_expected();
+									new_neighbor.set_avg_LQI( beacon_lqi );
+									new_neighbor.set_link_stab_ratio();
+									new_neighbor.inc_consecutive_beacons();
+									new_neighbor.set_consecutive_beacons_lost( 0 );
+									new_neighbor.set_beacon_period( beacon.get_beacon_period() );
+									new_neighbor.set_beacon_period_update_counter( beacon.get_beacon_period_update_counter() );
+									new_neighbor.set_last_beacon( current_time );
+								}
+								else
+								{
+#ifdef NB_DEBUG_RECEIVE
+									debug().debug("NeighborDiscovery-receive %x - Neighbor %x is late and not as advertised.", radio().id(), _from );
+#endif
+									uint32_t last_beacon_period_update = beacon.get_beacon_period_update_counter() * beacon.get_beacon_period();
+									millis_t approximate_beacon_period = 0;
+									if ( pit->get_protocol_settings_ref()->get_dead_time_strategy() == ProtocolSettings::NEW_DEAD_TIME_PERIOD )
+									{
+										approximate_beacon_period = beacon.get_beacon_period();
+									}
+									else if ( pit->get_protocol_settings_ref()->get_dead_time_strategy() == ProtocolSettings::OLD_DEAD_TIME_PERIOD )
+									{
+										approximate_beacon_period = nit->get_beacon_period();
+									}
+									else if ( pit->get_protocol_settings_ref()->get_dead_time_strategy() == ProtocolSettings::MEAN_DEAD_TIME_PERIOD )
+									{
+										approximate_beacon_period = ( beacon.get_beacon_period() + nit->get_beacon_period() ) / 2;
+									}
+									else if ( pit->get_protocol_settings_ref()->get_dead_time_strategy() == ProtocolSettings::WEIGHTED_MEAN_DEAD_TIME_PERIOD )
+									{
+										approximate_beacon_period = ( beacon.get_beacon_period() * pit->get_protocol_settings_ref()->get_new_dead_time_period_weight() + nit->get_beacon_period() * pit->get_protocol_settings_ref()->get_old_dead_time_period_weight() ) / ( pit->get_protocol_settings_ref()->get_old_dead_time_period_weight() + pit->get_protocol_settings_ref()->get_new_dead_time_period_weight() );
+									}
+									uint32_t dead_time_messages_lost = ( dead_time - last_beacon_period_update ) * approximate_beacon_period;
+									new_neighbor.inc_total_beacons();
+									new_neighbor.inc_total_beacons_expected( dead_time_messages_lost + beacon.get_beacon_period_update_counter() );
+									new_neighbor.set_avg_LQI( beacon_lqi );
+									new_neighbor.set_link_stab_ratio();
+									new_neighbor.set_consecutive_beacons( 0 );
+									new_neighbor.inc_consecutive_beacons_lost( dead_time_messages_lost + beacon.get_beacon_period_update_counter() );
+									new_neighbor.set_beacon_period( beacon.get_beacon_period() );
+									new_neighbor.set_beacon_period_update_counter( beacon.get_beacon_period_update_counter() );
+									new_neighbor.set_last_beacon( current_time );
+								}
 							}
 							update_neighbor_it = nit;
 							found_flag = 1;
@@ -236,28 +303,49 @@ namespace wiselib
 
 					for ( Neighbor_vector_iterator nit = beacon.get_neighborhood_ref()->begin(); nit != beacon.get_neighborhood_ref()->end(); ++nit )
 					{
+						if ( radio().id() == nit->get_id() )
+						{
 #ifdef NB_DEBUG_RECEIVE
-						debug().debug("NeighborDiscovery-receive %x - Neighbor %x was aware of node.", radio().id(), _from );
+							debug().debug("NeighborDiscovery-receive %x - Neighbor %x was aware of node.", radio().id(), _from );
 #endif
-						new_neighbor.set_avg_LQI_inverse( nit->get_avg_LQI() );
-						new_neighbor.set_link_stab_ratio_inverse( nit->get_link_stab_ratio() );
+							new_neighbor.set_avg_LQI_inverse( nit->get_avg_LQI() );
+							new_neighbor.set_link_stab_ratio_inverse( nit->get_link_stab_ratio() );
+						}
 					}
+					//
 					uint8_t events_flag = 0;
-					if	(	( ( new_neighbor.get_avg_LQI() <= pit->get_protocol_settings_ref()->get_max_avg_LQI_threshold() ) || ( new_neighbor.get_avg_LQI() >= pit->get_protocol_settings_ref()->get_min_avg_LQI_threshold() ) ) &&
-							( ( new_neighbor.get_link_stab_ratio() <= pit->get_protocol_settings_ref()->get_max_link_stab_ratio_threshold() ) || ( new_neighbor.get_link_stab_ratio() >= pit->get_protocol_settings_ref()->get_min_link_stab_ratio_threshold() ) ) &&
-							( ( new_neighbor.get_avg_LQI_inverse() <= pit->get_protocol_settings_ref()->get_max_avg_LQI_inverse_threshold() ) || ( new_neighbor.get_avg_LQI_inverse() >= pit->get_protocol_settings_ref()->get_min_avg_LQI_inverse_threshold() ) ) &&
-							( ( new_neighbor.get_link_stab_ratio_inverse() <= pit->get_protocol_settings_ref()->get_max_link_stab_ratio_inverse_threshold() ) || ( new_neighbor.get_link_stab_ratio_inverse() >= pit->get_protocol_settings_ref()->get_max_link_stab_ratio_inverse_threshold() ) ) &&
-							( ( ( ( new_neighbor.get_consecutive_beacons() == 0 ) && ( new_neighbor.get_consecutive_beacons_lost() <= pit->get_protocol_settings_ref()->get_consecutive_beacons_lost_threshold() ) ) ) || ( ( ( new_neighbor.get_consecutive_beacons() == pit->get_protocol_settings_ref()->get_consecutive_beacons_threshold() ) && ( new_neighbor.get_consecutive_beacons_lost() == 0 ) ) ) ) )
+					debug().debug( "lqi %i", beacon_lqi );
+					new_neighbor.print( debug() );
+					pit->get_protocol_settings_ref()->print( debug() );
+					//
+					if	(	( new_neighbor.get_avg_LQI() <= pit->get_protocol_settings_ref()->get_max_avg_LQI_threshold() ) &&
+							( new_neighbor.get_avg_LQI() >= pit->get_protocol_settings_ref()->get_min_avg_LQI_threshold() ) &&
+							( new_neighbor.get_avg_LQI_inverse() <= pit->get_protocol_settings_ref()->get_max_avg_LQI_inverse_threshold() ) &&
+							( new_neighbor.get_avg_LQI_inverse() >= pit->get_protocol_settings_ref()->get_min_avg_LQI_inverse_threshold() ) &&
+							( new_neighbor.get_link_stab_ratio() <= pit->get_protocol_settings_ref()->get_max_link_stab_ratio_threshold() ) &&
+							( new_neighbor.get_link_stab_ratio() >= pit->get_protocol_settings_ref()->get_min_link_stab_ratio_threshold() ) &&
+							( new_neighbor.get_link_stab_ratio_inverse() <= pit->get_protocol_settings_ref()->get_max_link_stab_ratio_inverse_threshold() ) &&
+							( new_neighbor.get_link_stab_ratio_inverse() >= pit->get_protocol_settings_ref()->get_min_link_stab_ratio_inverse_threshold() ) &&
+							( ( ( ( new_neighbor.get_consecutive_beacons() == 0 ) && ( new_neighbor.get_consecutive_beacons_lost() <= pit->get_protocol_settings_ref()->get_consecutive_beacons_lost_threshold() ) ) ) ||
+							( ( ( new_neighbor.get_consecutive_beacons() >= pit->get_protocol_settings_ref()->get_consecutive_beacons_threshold() ) && ( new_neighbor.get_consecutive_beacons_lost() == 0 ) ) ) ) )
 					{
 						if ( found_flag == 1 )
 						{
+#ifdef NB_DEBUG_RECEIVE
+							debug().debug("NeighborDiscovery-receive %x - Neighbor %x was updated.", radio().id(), _from );
+#endif
 							events_flag = events_flag | ProtocolSettings::UPDATE_NB;
 							*update_neighbor_it = new_neighbor;
+							pit->resolve_overflow_strategy( _from );
 						}
 						else
 						{
+#ifdef NB_DEBUG_RECEIVE
+							debug().debug("NeighborDiscovery-receive %x - Neighbor %x was inserted.", radio().id(), _from );
+#endif
 							events_flag = events_flag | ProtocolSettings::NEW_NB;
 							pit->get_neighborhood_ref()->push_back( new_neighbor );
+							pit->resolve_overflow_strategy( _from );
 						}
 						for ( ProtocolPayload_vector_iterator ppit = beacon.get_protocol_payloads_ref()->begin(); ppit != beacon.get_protocol_payloads_ref()->end(); ++ppit )
 						{
@@ -275,7 +363,11 @@ namespace wiselib
 #endif
 							}
 						}
-						//TODO NOTIFY THE PROTOCOL
+						events_flag = pit->get_protocol_settings_ref()->get_events_flag() & events_flag;
+						if ( events_flag != 0 )
+						{
+							pit->get_event_notifier_callback()( events_flag, _from, pit->get_protocol_settings_ref()->get_protocol_payload().get_payload_size(), pit->get_protocol_settings_ref()->get_protocol_payload().get_payload_data() );
+						}
 					}
 					else
 					{
@@ -283,7 +375,11 @@ namespace wiselib
 						{
 							events_flag = events_flag | ProtocolSettings::LOST_NB;
 							pit->get_neighborhood_ref()->erase( update_neighbor_it );
-							//TODO NOTIFY THE PROTOCOL
+							events_flag = pit->get_protocol_settings_ref()->get_events_flag() & events_flag;
+							if ( events_flag != 0 )
+							{
+								pit->get_event_notifier_callback()( events_flag, _from, 0, NULL );
+							}
 						}
 					}
 				}
@@ -291,138 +387,6 @@ namespace wiselib
 #ifdef NB_DEBUG_RECEIVE
 			debug().debug("NeighborDiscovery-receive %x - Exiting", radio().id() );
 #endif
-
-//			message_id_t msg_id = *_msg;
-//			Message *message = (Message*) _msg;
-//			protocol received_protocol;
-//			received_protocol.de_serialize( message->payload() );
-
-//			uint8_t found = 0;
-//			neighbor* neighbor_from = received_protocol.get_neighbor_ref( _from );
-//			if ( msg_id == NB_MESSAGE )
-//			{
-//				for ( protocol_vector_iterator pit = protocols.begin(); pit != protocols.end(); ++pit )
-//				{
-//					for ( neighbor_vector_iterator it1 = pit->get_neighborhood_ref()->begin(); it1 != pit->get_neighborhood_ref()->end(); ++it1 )
-//					{
-//						if ( neighbor_from->get_id() == it1->get_id() )
-//						{
-//							uint32_t dead_time = ( clock().seconds( current_time ) - clock().seconds( it1->get_last_beacon() ) ) * 1000 +	( clock().milliseconds( current_time ) - clock().milliseconds( it1->get_last_beacon() ) );
-//							found = 1;
-//							if ( neighbor_from->get_beacon_period() == it1->get_beacon_period() )
-//							{
-//								if (	( dead_time < neighbor_from->get_beacon_period() + NB_RELAX_MILLIS ) &&
-//										( dead_time > neighbor_from->get_beacon_period() - NB_RELAX_MILLIS ) ) //care relax millis must be considerably lower than the beacon_rate millis... by definition should be tested but around 50ms...
-//								{
-//									it1->inc_total_beacons();
-//									it1->inc_total_beacons_expected();
-//									it1->set_avg_LQI( lqi );
-//									it1->set_link_stab_ratio();
-//									it1->inc_consecutive_beacons();
-//									it1->set_consecutive_beacons_lost( 0 );
-//									it1->set_beacon_period( neighbor_from->get_beacon_period() );
-//									it1->set_beacon_period_update_counter( neighbor_from->get_beacon_period_update_counter() );
-//									it1->set_last_beacon( neighbor_from->get_last_beacon() );
-//								}
-//								else
-//								{
-//									it1->inc_total_beacons();
-//									it1->inc_total_beacons_expected( dead_time / it1->get_beacon_period() );
-//									it1->set_avg_LQI( lqi );
-//									it1->set_link_stab_ratio();
-//									it1->set_consecutive_beacons( 0 );
-//									it1->inc_consecutive_beacons_lost( dead_time / it1->get_beacon_period() );
-//									it1->set_beacon_period( neighbor_from->get_beacon_period() );
-//									it1->set_beacon_period_update_counter( neighbor_from->get_beacon_period_update_counter() );
-//									it1->set_last_beacon( neighbor_from->get_last_beacon() );
-//								}
-//							}
-//							else if ( neighbor_from->get_beacon_period() != it1->get_beacon_period() )
-//							{
-//								if (	( dead_time < neighbor_from->get_beacon_period() + NB_RELAX_MILLIS ) &&
-//										( dead_time > neighbor_from->get_beacon_period() - NB_RELAX_MILLIS ) )
-//								{
-//									it1->inc_total_beacons();
-//									it1->inc_total_beacons_expected();
-//									it1->set_avg_LQI( lqi );
-//									it1->set_link_stab_ratio();
-//									it1->inc_consecutive_beacons();
-//									it1->set_consecutive_beacons_lost( 0 );
-//									it1->set_beacon_period( neighbor_from->get_beacon_period() );
-//									it1->set_beacon_period_update_counter( neighbor_from->get_beacon_period_update_counter() );
-//									it1->set_last_beacon( neighbor_from->get_last_beacon() );
-//								}
-//								else
-//								{
-//									uint32_t last_beacon_period_update = neighbor_from->get_beacon_period_update_counter() * neighbor_from->get_beacon_period();
-//									millis_t approximate_beacon_period = ( neighbor_from->get_beacon_period() + it1->get_beacon_period() ) / 2;
-//									uint32_t dead_time_messages_lost = ( dead_time - last_beacon_period_update ) * approximate_beacon_period;
-//									it1->inc_total_beacons();
-//									it1->inc_total_beacons_expected( dead_time_messages_lost + neighbor_from->get_beacon_period_update_counter() );
-//									it1->set_avg_LQI( lqi );
-//									it1->set_link_stab_ratio();
-//									it1->set_consecutive_beacons( 0 );
-//									it1->inc_consecutive_beacons_lost( dead_time_messages_lost + neighbor_from->get_beacon_period_update_counter() );
-//									it1->set_beacon_period( neighbor_from->get_beacon_period() );
-//									it1->set_beacon_period_update_counter( neighbor_from->get_beacon_period_update_counter() );
-//									it1->set_last_beacon( neighbor_from->get_last_beacon() );
-//								}
-//							}
-//							for ( neighbor_vector_iterator it2 = received_protocol.get_neighborhood_ref()->begin(); it2 != received_protocol.get_neighborhood_ref()->end(); ++it2 )
-//							{
-//								if ( it2->get_id() == radio().id() )
-//								{
-//									it1->set_avg_LQI_inverse( it2->get_avg_LQI() );
-//									it1->set_link_stab_ratio_inverse( it2->get_link_stab_ratio() );
-//								}
-//							}
-//							//TODO
-//							//flag process
-//							//notify_receiver();
-//						}
-//					}
-//					if ( !found )
-//					{
-//						neighbor new_neighbor;
-//						new_neighbor.set_id( _from );
-//						new_neighbor.set_total_beacons( 1 );
-//						new_neighbor.set_total_beacons_expected( 1 );
-//						new_neighbor.set_avg_LQI( lqi );
-//						new_neighbor.set_link_stab_ratio();
-//						new_neighbor.set_consecutive_beacons( 1 );
-//						new_neighbor.set_consecutive_beacons_lost( 0 );
-//						new_neighbor.set_beacon_period( neighbor_from->get_beacon_period() );
-//						new_neighbor.set_beacon_period_update_counter( neighbor_from->get_beacon_period_update_counter() );
-//						new_neighbor.set_last_beacon( clock().time() );
-//						for ( neighbor_vector_iterator it2 = received_protocol.get_neighborhood_ref()->begin(); it2 != received_protocol.get_neighborhood_ref()->end(); ++it2 )
-//						{
-//							if ( it2->get_id() == radio().id() )
-//							{
-//								new_neighbor.set_avg_LQI_inverse( it2->get_avg_LQI() );
-//								new_neighbor.set_link_stab_ratio_inverse( it2->get_link_stab_ratio() );
-//							}
-//						}
-//						pit->get_neighborhood_ref()->push_back( new_neighbor );
-//						//TODO
-//						//flag process
-//						//notify_receiver();
-//					}
-//				}
-//			}
-		}
-		// --------------------------------------------------------------------
-		void store_neighbor( Neighbor _n )
-		{
-			for ( Protocol_vector_iterator pit = protocols.begin(); pit != protocols.end(); ++pit )
-			{
-
-				//if
-				//( pit->get_events_flag() | ProtocolSettings::NEW_NB )
-				//( pit->get_events_flag | ProtocolSettings::NEW_NB_BIDI ) )
-				//( pit->get_events_flag() | ProtocolSettings::LOST_BIDI )
-				//( pit->get_events_flag() | ProtocolSettings::LOST_NB_BIDI )
-				//if ( pit->get_events_flag() )
-			}
 		}
 		// --------------------------------------------------------------------
 		template<class T, void(T::*TMethod)(uint8_t, node_id_t, uint8_t, uint8_t*) >
@@ -696,9 +660,9 @@ namespace wiselib
 			return relax_millis;
 		}
 		// --------------------------------------------------------------------
-		void set_relax_millis( millis_t _lm )
+		void set_relax_millis( millis_t _rm )
 		{
-			relax_millis = _lm;
+			relax_millis = _rm;
 		}
 		// --------------------------------------------------------------------
 		void init( Radio& _radio, Timer& _timer, Debug& _debug, Clock& _clock )
@@ -791,357 +755,3 @@ namespace wiselib
 }
 
 #endif
-
-//			neighbor Test cases:
-//
-//			Neighbor n1;
-//			debug().debug( "neighbor n1:");
-//			n1.print( debug() );
-//			debug().debug( "last_beacon %d:%d", clock().seconds( n1.get_last_beacon() ), clock().milliseconds( n1.get_last_beacon() ) );
-//			Neighbor n2( 1, 2, 3 ,4 ,5 ,6 ,7 ,8 , 9, 10, 11, clock().time() );
-//			debug().debug( "----------------------");
-//			debug().debug( "Neighbor n2:");
-//			n2.print( debug() );
-//			debug().debug( "last_beacon %d:%d", clock().seconds( n2.get_last_beacon() ), clock().milliseconds( n2.get_last_beacon() ) );
-//			debug().debug( "----------------------");
-//			n1.set_id( 11 );
-//			n1.set_total_beacons( 22 );
-//			n1.set_total_beacons_expected( 33 );
-//			n1.set_avg_LQI( 44 );
-//			n1.set_avg_LQI_inverse( 55 );
-//			n1.set_link_stab_ratio( 66 );
-//			n1.set_link_stab_ratio_inverse( 77 );
-//			n1.set_consecutive_beacons( 88 );
-//			n1.set_consecutive_beacons_lost( 99 );
-//			n1.set_beacon_period( 111 );
-//			n1.set_beacon_period_update_counter( 222 );
-//			n1.set_last_beacon( clock().time() );
-//			debug().debug( "Neighbor n1 with getters:");
-//			debug().debug( "id: %i", n1.get_id() );
-//			debug().debug( "total_beacons : %i", n1.get_total_beacons() );
-//			debug().debug( "total_beacons_expected : %i", n1.get_total_beacons_expected() );
-//			debug().debug( "avg_LQI : %i", n1.get_avg_LQI() );
-//			debug().debug( "avg_LQI_inverse : %i", n1.get_avg_LQI_inverse() );
-//			debug().debug( "link_stab_ratio : %i", n1.get_link_stab_ratio() );
-//			debug().debug( "link_stab_ratio_inverse : %i", n1.get_link_stab_ratio_inverse() );
-//			debug().debug( "consecutive_beacons : %i", n1.get_consecutive_beacons() );
-//			debug().debug( "consecutive_beacons_lost : %i", n1.get_consecutive_beacons_lost() );
-//			debug().debug( "beacon_period : %d", n1.get_beacon_period() );
-//			debug().debug( "beacon_period_update_counter : %d", n1.get_beacon_period_update_counter() );
-//			debug().debug( "last_beacon %d:%d", clock().seconds( n1.get_last_beacon() ), clock().milliseconds( n1.get_last_beacon() ) );
-//			debug().debug( "----------------------");
-//			n2 = n1;
-//			debug().debug( "Neighbor n2 = n1:");
-//			n2.print( debug() );
-//			debug().debug( "last_beacon %d:%d", clock().seconds( n2.get_last_beacon() ), clock().milliseconds( n2.get_last_beacon() ) );
-//			debug().debug( "----------------------");
-//			debug().debug( "n2 serial size: %i ", n2.serial_size() );
-//			debug().debug( "----------------------");
-//			debug().debug( "neighbor n3:");
-//			Neighbor n3;
-//			debug().debug( "last_beacon %d:%d", clock().seconds( n3.get_last_beacon() ), clock().milliseconds( n3.get_last_beacon() ) );
-//			n3.print( debug() );
-//			debug().debug( "----------------------");
-//			block_data_t buff[100];
-//			n3.de_serialize( n1.serialize( buff, 47 ), 47 );
-//			debug().debug( "Neighbor n3 after serialize - de_serialize:");
-//			n3.print( debug() );
-//			debug().debug( "last_beacon %d:%d", clock().seconds( n3.get_last_beacon() ), clock().milliseconds( n3.get_last_beacon() ) );
-//			debug().debug( "----------------------");
-//
-//			n3.set_total_beacons( 0xfffffffe );
-//			debug().debug( "total_beacons : %d", n3.get_total_beacons() );
-//			n3.inc_total_beacons();
-//			debug().debug( "total_beacons : %d", n3.get_total_beacons() );
-//			n3.inc_total_beacons();
-//			debug().debug( "total_beacons : %d", n3.get_total_beacons() );
-//
-//			n3.set_total_beacons_expected( 0xfffffffe );
-//			debug().debug( "total_beacons_expected : %d", n3.get_total_beacons_expected() );
-//			n3.inc_total_beacons_expected();
-//			debug().debug( "total_beacons_expected : %d", n3.get_total_beacons_expected() );
-//			n3.inc_total_beacons_expected();
-//			debug().debug( "total_beacons_expected : %d", n3.get_total_beacons_expected() );
-//
-//			n3.set_avg_LQI( 80 );
-//			debug().debug( "avg_LQI : %d", n3.get_avg_LQI() );
-//			n3.set_total_beacons( 5 );
-//			n3.update_avg_LQI( 50, 2 );
-//			debug().debug( "avg_LQI : %d", n3.get_avg_LQI() );
-//
-//			n3.set_consecutive_beacons( 254 );
-//			debug().debug( "consecutive_beacons : %d", n3.get_consecutive_beacons() );
-//			n3.inc_consecutive_beacons();
-//			debug().debug( "consecutive_beacons : %d", n3.get_consecutive_beacons() );
-//			n3.inc_consecutive_beacons();
-//			debug().debug( "consecutive_beacons : %d", n3.get_consecutive_beacons() );
-//
-//			n3.set_consecutive_beacons_lost( 254 );
-//			debug().debug( "consecutive_beacons_lost : %d", n3.get_consecutive_beacons_lost() );
-//			n3.inc_consecutive_beacons_lost();
-//			debug().debug( "consecutive_beacons_lost : %d", n3.get_consecutive_beacons_lost() );
-//			n3.inc_consecutive_beacons_lost();
-//			debug().debug( "consecutive_beacons_lost : %d", n3.get_consecutive_beacons_lost() );
-//
-//			n3.set_beacon_period_update_counter( 0xfffffffe );
-//			debug().debug( "beacon_period_update_counter : %d", n3.get_beacon_period_update_counter() );
-//			n3.inc_beacon_period_update_counter();
-//			debug().debug( "beacon_period_update_counter beacons_lost : %d", n3.get_beacon_period_update_counter() );
-//			n3.inc_beacon_period_update_counter();
-//			debug().debug( "beacon_period_update_counter beacons_lost : %d", n3.get_beacon_period_update_counter() );
-//
-//			ProtocolPayload Test cases:
-//
-//			block_data_t buff[100];
-//			for ( size_t i = 0; i < 100; ++i )
-//			{
-//				buff[i]=i;
-//			}
-//			ProtocolPayload pp1( 1, 5, buff, 9 );
-//			pp1.print( debug() );
-//			debug().debug( "max_payload_size : %i", pp1.get_max_payload_size() );
-//			debug().debug( "-------------------------------------");
-//			ProtocolPayload pp2;
-//			pp2.set_protocol_id( 2 );
-//			pp2.set_payload_size( 10 );
-//			pp2.set_payload_data( buff, 15 );
-//			pp2.print( debug() );
-//			debug().debug( "-------------------------------------");
-//			ProtocolPayload pp3 = pp2;
-//			pp2 = pp1;
-//			pp2.print( debug() );
-//			debug().debug( "-------------------------------------");
-//			pp2.set_payload_size( pp2.get_max_payload_size() + 1 );
-//			pp2.print( debug() );
-//			debug().debug( "-------------------------------------");
-//			pp2.set_payload_size( 2 );
-//			pp2.print( debug() );
-//			debug().debug( "-------------------------------------");
-//			pp3.print( debug() );
-//			debug().debug( "-------------------------------------");
-//			block_data_t buff1[100];
-//			pp3.de_serialize( pp2.serialize( buff1, 33 ), 33 );
-//			pp3.print( debug() );
-//			debug().debug( "-------------------------------------");
-//			debug().debug( "pp1 serial_size %i", pp1.serial_size() );
-//			debug().debug( "pp2 serial_size %i", pp2.serial_size() );
-//			debug().debug( "pp3 serial_size %i", pp3.serial_size() );
-//			debug().debug( "-------------------------------------");
-
-//	ProtocolSettings Test cases:
-//
-//			block_data_t buff[100];
-//			for ( size_t i = 0; i < 100; ++i )
-//			{
-//				buff[i]=i;
-//			}
-//			ProtocolPayload pp1( 1, 5, buff, 9 );
-//
-//
-//			ProtocolSettings ps1;
-//			debug().debug( " ProtocolSettings ps1 :");
-//			ps1.print( debug() );
-//			debug().debug( "------------------------------");
-//
-//
-//			ProtocolSettings ps2( 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, pp1 );
-//			debug().debug( " Protocol_settings ps2 :");
-//			ps2.print( debug() );
-//			debug().debug( "------------------------------");
-//			debug().debug( " ProtocolSettings ps1 = ps2 :");
-//			ps1 = ps2;
-//			ps1.print( debug() );
-//			debug().debug( "------------------------------");
-//			ps1.set_max_avg_LQI_threshold( 11 );
-//			ps1.set_min_avg_LQI_threshold( 22 );
-//			ps1.set_max_avg_LQI_inverse_threshold( 33 );
-//			ps1.set_min_avg_LQI_inverse_threshold( 44 );
-//			ps1.set_max_link_stab_ratio_threshold( 55 );
-//			ps1.set_min_link_stab_ratio_threshold( 66 );
-//			ps1.set_max_link_stab_ratio_inverse_threshold( 77 );
-//			ps1.set_min_link_stab_ratio_inverse_threshold( 88 );
-//			ps1.set_consecutive_beacons_threshold( 99 );
-//			ps1.set_consecutive_beacons_lost_threshold( 111 );
-//			ps1.set_events_flag( 222 );
-//			ps1.set_proposed_transmission_power_dB( -6 );
-//			ps1.set_proposed_transmission_power_dB_weight( 100 );
-//			ps1.set_proposed_beacon_period( 2000 );
-//			ps1.set_proposed_beacon_period_weight( 80 );
-//			ps1.set_overflow_strategy( 255 );
-//			ps1.set_ratio_divider( 0 );
-//			ps1.set_protocol_payload( pp1 );
-//
-//			debug().debug( " protocol_settings ps1 setters:");
-//			debug().debug( "max_avg_LQI_threshold : %i", ps1.get_max_avg_LQI_threshold() );
-//			debug().debug( "min_avg_LQI_threshold : %i", ps1.get_min_avg_LQI_threshold() );
-//			debug().debug( "max_avg_LQI_inverse_threshold : %i ", ps1.get_max_avg_LQI_inverse_threshold() );
-//			debug().debug( "min_avg_LQI_inverse_threshold : %i ", ps1.get_min_avg_LQI_inverse_threshold() );
-//			debug().debug( "max_link_stab_ratio_threshold : %i ", ps1.get_max_link_stab_ratio_threshold() );
-//			debug().debug( "min_link_stab_ratio_threshold : %i ", ps1.get_min_link_stab_ratio_threshold() );
-//			debug().debug( "max_link_stab_ratio_inverse_threshold : %i ", ps1.get_max_link_stab_ratio_inverse_threshold() );
-//			debug().debug( "min_link_stab_ratio_inverse_threshold : %i ", ps1.get_min_link_stab_ratio_inverse_threshold() );
-//			debug().debug( "consecutive_beacons_threshold : %i ", ps1.get_consecutive_beacons_threshold() );
-//			debug().debug( "consecutive_beacons_lost_threshold : %i ", ps1.get_consecutive_beacons_lost_threshold() );
-//			debug().debug( "events_flag : %i ", ps1.get_events_flag() );
-//			debug().debug( "proposed_transmission_power_dB : %i", ps1.get_proposed_transmission_power_dB() );
-//			debug().debug( "proposed_transmission_power_dB_weight : %i", ps1.get_proposed_transmission_power_dB_weight() );
-//			debug().debug( "proposed_beacon_period : %i", ps1.get_proposed_beacon_period() );
-//			debug().debug( "proposed_beacon_period_weight : %d", ps1.get_proposed_beacon_period_weight() );
-//			debug().debug( "overflow_strategy : %i", ps1.get_overflow_strategy() );
-//			debug().debug( "ratio_divider : %d", ps1.get_ratio_divider() );
-//			ps1.get_protocol_payload().print( debug() );
-//			debug().debug( "------------------------------");
-//
-// protocol Test Cases:
-//
-//			Protocol p;
-//			p.print( debug() );
-//			uint8_t event = 50;
-//			node_id_t from = 0;
-//			size_t len = 0;
-//			block_data_t* data = NULL;
-//			p.get_event_notifier_callback()( event, from, len, data );
-//			debug().debug( "******************************************");
-//			Neighbor n0( 10, 20, 30 ,40 ,50 ,60 ,70 ,80 , 90, 100, 110, clock().time() );
-//			Neighbor n1( 11, 21, 31 ,41 ,51 ,61 ,71 ,81 , 91, 101, 111, clock().time() );
-//			Neighbor n2( 12, 22, 32 ,42 ,52 ,62 ,72 ,82 , 92, 102, 112, clock().time() );
-//			Neighbor n3( 13, 23, 33 ,43 ,53 ,63 ,73 ,83 , 93, 103, 113, clock().time() );
-//			Neighbor n4( 14, 24, 34 ,44 ,54 ,64 ,74 ,84 , 94, 104, 114, clock().time() );
-//			Neighbor n5( 15, 25, 35 ,45 ,55 ,65 ,75 ,85 , 95, 105, 115, clock().time() );
-//			Neighbor_vector neighs;
-//			neighs.push_back( n0 );
-//			neighs.push_back( n1 );
-//			neighs.push_back( n2 );
-//			neighs.push_back( n3 );
-//			neighs.push_back( n4 );
-//			neighs.push_back( n5 );
-//
-//
-//
-//			block_data_t buff[100];
-//			for ( size_t i = 0; i < 100; ++i )
-//			{
-//				buff[i]=i;
-//			}
-//			ProtocolPayload pp1( 1, 5, buff, 9 );
-//			ProtocolSettings ps1( 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, pp1 );
-//
-//			p.set_protocol_id ( 1 );
-//			p.template set_event_notifier_callback< self_type, &self_type::sync_neighbors>( this );
-//			p.set_protocol_settings( ps1 );
-//			p.set_neighborhood( neighs );
-//			p.print( debug() );
-//			p.get_event_notifier_callback()( event, from, len, data );
-//			debug().debug( "******************************************");
-//			p.reset_event_notifier_callback();
-//			p.get_event_notifier_callback()( event, from, len, data );
-//			debug().debug( "******************************************");
-//			p.template set_event_notifier_callback< self_type, &self_type::sync_neighbors>( this );
-//			p.get_event_notifier_callback()( event, from, len, data );
-//			debug().debug( "******************************************");
-//			p.set_event_notifier_callback( p.get_event_notifier_callback() );
-//			p.get_event_notifier_callback()( event, from, len, data );
-//			debug().debug( "*****************%%%%%%*********************");
-//			debug().debug( "protocol id : %i ", p.get_protocol_id() );
-//			p.get_protocol_settings().print( debug() );
-//			for ( Neighbor_vector_iterator it = p.get_neighborhood_ref()->begin(); it != p.get_neighborhood_ref()->end(); ++it )
-//			{
-//				it->print( debug() );
-//			}
-//			debug().debug( "******************************************");
-//			p.get_neighbor_ref( 10 )->print( debug() );
-//			debug().debug( "******************************************");
-//			p.get_protocol_settings_ref()->set_proposed_transmission_power_dB( -9 );
-//			p.get_protocol_settings().print( debug() );
-//			debug().debug( "*****************%%%%%%*********************");
-//			Protocol p2 = p;
-//			p2.print( debug() );
-//			p2.get_event_notifier_callback()( event, from, len, data );
-//			debug().debug( "*****************%%%%%%*********************");
-//
-//			Neighbor n100 = *(p2.get_neighbor_ref( 10 ));
-//			p2.get_neighbor_ref( 10 )->set_total_beacons( 0xffffffff );
-//			p2.get_neighbor_ref( 10 )->print( debug() );
-//			p2.get_protocol_settings_ref()->set_overflow_strategy( 	ProtocolSettings::RESET_TOTAL_BEACONS|
-//																	ProtocolSettings::RESET_TOTAL_BEACONS_EXPECTED|
-//																	ProtocolSettings::RESET_STAB|
-//																	ProtocolSettings::RESET_STAB_INVERSE|
-//																	ProtocolSettings::RESET_AVG_LQI|
-//																	ProtocolSettings::RESET_AVG_LQI_INVERSE );
-//			debug().debug(" the problem : %d", p2.get_protocol_settings_ref()->get_overflow_strategy() );
-//			p2.resolve_overflow_strategy( 10 );
-//			p2.get_neighbor_ref( 10 )->print( debug() );
-//
-//			Beacon Test cases
-//			Beacon b1;
-//			b1.print( debug() );
-//			Neighbor n0( 10, 20, 30 ,40 ,50 ,60 ,70 ,80 , 90, 100, 110, clock().time() );
-//			Neighbor n1( 11, 21, 31 ,41 ,51 ,61 ,71 ,81 , 91, 101, 111, clock().time() );
-//			Neighbor n2( 12, 22, 32 ,42 ,52 ,62 ,72 ,82 , 92, 102, 112, clock().time() );
-//			Neighbor n3( 13, 23, 33 ,43 ,53 ,63 ,73 ,83 , 93, 103, 113, clock().time() );
-//			Neighbor n4( 14, 24, 34 ,44 ,54 ,64 ,74 ,84 , 94, 104, 114, clock().time() );
-//			Neighbor n5( 15, 25, 35 ,45 ,55 ,65 ,75 ,85 , 95, 105, 115, clock().time() );
-//			Neighbor_vector neighs;
-//			neighs.push_back( n0 );
-//			neighs.push_back( n1 );
-//			neighs.push_back( n2 );
-//			neighs.push_back( n3 );
-//			neighs.push_back( n4 );
-//			neighs.push_back( n5 );
-//			block_data_t buff[100];
-//			for ( size_t i = 0; i < 100; ++i )
-//			{
-//				buff[i]=i;
-//			}
-//			ProtocolPayload pp1( 1, 5, buff, 9 );
-//			ProtocolPayload pp2( 2, 5, buff, 19 );
-//			ProtocolPayload pp3( 3,	5, buff, 29 );
-//			ProtocolPayload pp4( 4, 10, buff, 39 );
-//			ProtocolPayload pp5( 5, 10, buff, 49 );
-//			debug().debug( "********");
-//			debug().debug( "pp1 serial_size : %i", pp1.serial_size() );
-//			debug().debug( "pp2 serial_size : %i", pp2.serial_size() );
-//			debug().debug( "pp3 serial_size : %i", pp3.serial_size() );
-//			debug().debug( "pp4 serial_size : %i", pp4.serial_size() );
-//			debug().debug( "pp5 serial_size : %i", pp5.serial_size() );
-//			debug().debug( "********");
-//			debug().debug( "n0 serial_size : %i", n0.serial_size() );
-//			debug().debug( "n1 serial_size : %i", n1.serial_size() );
-//			debug().debug( "n2 serial_size : %i", n2.serial_size() );
-//			debug().debug( "n3 serial_size : %i", n3.serial_size() );
-//			debug().debug( "n4 serial_size : %i", n4.serial_size() );
-//			debug().debug( "n5 serial_size : %i", n5.serial_size() );
-//			debug().debug( "********");
-//			ProtocolPayload_vector payloads;
-//			payloads.push_back( pp1 );
-//			payloads.push_back( pp2 );
-//			payloads.push_back( pp3 );
-//			payloads.push_back( pp4 );
-//			payloads.push_back( pp5 );
-//			Beacon b2;
-//			b2.set_neighborhood( neighs );
-//			b2.set_protocol_payloads( payloads );
-//			b2.set_beacon_period( 10000 );
-//			b2.set_beacon_period_update_counter( 20000 );
-//			b1 = b2;
-//			b1.print( debug() );
-//
-//			debug().debug("***************************************");
-//			for ( Neighbor_vector_iterator it = b1.get_neighborhood_ref()->begin(); it != b1.get_neighborhood_ref()->end(); ++it )
-//			{
-//				it->print( debug() );
-//			}
-//			debug().debug("***************************************");
-//			for ( ProtocolPayload_vector_iterator it = b1.get_protocol_payloads_ref()->begin(); it != b1.get_protocol_payloads_ref()->end(); ++it )
-//			{
-//				it->print( debug() );
-//			}
-//			debug().debug("***************************************");
-//			b2.print( debug() );
-//			debug().debug("***************************************");
-//			block_data_t bufff[100];
-//			Beacon b3;
-//			b3.de_serialize( b2.serialize( bufff, 4 ), 4 );
-//			b3.print( debug() );
-//			debug().debug("serial_size : %i", b3.serial_size() );
-//			debug().debug("serial_size : %i", b2.serial_size() );

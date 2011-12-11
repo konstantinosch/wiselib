@@ -117,41 +117,41 @@ namespace wiselib
 		// --------------------------------------------------------------------
 		void resolve_overflow_strategy( node_id_t _nid )
 		{
-			Neighbor& n_ref = get_neighbor_ref( _nid );
-			ProtocolSettings& p_ref = get_protocol_settings_ref();
-			if ( p_ref.get_overflow_strategy() & ProtocolSettings::RESET_TOTAL_BEACONS )
+			Neighbor* n_ref = get_neighbor_ref( _nid );
+			ProtocolSettings* p_ref = get_protocol_settings_ref();
+			if ( p_ref->get_overflow_strategy() & ProtocolSettings::RESET_TOTAL_BEACONS )
 			{
-				n_ref.set_total_beacons( 0 );
+				n_ref->set_total_beacons( 0 );
 			}
-			if ( p_ref.get_overflow_strategy() & ProtocolSettings::RESET_TOTAL_BEACONS_EXPECTED )
+			if ( p_ref->get_overflow_strategy() & ProtocolSettings::RESET_TOTAL_BEACONS_EXPECTED )
 			{
-				n_ref.set_total_beacons_expected( 0 );
+				n_ref->set_total_beacons_expected( 0 );
 			}
-			if ( p_ref.get_overflow_strategy() & ProtocolSettings::RESET_AVG_LQI )
+			if ( p_ref->get_overflow_strategy() & ProtocolSettings::RESET_AVG_LQI )
 			{
-				n_ref.set_avg_LQI( 0 );
+				n_ref->set_avg_LQI( 0 );
 			}
-			if ( p_ref.get_overflow_strategy() & ProtocolSettings::RESET_AVG_LQI_INVERSE )
+			if ( p_ref->get_overflow_strategy() & ProtocolSettings::RESET_AVG_LQI_INVERSE )
 			{
-				n_ref.set_avg_LQI_inverse( 0 );
+				n_ref->set_avg_LQI_inverse( 0 );
 			}
-			if ( p_ref.get_overflow_strategy() & ProtocolSettings::RESET_STAB )
+			if ( p_ref->get_overflow_strategy() & ProtocolSettings::RESET_STAB )
 			{
-				n_ref.set_link_stab_ratio( 0 );
+				n_ref->set_link_stab_ratio( 0 );
 			}
-			if ( p_ref.get_overflow_strategy() & ProtocolSettings::RESET_STAB_INVERSE )
+			if ( p_ref->get_overflow_strategy() & ProtocolSettings::RESET_STAB_INVERSE )
 			{
-				n_ref.set_link_stab_ratio_inverse( 0 );
+				n_ref->set_link_stab_ratio_inverse( 0 );
 			}
-			if ( p_ref.get_overflow_strategy() == ProtocolSettings::RATIO_DIVIDER )
+			if ( p_ref->get_overflow_strategy() == ProtocolSettings::RATIO_DIVIDER )
 			{
-				n_ref.set_total_beacons( n_ref->get_total_beacons() / p_ref->get_ratio_divider() );
-				n_ref.set_total_beacons_expected( n_ref->get_total_beacons_expected() / p_ref->get_ratio_divider() );
+				n_ref->set_total_beacons( n_ref->get_total_beacons() / p_ref->get_ratio_divider() );
+				n_ref->set_total_beacons_expected( n_ref->get_total_beacons_expected() / p_ref->get_ratio_divider() );
 			}
 			else
 			{
-				n_ref.set_total_beacons( n_ref->get_total_beacons() / p_ref->get_ratio_divider() );
-				n_ref.set_total_beacons_expected( n_ref->get_total_beacons_expected() / p_ref->get_ratio_divider() );
+				n_ref->set_total_beacons( n_ref->get_total_beacons() / p_ref->get_ratio_divider() );
+				n_ref->set_total_beacons_expected( n_ref->get_total_beacons_expected() / p_ref->get_ratio_divider() );
 			}
 		}
 		// --------------------------------------------------------------------

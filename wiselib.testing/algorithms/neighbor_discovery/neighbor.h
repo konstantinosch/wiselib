@@ -139,7 +139,7 @@ namespace wiselib
 		// --------------------------------------------------------------------
 		void set_link_stab_ratio()
 		{
-			link_stab_ratio = total_beacons / total_beacons_expected;
+			link_stab_ratio = ( total_beacons / total_beacons_expected ) * 100;
 		}
 		// --------------------------------------------------------------------
 		void set_link_stab_ratio( uint8_t _lsratio )
