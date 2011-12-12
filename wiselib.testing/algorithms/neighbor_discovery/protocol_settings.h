@@ -44,6 +44,9 @@ namespace wiselib
 			dead_time_strategy						( MEAN_DEAD_TIME_PERIOD ),
 			old_dead_time_period_weight				( NB_OLD_DEAD_TIME_PERIOD_WEIGHT ),
 			new_dead_time_period_weight				( NB_NEW_DEAD_TIME_PERIOD_WEIGHT )
+			ratio_normalization_strategy			( R_NR_NORMAL ),
+			beacon_weight							( NB_BEACON_WEIGHT ),
+			lost_beacon_weight						( NB_LOST_BEACON_WEIGHT )
 		{}
 		// --------------------------------------------------------------------
 		ProtocolSettings(	uint8_t _maxLQI,
@@ -66,6 +69,9 @@ namespace wiselib
 							uint8_t _dt_s,
 							uint8_t _odtp_w,
 							uint8_t _ndtp_w,
+							uint8_t _rn_s,
+							uint32_t _b_w,
+							uint32_t _lb_w,
 							ProtocolPayload _pp )
 		{
 			max_avg_LQI_threshold = _maxLQI;
@@ -88,6 +94,9 @@ namespace wiselib
 			dead_time_strategy = _dt_s;
 			old_dead_time_period_weight = _odtp_w;
 			new_dead_time_period_weight = _ndtp_w;
+			ratio_normalization_strategy = _rn_s;
+			beacon_weight = _b_w;
+			lost_beacon_weight = _lb_w;
 			protocol_payload = _pp;
 		}
 		// --------------------------------------------------------------------
@@ -320,6 +329,43 @@ namespace wiselib
 			protocol_payload = _pp;
 		}
 		// --------------------------------------------------------------------
+		uint8_t get_ratio_normalization_strategy()
+		{
+			return ratio_normalization_strategy;
+		}
+		// --------------------------------------------------------------------
+		void set_ratio_normalization_strategy( uint8_t _rn_s )
+		{
+			if ( _rns > R_NR_STRATEGY_NUM_VALUES )
+			{
+				ratio_normalization_strategy = R_NR_NORMAL;
+			}
+			else
+			{
+				ratio_normalization_strategy = _rn_s;
+			}
+		}
+		// --------------------------------------------------------------------
+		uint32_t get_beacon_weight()
+		{
+			return beacon_weight;
+		}
+		// --------------------------------------------------------------------
+		void set_beacon_weight( uint32_t _b_w )
+		{
+			beacon_weight = _b_w;
+		}
+		// --------------------------------------------------------------------
+		uint32_t get_lost_beacon_weight()
+		{
+			return beacon_weight;
+		}
+		// --------------------------------------------------------------------
+		void set_lost_beacon_weight( uint32_t _bl_w )
+		{
+			beacon_weight = _bl_w;
+		}
+		// --------------------------------------------------------------------
 		ProtocolSettings& operator=( const ProtocolSettings& _psett )
 		{
 			max_avg_LQI_threshold = _psett.max_avg_LQI_threshold;
@@ -343,6 +389,9 @@ namespace wiselib
 			old_dead_time_period_weight	= _psett.old_dead_time_period_weight;
 			new_dead_time_period_weight	= _psett.new_dead_time_period_weight;
 			protocol_payload = _psett.protocol_payload;
+			ratio_normalization_strategy = _psett.ratio_normalization_strategy;
+			beacon_weight = _psett.beacon_weight;
+			lost_beacon_weight = _psett.lost_beacon_weight;
 			return *this;
 		}
 		// --------------------------------------------------------------------
@@ -370,6 +419,9 @@ namespace wiselib
 			debug.debug( "dead_time_strategy : %d", dead_time_strategy );
 			debug.debug( "old_dead_time_period_weight : %d", old_dead_time_period_weight );
 			debug.debug( "new_dead_time_period_weight : %d", new_dead_time_period_weight );
+			debug.debug( "ratio_normalization_strategies : %d", ratio_normalization_strategies );
+			debug.debug( "beacon_weight : %d", beacon_weight );
+			debug.debug( "lost_beacon_weight : %d", lost_beacon_weight );
 			protocol_payload.print( debug );
 			debug.debug( "-------------------------------------------------------");
 		}
@@ -404,6 +456,13 @@ namespace wiselib
 			DT_STRATEGY_NUM_VALUES
 		};
 		// --------------------------------------------------------------------
+		enum ratio_normalization_strategies
+		{
+			R_NR_NORMAL,
+			R_NR_WEIGHTED,
+			R_NR_WEIGHTED_PROPORTIONAL,
+			R_NR_STRATEGY_NUM_VALUES
+		};
 	private:
 		uint8_t max_avg_LQI_threshold;
 		uint8_t min_avg_LQI_threshold;
@@ -425,6 +484,9 @@ namespace wiselib
 		uint8_t dead_time_strategy;
 		uint8_t old_dead_time_period_weight;
 		uint8_t new_dead_time_period_weight;
+		uint8_t ratio_normalization_strategy;
+		uint32_t beacon_weight;
+		uint32_t lost_beacon_weight;
 		ProtocolPayload protocol_payload;
 	};
 }

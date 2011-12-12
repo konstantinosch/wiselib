@@ -84,12 +84,15 @@ namespace wiselib
 		// --------------------------------------------------------------------
 		void inc_total_beacons( uint32_t _tbeac = 1 )
 		{
+			//TODO resolve possible overflow here
+			//link_stab_ratio = ( total_beacons + ( _tbeac * beacon_weight * ( total_beacons ) / 100 ) ) / ( total_beacons_expected + ( beacon_weight * ( total_beacons ) / 100 ) );
 			total_beacons = total_beacons + _tbeac;
 		}
 		// --------------------------------------------------------------------
 		void set_total_beacons( uint32_t _tbeac )
 		{
 			total_beacons = _tbeac;
+			//link_stab_ratio = ( total_beacons + ( _tbeac * beacon_weight * ( total_beacons ) / 100 ) ) / ( total_beacons_expected + ( beacon_weight * ( total_beacons ) / 100 ) );
 		}
 		// --------------------------------------------------------------------
 		uint32_t get_total_beacons_expected()
@@ -99,12 +102,15 @@ namespace wiselib
 		// --------------------------------------------------------------------
 		void inc_total_beacons_expected( uint32_t _tbeac_exp = 1 )
 		{
+			//TODO resolve possible overflow here
+			//link_stab_ratio = ( total_beacons ) / ( total_beacons_expected + ( _tbeac_exp * lost_beacon_weight * ( total_beacons_expected ) / 100 ) );
 			total_beacons_expected = total_beacons_expected + _tbeac_exp;
 		}
 		// --------------------------------------------------------------------
 		void set_total_beacons_expected( uint32_t _tbeac_exp )
 		{
 			total_beacons_expected = _tbeac_exp;
+			link_stab_ratio = ( total_beacons ) / ( total_beacons_expected + ( _tbeac_exp * lost_beacon_weight * ( total_beacons_expected ) / 100 ) );
 		}
 		// --------------------------------------------------------------------
 		uint8_t get_avg_LQI()
@@ -117,9 +123,9 @@ namespace wiselib
 			avg_LQI = _alqi;
 		}
 		// --------------------------------------------------------------------
-		void update_avg_LQI( uint8_t _lqi, uint32_t _w = 1 )
+		void update_avg_LQI( uint8_t _lqi )
 		{
-			avg_LQI = ( ( avg_LQI * total_beacons ) + _lqi * _w ) / ( total_beacons + _w );
+			avg_LQI = ( ( avg_LQI * total_beacons ) + _lqi * ( ratio_weight * total_beacons / 100 ) ) / ( total_beacons + ( beacon_weight * total_beacons / 100 ) );
 		}
 		// --------------------------------------------------------------------
 		uint8_t get_avg_LQI_inverse()
@@ -135,11 +141,6 @@ namespace wiselib
 		uint8_t get_link_stab_ratio()
 		{
 			return link_stab_ratio;
-		}
-		// --------------------------------------------------------------------
-		void set_link_stab_ratio()
-		{
-			link_stab_ratio = ( total_beacons / total_beacons_expected ) * 100;
 		}
 		// --------------------------------------------------------------------
 		void set_link_stab_ratio( uint8_t _lsratio )
@@ -253,43 +254,38 @@ namespace wiselib
 		// --------------------------------------------------------------------
 		block_data_t* serialize( block_data_t* _buff, size_t _offset = 0 )
 		{
-			size_t AVG_LQI_POS = 0;
-			size_t AVG_LQI_IN_POS = AVG_LQI_POS + sizeof(uint8_t);
-			size_t LINK_STAB_RATIO_POS = AVG_LQI_IN_POS + sizeof(uint8_t);
-			size_t LINK_STAB_RATIO_IN_POS = LINK_STAB_RATIO_POS + sizeof(uint8_t);
+			size_t ID_POS = 0;
+			size_t AVG_LQI_POS = ID_POS + sizeof(node_id_t);
+			size_t LINK_STAB_RATIO_POS = AVG_LQI_POS + sizeof(uint8_t);
+			write<Os, block_data_t, node_id_t>( _buff + ID_POS + _offset, id );
 			write<Os, block_data_t, uint8_t>( _buff + AVG_LQI_POS + _offset, avg_LQI );
-			write<Os, block_data_t, uint8_t>( _buff + AVG_LQI_IN_POS + _offset, avg_LQI_inverse );
 			write<Os, block_data_t, uint8_t>( _buff + LINK_STAB_RATIO_POS + _offset, link_stab_ratio );
-			write<Os, block_data_t, uint8_t>( _buff + LINK_STAB_RATIO_IN_POS + _offset, link_stab_ratio_inverse );
 			return _buff;
 		}
 		// --------------------------------------------------------------------
 		void de_serialize( block_data_t* _buff, size_t _offset = 0 )
 		{
-			size_t AVG_LQI_POS = 0;
-			size_t AVG_LQI_IN_POS = AVG_LQI_POS + sizeof(uint8_t);
-			size_t LINK_STAB_RATIO_POS = AVG_LQI_IN_POS + sizeof(uint8_t);
-			size_t LINK_STAB_RATIO_IN_POS = LINK_STAB_RATIO_POS + sizeof(uint8_t);
+			size_t ID_POS = 0;
+			size_t AVG_LQI_POS = ID_POS + sizeof(node_id_t);
+			size_t LINK_STAB_RATIO_POS = AVG_LQI_POS + sizeof(uint8_t);
+			id = read<Os, block_data_t, node_id_t>( _buff + ID_POS + _offset );
 			avg_LQI = read<Os, block_data_t, uint8_t>( _buff + AVG_LQI_POS + _offset );
-			avg_LQI_inverse = read<Os, block_data_t, uint8_t>( _buff + AVG_LQI_IN_POS + _offset );
 			link_stab_ratio = read<Os, block_data_t, uint8_t>( _buff + LINK_STAB_RATIO_POS + _offset );
-			link_stab_ratio_inverse = read<Os, block_data_t, uint8_t>( _buff + LINK_STAB_RATIO_IN_POS + _offset );
 		}
 		// --------------------------------------------------------------------
 		size_t serial_size()
 		{
-			size_t AVG_LQI_POS = 0;
-			size_t AVG_LQI_IN_POS = AVG_LQI_POS + sizeof(uint8_t);
-			size_t LINK_STAB_RATIO_POS = AVG_LQI_IN_POS + sizeof(uint8_t);
-			size_t LINK_STAB_RATIO_IN_POS = LINK_STAB_RATIO_POS + sizeof(uint8_t);
-			return LINK_STAB_RATIO_IN_POS + sizeof( uint8_t );
+			size_t ID_POS = 0;
+			size_t AVG_LQI_POS = ID_POS + sizeof(node_id_t);
+			size_t LINK_STAB_RATIO_POS = AVG_LQI_POS + sizeof(uint8_t);
+			return LINK_STAB_RATIO_POS + sizeof( uint8_t );
 		}
 		// --------------------------------------------------------------------
 		void print( Debug& debug )
 		{
 			debug.debug( "-------------------------------------------------------");
 			debug.debug( "neighbor :" );
-			debug.debug( "id : %d", id );
+			debug.debug( "id : %x", id );
 			debug.debug( "total_beacons : %d", total_beacons );
 			debug.debug( "total_beacons_expected : %d", total_beacons_expected );
 			debug.debug( "avg_LQI : %d", avg_LQI );
