@@ -118,7 +118,6 @@ namespace wiselib
 #ifdef NB_DEBUG_BEACONS
 					debug().debug("NeighborDiscovery-beacons %x - Protocol exists.", radio().id() );
 #endif
-					//p_ptr->print( debug() );
 					millis_t bp = get_beacon_period();
 					Neighbor* n = p_ptr->get_neighbor_ref( radio().id() );
 					if ( n != NULL )
@@ -200,10 +199,10 @@ namespace wiselib
 #ifdef NB_DEBUG_RECEIVE
 									debug().debug("NeighborDiscovery-receive %x - Neighbor %x is on time same as advertised.", radio().id(), _from );
 #endif
-									new_neighbor.set_id( _from );
+									new_neighbor = *nit;
 									new_neighbor.inc_total_beacons();
 									new_neighbor.inc_total_beacons_expected();
-									new_neighbor.set_avg_LQI( beacon_lqi );
+									new_neighbor.update_avg_LQI( beacon_lqi );
 									new_neighbor.set_link_stab_ratio();
 									new_neighbor.inc_consecutive_beacons();
 									new_neighbor.set_consecutive_beacons_lost( 0 );
@@ -216,9 +215,10 @@ namespace wiselib
 #ifdef NB_DEBUG_RECEIVE
 									debug().debug("NeighborDiscovery-receive %x - Neighbor %x was late same as advertised.", radio().id(), _from );
 #endif
+									new_neighbor = *nit;
 									new_neighbor.inc_total_beacons();
 									new_neighbor.inc_total_beacons_expected( dead_time / nit->get_beacon_period() );
-									new_neighbor.set_avg_LQI( beacon_lqi );
+									new_neighbor.update_avg_LQI( beacon_lqi );
 									new_neighbor.set_link_stab_ratio();
 									new_neighbor.set_consecutive_beacons( 0 );
 									new_neighbor.inc_consecutive_beacons_lost( dead_time / nit->get_beacon_period() );
@@ -234,10 +234,10 @@ if ( ( dead_time < beacon.get_beacon_period() + NB_RELAX_MILLIS ) && ( dead_time
 #ifdef NB_DEBUG_RECEIVE
 									debug().debug("NeighborDiscovery-receive %x - Neighbor %x is on time same as advertised.", radio().id(), _from );
 #endif
-									new_neighbor.set_id( _from );
+									new_neighbor = *nit;
 									new_neighbor.inc_total_beacons();
 									new_neighbor.inc_total_beacons_expected();
-									new_neighbor.set_avg_LQI( beacon_lqi );
+									new_neighbor.update_avg_LQI( beacon_lqi );
 									new_neighbor.set_link_stab_ratio();
 									new_neighbor.inc_consecutive_beacons();
 									new_neighbor.set_consecutive_beacons_lost( 0 );
@@ -269,9 +269,10 @@ if ( ( dead_time < beacon.get_beacon_period() + NB_RELAX_MILLIS ) && ( dead_time
 										approximate_beacon_period = ( beacon.get_beacon_period() * pit->get_protocol_settings_ref()->get_new_dead_time_period_weight() + nit->get_beacon_period() * pit->get_protocol_settings_ref()->get_old_dead_time_period_weight() ) / ( pit->get_protocol_settings_ref()->get_old_dead_time_period_weight() + pit->get_protocol_settings_ref()->get_new_dead_time_period_weight() );
 									}
 									uint32_t dead_time_messages_lost = ( dead_time - last_beacon_period_update ) * approximate_beacon_period;
+									new_neighbor = *nit;
 									new_neighbor.inc_total_beacons();
 									new_neighbor.inc_total_beacons_expected( dead_time_messages_lost + beacon.get_beacon_period_update_counter() );
-									new_neighbor.set_avg_LQI( beacon_lqi );
+									new_neighbor.update_avg_LQI( beacon_lqi );
 									new_neighbor.set_link_stab_ratio();
 									new_neighbor.set_consecutive_beacons( 0 );
 									new_neighbor.inc_consecutive_beacons_lost( dead_time_messages_lost + beacon.get_beacon_period_update_counter() );
@@ -312,12 +313,7 @@ if ( ( dead_time < beacon.get_beacon_period() + NB_RELAX_MILLIS ) && ( dead_time
 							new_neighbor.set_link_stab_ratio_inverse( nit->get_link_stab_ratio() );
 						}
 					}
-					//
 					uint8_t events_flag = 0;
-					debug().debug( "lqi %i", beacon_lqi );
-					new_neighbor.print( debug() );
-					pit->get_protocol_settings_ref()->print( debug() );
-					//
 					if	(	( new_neighbor.get_avg_LQI() <= pit->get_protocol_settings_ref()->get_max_avg_LQI_threshold() ) &&
 							( new_neighbor.get_avg_LQI() >= pit->get_protocol_settings_ref()->get_min_avg_LQI_threshold() ) &&
 							( new_neighbor.get_avg_LQI_inverse() <= pit->get_protocol_settings_ref()->get_max_avg_LQI_inverse_threshold() ) &&
@@ -329,6 +325,9 @@ if ( ( dead_time < beacon.get_beacon_period() + NB_RELAX_MILLIS ) && ( dead_time
 							( ( ( ( new_neighbor.get_consecutive_beacons() == 0 ) && ( new_neighbor.get_consecutive_beacons_lost() <= pit->get_protocol_settings_ref()->get_consecutive_beacons_lost_threshold() ) ) ) ||
 							( ( ( new_neighbor.get_consecutive_beacons() >= pit->get_protocol_settings_ref()->get_consecutive_beacons_threshold() ) && ( new_neighbor.get_consecutive_beacons_lost() == 0 ) ) ) ) )
 					{
+#ifdef NB_DEBUG_RECEIVE
+							new_neighbor.print( debug() );
+#endif
 						if ( found_flag == 1 )
 						{
 #ifdef NB_DEBUG_RECEIVE
