@@ -34,7 +34,8 @@ namespace wiselib
 			consecutive_beacons				( 0 ),
 			consecutive_beacons_lost		( 0 ),
 			beacon_period					( 0 ),
-			beacon_period_update_counter	( 0 )
+			beacon_period_update_counter	( 0 ),
+			active							( 0 )
 		{}
 		// --------------------------------------------------------------------
 		Neighbor(	node_id_t _id,
@@ -48,6 +49,7 @@ namespace wiselib
 					uint8_t _cb_lost,
 					millis_t _bp,
 					uint32_t _bpuc,
+					uint8_t _a,
 					time_t _lb )
 		{
 			id = _id;
@@ -61,6 +63,10 @@ namespace wiselib
 			consecutive_beacons_lost =  _cb_lost;
 			beacon_period = _bp;
 			beacon_period_update_counter = _bpuc;
+			if ( _a != 0 )
+			{
+				active = 1;
+			}
 			last_beacon = _lb;
 		}
 		// --------------------------------------------------------------------
@@ -225,6 +231,24 @@ namespace wiselib
 			beacon_period_update_counter = beacon_period_update_counter + _bpuc;
 		}
 		// --------------------------------------------------------------------
+		void set_active( uint8_t _a = 1 )
+		{
+			if ( _a != 0 )
+			{
+				active = 1;
+			}
+			else
+			{
+				active = 0;
+			}
+
+		}
+		// --------------------------------------------------------------------
+		uint8_t get_active()
+		{
+			return active;
+		}
+		// --------------------------------------------------------------------
 		Neighbor& operator=( const Neighbor& _n )
 		{
 			id = _n.id;
@@ -239,6 +263,7 @@ namespace wiselib
 			beacon_period = _n.beacon_period;
 			beacon_period_update_counter = _n.beacon_period_update_counter;
 			last_beacon = _n.last_beacon;
+			active = _n.active;
 			return *this;
 		}
 		// --------------------------------------------------------------------
@@ -286,6 +311,7 @@ namespace wiselib
 			debug.debug( "consecutive_beacons_lost : %d", consecutive_beacons_lost );
 			debug.debug( "beacon_period : %d", beacon_period );
 			debug.debug( "beacon_period_update_counter : %d", beacon_period_update_counter );
+			debug.debug( "active : %d", active );
 			debug.debug( "-------------------------------------------------------");
 		}
 		// --------------------------------------------------------------------
@@ -301,6 +327,7 @@ namespace wiselib
 		uint8_t consecutive_beacons_lost;
 		millis_t beacon_period;
 		uint32_t beacon_period_update_counter;
+		uint8_t active;
 		time_t last_beacon;
 	};
 }

@@ -69,6 +69,7 @@ namespace wiselib
 			Protocol p;
 			Neighbor n;
 			n.set_id( radio().id() );
+			n.set_active();
 			Neighbor_vector neighbors;
 			neighbors.push_back( n );
 			ProtocolPayload pp;
@@ -320,13 +321,14 @@ namespace wiselib
 							( ( ( ( new_neighbor.get_consecutive_beacons() == 0 ) && ( new_neighbor.get_consecutive_beacons_lost() <= pit->get_protocol_settings_ref()->get_consecutive_beacons_lost_threshold() ) ) ) ||
 							( ( ( new_neighbor.get_consecutive_beacons() >= pit->get_protocol_settings_ref()->get_consecutive_beacons_threshold() ) && ( new_neighbor.get_consecutive_beacons_lost() == 0 ) ) ) ) )
 					{
+						new_neighbor.set_active();
 						if ( found_flag == 1 )
 						{
 							events_flag = events_flag | ProtocolSettings::UPDATE_NB;
 							*update_neighbor_it = new_neighbor;
 							pit->resolve_overflow_strategy( _from );
 #ifdef NB_DEBUG_RECEIVE
-							debug().debug("NeighborDiscovery-receive %x - Neighbor %x was updated.", radio().id(), _from );
+							debug().debug("NeighborDiscovery-receive %x - Neighbor %x was updated and active.", radio().id(), _from );
 #endif
 						}
 						else
@@ -335,7 +337,7 @@ namespace wiselib
 							pit->get_neighborhood_ref()->push_back( new_neighbor );
 							pit->resolve_overflow_strategy( _from );
 #ifdef NB_DEBUG_RECEIVE
-							debug().debug("NeighborDiscovery-receive %x - Neighbor %x was inserted.", radio().id(), _from );
+							debug().debug("NeighborDiscovery-receive %x - Neighbor %x was inserted and active.", radio().id(), _from );
 #endif
 						}
 #ifdef NB_DEBUG_RECEIVE
@@ -368,18 +370,27 @@ namespace wiselib
 					}
 					else
 					{
+						new_neighbor.set_active( 0 );
 						if ( found_flag == 1 )
 						{
 							events_flag = events_flag | ProtocolSettings::LOST_NB;
-							pit->get_neighborhood_ref()->erase( update_neighbor_it );
+
+							*update_neighbor_it = new_neighbor;
 							events_flag = pit->get_protocol_settings_ref()->get_events_flag() & events_flag;
 #ifdef NB_DEBUG_RECEIVE
-							debug().debug("NeighborDiscovery-receive %x - Neighbor %x was erased.", radio().id(), _from );
+							debug().debug("NeighborDiscovery-receive %x - Neighbor %x was updated but inactive.", radio().id(), _from );
 #endif
 							if ( events_flag != 0 )
 							{
 								pit->get_event_notifier_callback()( events_flag, _from, 0, NULL );
 							}
+						}
+						else
+						{
+							pit->get_neighborhood_ref()->push_back( new_neighbor );
+#ifdef NB_DEBUG_RECEIVE
+							debug().debug("NeighborDiscovery-receive %x - Neighbor %x was inserted but inactive.", radio().id(), _from );
+#endif
 						}
 					}
 				}

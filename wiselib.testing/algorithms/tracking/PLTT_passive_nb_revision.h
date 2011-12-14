@@ -86,18 +86,16 @@ public:
 #else
 	typedef PLTT_PassiveType<Os, Node, PLTT_Node, PLTT_NodeList, PLTT_Trace, PLTT_TraceList, NeighborDiscovery, Timer, Radio, Rand, Clock, Debug> self_type;
 #endif
-
-
-//	typedef NeighborDiscovery<Os, Radio, Clock, Timer, Debug> NeighborDiscovery;
-//	typedef typename NeighborDiscovery::ProtocolSettings ProtocolSettings;
-//	typedef typename NeighborDiscovery::Neighbor Neighbor;
-//	typedef typename NeighborDiscovery::ProtocolPayload ProtocolPayload;
-//	typedef typename NeighborDiscovery::Protocol Protocol;
-//	typedef typename NeighborDiscovery::Neighbor_vector Neighbor_vector;
-//	typedef typename NeighborDiscovery::Neighbor_vector_iterator Neighbor_vector_iterator;
-//	typedef typename NeighborDiscovery::ProtocolPayload_vector ProtocolPayload_vector;
-//	typedef typename NeighborDiscovery::ProtocolPayload_vector_iterator ProtocolPayload_vector_iterator;
-//	typedef typename NeighborDiscovery::Beacon Beacon;
+typedef NeighborDiscovery<Os, Radio, Clock, Timer, Debug> NeighborDiscovery;
+typedef typename NeighborDiscovery::ProtocolSettings ProtocolSettings;
+typedef typename NeighborDiscovery::Neighbor Neighbor;
+typedef typename NeighborDiscovery::ProtocolPayload ProtocolPayload;
+typedef typename NeighborDiscovery::Protocol Protocol;
+typedef typename NeighborDiscovery::Neighbor_vector Neighbor_vector;
+typedef typename NeighborDiscovery::Neighbor_vector_iterator Neighbor_vector_iterator;
+typedef typename NeighborDiscovery::ProtocolPayload_vector ProtocolPayload_vector;
+typedef typename NeighborDiscovery::ProtocolPayload_vector_iterator ProtocolPayload_vector_iterator;
+typedef typename NeighborDiscovery::Beacon Beacon;
 
 
 
@@ -117,6 +115,11 @@ public:
 		debug().debug( "PLTT_Passive %x: Boot \n", self.get_node().get_id() );
 #endif
 		neighbor_discovery().enable();
+		ProtocolPayload pp;
+		pp.set_protocol_id( 1 );
+		pp.set_payload_size( 0 );
+		uint8_t ef = ProtocolSettings::NEW_NB|ProtocolSettings::UPDATE_NB|ProtocolSettings::NEW_PAYLOAD|ProtocolSettings::LOST_NB|ProtocolSettings::TRANS_DB_UPDATE|ProtocolSettings::BEACON_PERIOD_UPDATE;
+		ProtocolSettings ps( 255, 0, 255, 95, 100, 95, 100, 10, 10, 0xff, ef, -6, 100, 3000, 100, ProtocolSettings::RATIO_DIVIDER, 2, ProtocolSettings::MEAN_DEAD_TIME_PERIOD, 100, 100, ProtocolSettings::R_NR_NORMAL, 1, 1, pp );
 		//clock().seconds();
 		//radio().enable_radio();
 		//TxPower power;

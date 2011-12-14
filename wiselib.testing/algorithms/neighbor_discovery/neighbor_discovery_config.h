@@ -1,10 +1,10 @@
 //default NB protocol settings
 #define NB_MAX_NEIGHBORS 25
-#define NB_MAX_REGISTERED_PROTOCOLS 5
+#define NB_MAX_REGISTERED_PROTOCOLS 2
 #define NB_BEACON_PERIOD 3000
 #define NB_CHANNEL 0
 #define NB_TRANSMISSION_POWER_DB 0
-#define NB_RELAX_MILLIS 50
+#define NB_RELAX_MILLIS 50 //great care with this one...
 #define NB_PROTOCOL_ID 0
 
 //default registered protocol settings
