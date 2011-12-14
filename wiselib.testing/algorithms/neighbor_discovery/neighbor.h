@@ -82,17 +82,16 @@ namespace wiselib
 			return total_beacons;
 		}
 		// --------------------------------------------------------------------
-		void inc_total_beacons( uint32_t _tbeac = 1 )
+		void inc_total_beacons( uint32_t _tbeac, uint32_t _tbeac_w )
 		{
-			//TODO resolve possible overflow here
-			//link_stab_ratio = ( total_beacons + ( _tbeac * beacon_weight * ( total_beacons ) / 100 ) ) / ( total_beacons_expected + ( beacon_weight * ( total_beacons ) / 100 ) );
+			//TODO overflow
+			link_stab_ratio = ( ( total_beacons + _tbeac * _tbeac_w ) * 100 ) / ( total_beacons_expected + _tbeac_w );
 			total_beacons = total_beacons + _tbeac;
 		}
 		// --------------------------------------------------------------------
 		void set_total_beacons( uint32_t _tbeac )
 		{
 			total_beacons = _tbeac;
-			//link_stab_ratio = ( total_beacons + ( _tbeac * beacon_weight * ( total_beacons ) / 100 ) ) / ( total_beacons_expected + ( beacon_weight * ( total_beacons ) / 100 ) );
 		}
 		// --------------------------------------------------------------------
 		uint32_t get_total_beacons_expected()
@@ -100,17 +99,16 @@ namespace wiselib
 			return total_beacons_expected;
 		}
 		// --------------------------------------------------------------------
-		void inc_total_beacons_expected( uint32_t _tbeac_exp = 1 )
+		void inc_total_beacons_expected( uint32_t _tbeac_exp, uint32_t _tbeac_exp_w )
 		{
-			//TODO resolve possible overflow here
-			//link_stab_ratio = ( total_beacons ) / ( total_beacons_expected + ( _tbeac_exp * lost_beacon_weight * ( total_beacons_expected ) / 100 ) );
+			//TODO overflow
+			link_stab_ratio = ( ( total_beacons ) * 100 ) / ( total_beacons_expected + ( _tbeac_exp * _tbeac_exp_w ) );
 			total_beacons_expected = total_beacons_expected + _tbeac_exp;
 		}
 		// --------------------------------------------------------------------
 		void set_total_beacons_expected( uint32_t _tbeac_exp )
 		{
 			total_beacons_expected = _tbeac_exp;
-			link_stab_ratio = ( total_beacons ) / ( total_beacons_expected + ( _tbeac_exp * lost_beacon_weight * ( total_beacons_expected ) / 100 ) );
 		}
 		// --------------------------------------------------------------------
 		uint8_t get_avg_LQI()
@@ -123,9 +121,9 @@ namespace wiselib
 			avg_LQI = _alqi;
 		}
 		// --------------------------------------------------------------------
-		void update_avg_LQI( uint8_t _lqi )
+		void update_avg_LQI( uint8_t _lqi, uint32_t _lqi_w )
 		{
-			avg_LQI = ( ( avg_LQI * total_beacons ) + _lqi * ( ratio_weight * total_beacons / 100 ) ) / ( total_beacons + ( beacon_weight * total_beacons / 100 ) );
+			avg_LQI = ( ( avg_LQI * total_beacons ) + _lqi * _lqi_w ) / ( total_beacons + _lqi_w );
 		}
 		// --------------------------------------------------------------------
 		uint8_t get_avg_LQI_inverse()
@@ -165,10 +163,8 @@ namespace wiselib
 		// --------------------------------------------------------------------
 		void inc_consecutive_beacons( uint8_t _cb = 1 )
 		{
-			if ( consecutive_beacons != 0xff )
-			{
-				consecutive_beacons = consecutive_beacons + _cb;
-			}
+			//TODO overflow
+			consecutive_beacons = consecutive_beacons + _cb;
 		}
 		// --------------------------------------------------------------------
 		void set_consecutive_beacons( uint8_t _cb )
@@ -183,10 +179,8 @@ namespace wiselib
 		// --------------------------------------------------------------------
 		void inc_consecutive_beacons_lost( uint8_t _cb_lost = 1 )
 		{
-			if ( consecutive_beacons_lost != 0xff )
-			{
-				consecutive_beacons_lost = consecutive_beacons_lost + _cb_lost;
-			}
+			//TODO overflow
+			consecutive_beacons_lost = consecutive_beacons_lost + _cb_lost;
 		}
 		// --------------------------------------------------------------------
 		void set_consecutive_beacons_lost( uint8_t _cb_lost )
@@ -221,18 +215,14 @@ namespace wiselib
 		// --------------------------------------------------------------------
 		void set_beacon_period_update_counter( uint32_t _bpuc )
 		{
-			if ( beacon_period_update_counter != 0xffffffff )
-			{
-				beacon_period_update_counter = _bpuc;
-			}
+			//TODO overflow
+			beacon_period_update_counter = _bpuc;
 		}
 		// --------------------------------------------------------------------
 		void inc_beacon_period_update_counter( uint32_t _bpuc = 1)
 		{
-			if ( beacon_period_update_counter != 0xffffffff )
-			{
-				beacon_period_update_counter = beacon_period_update_counter + _bpuc;
-			}
+			//TODO overflow
+			beacon_period_update_counter = beacon_period_update_counter + _bpuc;
 		}
 		// --------------------------------------------------------------------
 		Neighbor& operator=( const Neighbor& _n )

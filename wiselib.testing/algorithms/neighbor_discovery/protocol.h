@@ -118,44 +118,93 @@ namespace wiselib
 		void resolve_overflow_strategy( node_id_t _nid )
 		{
 			Neighbor* n_ref = get_neighbor_ref( _nid );
-			ProtocolSettings* p_ref = get_protocol_settings_ref();
-			if ( n_ref->get_total_beacons() == 0xffffffff || n_ref->get_total_beacons_expected() == 0xffffffff )
+			if ( n_ref != NULL )
 			{
-				if ( p_ref->get_overflow_strategy() & ProtocolSettings::RESET_TOTAL_BEACONS )
+				ProtocolSettings* p_ref = get_protocol_settings_ref();
+				if ( n_ref->get_total_beacons() == 0xffffffff || n_ref->get_total_beacons_expected() == 0xffffffff )
 				{
-					n_ref->set_total_beacons( 0 );
-				}
-				if ( p_ref->get_overflow_strategy() & ProtocolSettings::RESET_TOTAL_BEACONS_EXPECTED )
-				{
-					n_ref->set_total_beacons_expected( 0 );
-				}
-				if ( p_ref->get_overflow_strategy() & ProtocolSettings::RESET_AVG_LQI )
-				{
-					n_ref->set_avg_LQI( 0 );
-				}
-				if ( p_ref->get_overflow_strategy() & ProtocolSettings::RESET_AVG_LQI_INVERSE )
-				{
-					n_ref->set_avg_LQI_inverse( 0 );
-				}
-				if ( p_ref->get_overflow_strategy() & ProtocolSettings::RESET_STAB )
-				{
-					n_ref->set_link_stab_ratio( 0 );
-				}
-				if ( p_ref->get_overflow_strategy() & ProtocolSettings::RESET_STAB_INVERSE )
-				{
-					n_ref->set_link_stab_ratio_inverse( 0 );
-				}
-				if ( p_ref->get_overflow_strategy() == ProtocolSettings::RATIO_DIVIDER )
-				{
-					n_ref->set_total_beacons( n_ref->get_total_beacons() / p_ref->get_ratio_divider() );
-					n_ref->set_total_beacons_expected( n_ref->get_total_beacons_expected() / p_ref->get_ratio_divider() );
-				}
-				else
-				{
-					n_ref->set_total_beacons( n_ref->get_total_beacons() / p_ref->get_ratio_divider() );
-					n_ref->set_total_beacons_expected( n_ref->get_total_beacons_expected() / p_ref->get_ratio_divider() );
+					if ( p_ref->get_overflow_strategy() & ProtocolSettings::RESET_TOTAL_BEACONS )
+					{
+						n_ref->set_total_beacons( 0 );
+					}
+					if ( p_ref->get_overflow_strategy() & ProtocolSettings::RESET_TOTAL_BEACONS_EXPECTED )
+					{
+						n_ref->set_total_beacons_expected( 0 );
+					}
+					if ( p_ref->get_overflow_strategy() & ProtocolSettings::RESET_AVG_LQI )
+					{
+						n_ref->set_avg_LQI( 0 );
+					}
+					if ( p_ref->get_overflow_strategy() & ProtocolSettings::RESET_AVG_LQI_INVERSE )
+					{
+						n_ref->set_avg_LQI_inverse( 0 );
+					}
+					if ( p_ref->get_overflow_strategy() & ProtocolSettings::RESET_STAB )
+					{
+						n_ref->set_link_stab_ratio( 0 );
+					}
+					if ( p_ref->get_overflow_strategy() & ProtocolSettings::RESET_STAB_INVERSE )
+					{
+						n_ref->set_link_stab_ratio_inverse( 0 );
+					}
+					if ( p_ref->get_overflow_strategy() == ProtocolSettings::RATIO_DIVIDER )
+					{
+						n_ref->set_total_beacons( n_ref->get_total_beacons() / p_ref->get_ratio_divider() );
+						n_ref->set_total_beacons_expected( n_ref->get_total_beacons_expected() / p_ref->get_ratio_divider() );
+					}
+					else
+					{
+						n_ref->set_total_beacons( n_ref->get_total_beacons() / p_ref->get_ratio_divider() );
+						n_ref->set_total_beacons_expected( n_ref->get_total_beacons_expected() / p_ref->get_ratio_divider() );
+					}
 				}
 			}
+		}
+		// --------------------------------------------------------------------
+		uint32_t resolve_beacon_weight( node_id_t _nid )
+		{
+			Neighbor* n_ref = get_neighbor_ref( _nid );
+			if ( n_ref != NULL )
+			{
+				ProtocolSettings* p_ref = get_protocol_settings_ref();
+				if ( p_ref->get_ratio_normalization_strategy() == ProtocolSettings::R_NR_NORMAL )
+				{
+					return 1;
+				}
+				else if ( p_ref->get_ratio_normalization_strategy() == ProtocolSettings::R_NR_WEIGHTED )
+				{
+					return p_ref->get_beacon_weight();
+				}
+				else if( p_ref->get_ratio_normalization_strategy() == ProtocolSettings::R_NR_WEIGHTED_PROPORTIONAL )
+				{
+					return p_ref->get_beacon_weight() * n_ref->get_total_beacons_expected() / 100;
+				}
+				return 1;
+			}
+			return 0;
+		}
+		// --------------------------------------------------------------------
+		uint32_t resolve_lost_beacon_weight( node_id_t _nid )
+		{
+			Neighbor* n_ref = get_neighbor_ref( _nid );
+			if ( n_ref != NULL )
+			{
+				ProtocolSettings* p_ref = get_protocol_settings_ref();
+				if ( p_ref->get_ratio_normalization_strategy() == ProtocolSettings::R_NR_NORMAL )
+				{
+					return 1;
+				}
+				else if ( p_ref->get_ratio_normalization_strategy() == ProtocolSettings::R_NR_WEIGHTED )
+				{
+					return p_ref->get_lost_beacon_weight();
+				}
+				else if( p_ref->get_ratio_normalization_strategy() == ProtocolSettings::R_NR_WEIGHTED_PROPORTIONAL )
+				{
+					return p_ref->get_lost_beacon_weight() * n_ref->get_total_beacons_expected() / 100;
+				}
+				return 1;
+			}
+			return 0;
 		}
 		// --------------------------------------------------------------------
 		Protocol& operator=( const Protocol& _p )

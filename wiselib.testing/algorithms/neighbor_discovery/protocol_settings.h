@@ -43,7 +43,7 @@ namespace wiselib
 			ratio_divider							( NB_RATIO_DIVIDER ),
 			dead_time_strategy						( MEAN_DEAD_TIME_PERIOD ),
 			old_dead_time_period_weight				( NB_OLD_DEAD_TIME_PERIOD_WEIGHT ),
-			new_dead_time_period_weight				( NB_NEW_DEAD_TIME_PERIOD_WEIGHT )
+			new_dead_time_period_weight				( NB_NEW_DEAD_TIME_PERIOD_WEIGHT ),
 			ratio_normalization_strategy			( R_NR_NORMAL ),
 			beacon_weight							( NB_BEACON_WEIGHT ),
 			lost_beacon_weight						( NB_LOST_BEACON_WEIGHT )
@@ -279,7 +279,7 @@ namespace wiselib
 		// --------------------------------------------------------------------
 		void set_dead_time_strategy( uint8_t _dd_s )
 		{
-			if ( _dd_s > DT_STRATEGY_NUM_VALUES )
+			if ( _dd_s >= DT_STRATEGY_NUM_VALUES )
 			{
 				dead_time_strategy = MEAN_DEAD_TIME_PERIOD;
 			}
@@ -336,7 +336,7 @@ namespace wiselib
 		// --------------------------------------------------------------------
 		void set_ratio_normalization_strategy( uint8_t _rn_s )
 		{
-			if ( _rns > R_NR_STRATEGY_NUM_VALUES )
+			if ( _rn_s >= R_NR_STRATEGY_NUM_VALUES )
 			{
 				ratio_normalization_strategy = R_NR_NORMAL;
 			}
@@ -353,6 +353,10 @@ namespace wiselib
 		// --------------------------------------------------------------------
 		void set_beacon_weight( uint32_t _b_w )
 		{
+			if ( ( ratio_normalization_strategy == R_NR_WEIGHTED_PROPORTIONAL) && ( _b_w >= 100 ) )
+			{
+				_b_w = 100;
+			}
 			beacon_weight = _b_w;
 		}
 		// --------------------------------------------------------------------
@@ -363,6 +367,10 @@ namespace wiselib
 		// --------------------------------------------------------------------
 		void set_lost_beacon_weight( uint32_t _bl_w )
 		{
+			if ( ( ratio_normalization_strategy == R_NR_WEIGHTED_PROPORTIONAL) && ( _bl_w >= 100 ) )
+			{
+				_bl_w = 100;
+			}
 			beacon_weight = _bl_w;
 		}
 		// --------------------------------------------------------------------
@@ -419,7 +427,7 @@ namespace wiselib
 			debug.debug( "dead_time_strategy : %d", dead_time_strategy );
 			debug.debug( "old_dead_time_period_weight : %d", old_dead_time_period_weight );
 			debug.debug( "new_dead_time_period_weight : %d", new_dead_time_period_weight );
-			debug.debug( "ratio_normalization_strategies : %d", ratio_normalization_strategies );
+			debug.debug( "ratio_normalization_strategy : %d", ratio_normalization_strategy );
 			debug.debug( "beacon_weight : %d", beacon_weight );
 			debug.debug( "lost_beacon_weight : %d", lost_beacon_weight );
 			protocol_payload.print( debug );
