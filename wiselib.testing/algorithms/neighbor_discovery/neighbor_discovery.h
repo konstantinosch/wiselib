@@ -742,6 +742,11 @@ namespace wiselib
 			DYNAMIC_PAYLOAD_SIZE,
 			PP_STRATEGY_NUM_VALUES
 		};
+		enum protocol_ids
+		{
+			NB_PROTOCOL_ID,
+			TRACKING_PROTOCOL_ID
+		};
 		enum message_ids
 		{
 			NB_MESSAGE = 12

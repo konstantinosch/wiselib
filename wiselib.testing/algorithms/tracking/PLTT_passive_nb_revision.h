@@ -86,7 +86,8 @@ public:
 #else
 	typedef PLTT_PassiveType<Os, Node, PLTT_Node, PLTT_NodeList, PLTT_Trace, PLTT_TraceList, NeighborDiscovery, Timer, Radio, Rand, Clock, Debug> self_type;
 #endif
-typedef NeighborDiscovery<Os, Radio, Clock, Timer, Debug> NeighborDiscovery;
+
+
 typedef typename NeighborDiscovery::ProtocolSettings ProtocolSettings;
 typedef typename NeighborDiscovery::Neighbor Neighbor;
 typedef typename NeighborDiscovery::ProtocolPayload ProtocolPayload;
@@ -114,13 +115,20 @@ typedef typename NeighborDiscovery::Beacon Beacon;
 #ifdef PLTT_PASSIVE_DEBUG_MISC
 		debug().debug( "PLTT_Passive %x: Boot \n", self.get_node().get_id() );
 #endif
+
+		block_data_t buff[100];
+		ProtocolPayload pp( NeighborDiscovery::TRACKING_PROTOCOL_ID, self.get_buffer_size(), self.set_buffer_from( buff ) );
+		uint8_t ef = ProtocolSettings::NEW_NB|ProtocolSettings::UPDATE_NB|ProtocolSettings::NEW_PAYLOAD|ProtocolSettings::LOST_NB|ProtocolSettings::TRANS_DB_UPDATE|ProtocolSettings::BEACON_PERIOD_UPDATE;
+		ProtocolSettings ps( 100, 0, 100, 0, 100, 90, 100, 90, 10, 10, ef, -6, 100, 3000, 100, ProtocolSettings::RATIO_DIVIDER, 2, ProtocolSettings::MEAN_DEAD_TIME_PERIOD, 100, 100, ProtocolSettings::R_NR_WEIGHTED_PROPORTIONAL, 10, 10, pp );
+		Protocol p;
+		p.set_protocol_id( NeighborDiscovery::TRACKING_PROTOCOL_ID );
+		p.set_protocol_settings( ps );
+		p.template set_event_notifier_callback<self_type,&self_type::sync_neighbors>( this );
+		neighbor_discovery().get_protocols_ref()->push_back( p );
 		neighbor_discovery().enable();
-		ProtocolPayload pp;
-		//pp.set_protocol_id( 1 );
-		//pp.set_payload_size( 0 );
-		//uint8_t ef = ProtocolSettings::NEW_NB|ProtocolSettings::UPDATE_NB|ProtocolSettings::NEW_PAYLOAD|ProtocolSettings::LOST_NB|ProtocolSettings::TRANS_DB_UPDATE|ProtocolSettings::BEACON_PERIOD_UPDATE;
-		//ProtocolSettings ps( 255, 0, 255, 95, 100, 95, 100, 10, 10, 0xff, ef, -6, 100, 3000, 100, ProtocolSettings::RATIO_DIVIDER, 2, ProtocolSettings::MEAN_DEAD_TIME_PERIOD, 100, 100, ProtocolSettings::R_NR_NORMAL, 1, 1, pp );
-		//ProtocolSettings ps( 100, 0, 100, 0, 100, 0, 100, 0, 1, 0xff, ef, -6, 100, 3000, 100, ProtocolSettings::RATIO_DIVIDER, 2, ProtocolSettings::MEAN_DEAD_TIME_PERIOD, 100, 100, ProtocolSettings::R_NR_NORMAL, 1, 1, pp );
+
+
+
 		//clock().seconds();
 		//radio().enable_radio();
 		//TxPower power;

@@ -28,10 +28,14 @@ namespace wiselib
 			if ( _ps <= NB_MAX_PROTOCOL_PAYLOAD_SIZE )
 			{
 				payload_size = _ps;
-				for ( size_t i = 0; i < payload_size; i++ )
-				{
-					payload_data[i] = _pd[i + _offset];
-				}
+			}
+			else
+			{
+				payload_size = NB_MAX_PROTOCOL_PAYLOAD_SIZE;
+			}
+			for ( size_t i = 0; i < payload_size; i++ )
+			{
+				payload_data[i] = _pd[i + _offset];
 			}
 		}
 		// --------------------------------------------------------------------
