@@ -116,10 +116,11 @@ typedef typename NeighborDiscovery::Beacon Beacon;
 #endif
 		neighbor_discovery().enable();
 		ProtocolPayload pp;
-		pp.set_protocol_id( 1 );
-		pp.set_payload_size( 0 );
-		uint8_t ef = ProtocolSettings::NEW_NB|ProtocolSettings::UPDATE_NB|ProtocolSettings::NEW_PAYLOAD|ProtocolSettings::LOST_NB|ProtocolSettings::TRANS_DB_UPDATE|ProtocolSettings::BEACON_PERIOD_UPDATE;
-		ProtocolSettings ps( 255, 0, 255, 95, 100, 95, 100, 10, 10, 0xff, ef, -6, 100, 3000, 100, ProtocolSettings::RATIO_DIVIDER, 2, ProtocolSettings::MEAN_DEAD_TIME_PERIOD, 100, 100, ProtocolSettings::R_NR_NORMAL, 1, 1, pp );
+		//pp.set_protocol_id( 1 );
+		//pp.set_payload_size( 0 );
+		//uint8_t ef = ProtocolSettings::NEW_NB|ProtocolSettings::UPDATE_NB|ProtocolSettings::NEW_PAYLOAD|ProtocolSettings::LOST_NB|ProtocolSettings::TRANS_DB_UPDATE|ProtocolSettings::BEACON_PERIOD_UPDATE;
+		//ProtocolSettings ps( 255, 0, 255, 95, 100, 95, 100, 10, 10, 0xff, ef, -6, 100, 3000, 100, ProtocolSettings::RATIO_DIVIDER, 2, ProtocolSettings::MEAN_DEAD_TIME_PERIOD, 100, 100, ProtocolSettings::R_NR_NORMAL, 1, 1, pp );
+		//ProtocolSettings ps( 100, 0, 100, 0, 100, 0, 100, 0, 1, 0xff, ef, -6, 100, 3000, 100, ProtocolSettings::RATIO_DIVIDER, 2, ProtocolSettings::MEAN_DEAD_TIME_PERIOD, 100, 100, ProtocolSettings::R_NR_NORMAL, 1, 1, pp );
 		//clock().seconds();
 		//radio().enable_radio();
 		//TxPower power;
