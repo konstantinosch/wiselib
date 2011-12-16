@@ -120,12 +120,33 @@ typedef typename NeighborDiscovery::Beacon Beacon;
 		ProtocolPayload pp( NeighborDiscovery::TRACKING_PROTOCOL_ID, self.get_buffer_size(), self.set_buffer_from( buff ) );
 		uint8_t ef = ProtocolSettings::NEW_NB|ProtocolSettings::UPDATE_NB|ProtocolSettings::NEW_PAYLOAD|ProtocolSettings::LOST_NB|ProtocolSettings::TRANS_DB_UPDATE|ProtocolSettings::BEACON_PERIOD_UPDATE;
 		ProtocolSettings ps( 100, 0, 100, 0, 100, 90, 100, 90, 10, 10, ef, -6, 100, 3000, 100, ProtocolSettings::RATIO_DIVIDER, 2, ProtocolSettings::MEAN_DEAD_TIME_PERIOD, 100, 100, ProtocolSettings::R_NR_WEIGHTED_PROPORTIONAL, 10, 10, pp );
-		Protocol p;
-		p.set_protocol_id( NeighborDiscovery::TRACKING_PROTOCOL_ID );
-		p.set_protocol_settings( ps );
-		p.template set_event_notifier_callback<self_type,&self_type::sync_neighbors>( this );
-		neighbor_discovery().get_protocols_ref()->push_back( p );
 		neighbor_discovery().enable();
+		uint8_t result = 0;
+
+		result = neighbor_discovery(). template register_protocol<self_type, &self_type::sync_neighbors>( NeighborDiscovery::TRACKING_PROTOCOL_ID, ps, this  );
+		debug().debug( " result : %d ", result );
+
+
+//			SUCCESS,
+//			PROT_NUM_IN_USE,
+//			PROT_LIST_FULL,
+//			INV_PROT_ID,
+//			NO_PAYLOAD_SPACE,
+//			PAYLOAD_SIZE_OUT_OF_BOUNDS,
+//			ERROR_CODES_NUM_VALUES
+
+
+		//Protocol p;
+		//neighbor_discovery().register_protocol( p );
+
+
+
+
+		//p.set_protocol_id( NeighborDiscovery::TRACKING_PROTOCOL_ID );
+		//p.set_protocol_settings( ps );
+		//p.template set_event_notifier_callback<self_type,&self_type::sync_neighbors>( this );
+
+
 
 
 
@@ -155,7 +176,7 @@ typedef typename NeighborDiscovery::Beacon Beacon;
 //		neighbor_discovery().register_debug_callback( 0 );
 //#endif
 //		neighbor_discovery().enable();
-		//timer().template set_timer<self_type, &self_type::neighbor_discovery_oldunregister_task> ( nb_convergence_time, this, 0 );
+//		timer().template set_timer<self_type, &self_type::neighbor_discovery_oldunregister_task> ( nb_convergence_time, this, 0 );
 	}
 	// -----------------------------------------------------------------------
 	void neighbor_discovery_oldunregister_task( void* userdata = NULL )

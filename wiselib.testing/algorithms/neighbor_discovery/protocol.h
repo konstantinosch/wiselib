@@ -98,6 +98,18 @@ namespace wiselib
 			return neighborhood;
 		}
 		// --------------------------------------------------------------------
+		Neighbor_vector fill_active_neighborhood( Neighbor_vector& _nv )
+		{
+			for ( Neighbor_vector_iterator it = neighborhood.begin(); it != neighborhood.end(); ++it )
+			{
+				if ( it->get_active() == 1 )
+				{
+					_nv.push_back( *it );
+				}
+			}
+			return _nv;
+		}
+		// --------------------------------------------------------------------
 		void set_neighborhood( Neighbor_vector& _nv )
 		{
 			neighborhood = _nv;
@@ -108,6 +120,18 @@ namespace wiselib
 			for ( Neighbor_vector_iterator it = neighborhood.begin(); it != neighborhood.end(); ++it )
 			{
 				if (it->get_id() == _nid )
+				{
+					return &(*it);
+				}
+			}
+			return NULL;
+		}
+		// --------------------------------------------------------------------
+		Neighbor* get_active_neighbor_ref( node_id_t _nid )
+		{
+			for ( Neighbor_vector_iterator it = neighborhood.begin(); it != neighborhood.end(); ++it )
+			{
+				if ( (it->get_id() == _nid ) && ( it->get_active() == 1 ) )
 				{
 					return &(*it);
 				}

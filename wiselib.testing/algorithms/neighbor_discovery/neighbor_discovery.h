@@ -407,22 +407,30 @@ namespace wiselib
 			{
 				return PROT_LIST_FULL;
 			}
-			if ( ( _psett.get_payload_size() > protocol_max_payload_size ) && ( protocol_max_payload_size_strategy == FIXED_PAYLOAD_SIZE ) )
+			if ( ( _psett.get_protocol_payload_ref()->get_payload_size() > protocol_max_payload_size ) && ( protocol_max_payload_size_strategy == FIXED_PAYLOAD_SIZE ) )
 			{
 				return PAYLOAD_SIZE_OUT_OF_BOUNDS;
 			}
-			uint8_t total_payload_size = 0;
+			size_t protocol_total_payload_size = 0;
 			for ( Protocol_vector_iterator it = protocols.begin(); it != protocols.end(); ++it )
 			{
-				total_payload_size = it->get_protocol_settings().get_payload_size() + total_payload_size;
+				protocol_total_payload_size = it->get_protocol_settings_ref()->get_protocol_payload_ref()->serial_size() + protocol_total_payload_size;
 			}
-			if ( total_payload_size + sizeof(message_id_t) + sizeof(size_t) + _psett.get_payload_size() > Radio::MAX_MSG_LENGTH )
+			size_t neighbors_total_payload_size = 0;
+			Neighbor_vector* n_ref = get_protocol_ref( NB_PROTOCOL_ID )->get_neighborhood_ref();
+			for ( Neighbor_vector_iterator it = n_ref->begin(); it != n_ref->end(); ++it )
+			{
+				neighbors_total_payload_size = it->serial_size() + neighbors_total_payload_size;
+			}
+			//Beacon b;
+			//debug().debug( " protocol_total_payload_size + neighbors_total_payload_size + sizeof(message_id_t) + sizeof(size_t) + _psett.>get_protocol_payload_ref()->serial_size() = %d + %d + %d + %d + %d + %d vs %d", protocol_total_payload_size, neighbors_total_payload_size, b.serial_size(), sizeof(message_id_t), sizeof(size_t), _psett.get_protocol_payload_ref()->serial_size(), Radio::MAX_MESSAGE_LENGTH );
+			if ( protocol_total_payload_size + neighbors_total_payload_size + b.serial_size() + sizeof(message_id_t) + sizeof(size_t) + _psett.get_protocol_payload_ref()->serial_size() > Radio::MAX_MESSAGE_LENGTH )
 			{
 				return NO_PAYLOAD_SPACE;
 			}
 			for ( Protocol_vector_iterator it = protocols.begin(); it != protocols.end(); ++it )
 			{
-				if ( it->get_protocol_id() == _pid )
+				if ( ( it->get_protocol_id() == _pid ) || ( it->get_protocol_settings_ref()->get_protocol_payload_ref()->get_protocol_id() == _pid ) )
 				{
 					return PROT_NUM_IN_USE;
 				}
@@ -441,22 +449,34 @@ namespace wiselib
 			{
 				return PROT_LIST_FULL;
 			}
-			if ( ( p.get_protocol_settings().get_payload_size() > protocol_max_payload_size ) && ( protocol_max_payload_size_strategy == FIXED_PAYLOAD_SIZE ) )
+			if ( ( p.get_protocol_settings_ref()->get_protocol_payload_ref()->serial_size() > protocol_max_payload_size ) && ( protocol_max_payload_size_strategy == FIXED_PAYLOAD_SIZE ) )
 			{
 				return PAYLOAD_SIZE_OUT_OF_BOUNDS;
 			}
-			uint8_t total_payload_size = 0;
+			uint8_t protocol_total_payload_size = 0;
 			for ( Protocol_vector_iterator it = protocols.begin(); it != protocols.end(); ++it )
 			{
-				total_payload_size = it->get_protocol_settings().get_payload_size() + total_payload_size;
+				protocol_total_payload_size = it->get_protocol_settings_ref()->get_protocol_payload_ref()->serial_size() + protocol_total_payload_size;
 			}
-			if ( total_payload_size + sizeof(message_id_t) + sizeof(size_t) + p.get_protocol_settings().get_payload_size() > Radio::MAX_MESSAGE_LENGTH )
+			size_t neighbors_total_payload_size = 0;
+			Neighbor_vector* n_ref = get_protocol_ref( NB_PROTOCOL_ID )->get_neighborhood_ref();
+			for ( Neighbor_vector_iterator it = n_ref->begin(); it != n_ref->end(); ++it )
+			{
+				neighbors_total_payload_size = it->serial_size() + neighbors_total_payload_size;
+			}
+			//Beacon b;
+			//debug().debug( " protocol_total_payload_size + neighbors_total_payload_size + sizeof(message_id_t) + sizeof(size_t) + p.get_protocol_settings_ref()->get_protocol_payload_ref()->serial_size() = %d + %d + %d + %d + %d + %d vs %d", protocol_total_payload_size, neighbors_total_payload_size, b.serial_size(), sizeof(message_id_t), sizeof(size_t), p.get_protocol_settings_ref()->get_protocol_payload_ref()->serial_size(), Radio::MAX_MESSAGE_LENGTH );
+			if ( protocol_total_payload_size + neighbors_total_payload_size + b.serial_size() + sizeof(message_id_t) + sizeof(size_t) + p.get_protocol_settings_ref()->get_protocol_payload_ref()->serial_size() > Radio::MAX_MESSAGE_LENGTH )
 			{
 				return NO_PAYLOAD_SPACE;
 			}
 			for ( Protocol_vector_iterator it = protocols.begin(); it != protocols.end(); ++it )
 			{
-				if ( it->get_protocol_id() == p.get_protocol_id() )
+				if (	( it->get_protocol_id() == p.get_protocol_id() ) ||
+						( it->get_protocol_id() == p.get_protocol_settings_ref()->get_protocol_payload_ref()->get_protocol_id() ) ||
+						( it->get_protocol_settings_ref()->get_protocol_payload_ref()->get_protocol_id() == p.get_protocol_id() ) ||
+						( it->get_protocol_settings_ref()->get_protocol_payload_ref()->get_protocol_id() == p.get_protocol_settings_ref()->get_protocol_payload_ref()->get_protocol_id() )
+					)
 				{
 					return PROT_NUM_IN_USE;
 				}

@@ -20,22 +20,27 @@ namespace wiselib
 	public:
 		ProtocolPayload() :
 			payload_size		( NB_MAX_PROTOCOL_PAYLOAD_SIZE )
-		{}
+		{
+			for ( size_t i = 0; i < NB_MAX_PROTOCOL_PAYLOAD_SIZE; i++ )
+			{
+				payload_data[i] = 0;
+			}
+		}
 		// --------------------------------------------------------------------
 		ProtocolPayload( uint8_t _pid, size_t _ps, block_data_t* _pd, size_t _offset = 0 )
 		{
 			protocol_id = _pid;
-			if ( _ps <= NB_MAX_PROTOCOL_PAYLOAD_SIZE )
+			payload_size = _ps;
+			for ( size_t i = 0; i < NB_MAX_PROTOCOL_PAYLOAD_SIZE; i++ )
 			{
-				payload_size = _ps;
+				payload_data[i] = 0;
 			}
-			else
+			if ( payload_size <= NB_MAX_PROTOCOL_PAYLOAD_SIZE )
 			{
-				payload_size = NB_MAX_PROTOCOL_PAYLOAD_SIZE;
-			}
-			for ( size_t i = 0; i < payload_size; i++ )
-			{
-				payload_data[i] = _pd[i + _offset];
+				for ( size_t i = 0; i < payload_size; i++ )
+				{
+					payload_data[i] = _pd[i + _offset];
+				}
 			}
 		}
 		// --------------------------------------------------------------------
@@ -64,14 +69,7 @@ namespace wiselib
 		// --------------------------------------------------------------------
 		void set_payload_size( size_t _ps )
 		{
-			if ( _ps <= NB_MAX_PROTOCOL_PAYLOAD_SIZE )
-			{
-				payload_size = _ps;
-			}
-			else
-			{
-				payload_size = NB_MAX_PROTOCOL_PAYLOAD_SIZE;
-			}
+			payload_size = _ps;
 		}
 		// --------------------------------------------------------------------
 		block_data_t* get_payload_data()
@@ -81,17 +79,20 @@ namespace wiselib
 		// --------------------------------------------------------------------
 		void set_payload_data( block_data_t* _pd, size_t _offset = 0 )
 		{
-			for ( size_t i = 0; i < payload_size; i++ )
+			if ( payload_size <= NB_MAX_PROTOCOL_PAYLOAD_SIZE )
 			{
-				payload_data[i] = _pd[i + _offset];
+				for ( size_t i = 0; i < payload_size; i++ )
+				{
+					payload_data[i] = _pd[i + _offset];
+				}
 			}
 		}
 		// --------------------------------------------------------------------
 		void set_payload( block_data_t* _pd, size_t _ps, size_t _offset = 0 )
 		{
-			if ( _ps <= NB_MAX_PROTOCOL_PAYLOAD_SIZE )
+			payload_size = _ps;
+			if ( payload_size <= NB_MAX_PROTOCOL_PAYLOAD_SIZE )
 			{
-				payload_size = _ps;
 				for ( size_t i = 0; i < payload_size; i++ )
 				{
 					payload_data[i] = _pd[i + _offset];
@@ -103,9 +104,12 @@ namespace wiselib
 		{
 			protocol_id = _pp.protocol_id;
 			payload_size = _pp.payload_size;
-			for ( size_t i = 0 ; i < payload_size; i++ )
+			if ( payload_size <= NB_MAX_PROTOCOL_PAYLOAD_SIZE )
 			{
-				payload_data[i] = _pp.payload_data[i];
+				for ( size_t i = 0 ; i < payload_size; i++ )
+				{
+					payload_data[i] = _pp.payload_data[i];
+				}
 			}
 			return *this;
 		}
@@ -117,25 +121,35 @@ namespace wiselib
 			debug.debug( "protocol_id : %d ", protocol_id );
 			debug.debug( "max_payload_size : %d", NB_MAX_PROTOCOL_PAYLOAD_SIZE );
 			debug.debug( "payload_size : %d ", payload_size );
-			for ( size_t i = 0; i < payload_size; i++ )
+			if ( payload_size <= NB_MAX_PROTOCOL_PAYLOAD_SIZE )
 			{
-				debug.debug( "payload %d 'th byte : %d", i, payload_data[i] );
+				for ( size_t i = 0; i < payload_size; i++ )
+				{
+					debug.debug( "payload %d 'th byte : %d", i, payload_data[i] );
+				}
 			}
 			debug.debug( "-------------------------------------------------------");
 		}
 		// --------------------------------------------------------------------
 		block_data_t* serialize( block_data_t* _buff, size_t _offset = 0 )
 		{
-			size_t PROTOCOL_ID_POS = 0;
-			size_t PAYLOAD_SIZE_POS = PROTOCOL_ID_POS + sizeof(uint8_t);
-			size_t PAYLOAD_DATA_POS = PAYLOAD_SIZE_POS + sizeof(size_t);
-			write<Os, block_data_t, uint8_t>( _buff + PROTOCOL_ID_POS + _offset, protocol_id );
-			write<Os, block_data_t, size_t>( _buff + PAYLOAD_SIZE_POS + _offset, payload_size );
-			for ( size_t i = 0 ; i < payload_size; i++ )
+			if ( payload_size != 0 )
 			{
-				_buff[PAYLOAD_DATA_POS + i + _offset] = payload_data[i];
+				size_t PROTOCOL_ID_POS = 0;
+				size_t PAYLOAD_SIZE_POS = PROTOCOL_ID_POS + sizeof(uint8_t);
+				size_t PAYLOAD_DATA_POS = PAYLOAD_SIZE_POS + sizeof(size_t);
+				write<Os, block_data_t, uint8_t>( _buff + PROTOCOL_ID_POS + _offset, protocol_id );
+				write<Os, block_data_t, size_t>( _buff + PAYLOAD_SIZE_POS + _offset, payload_size );
+				if ( payload_size <= NB_MAX_PROTOCOL_PAYLOAD_SIZE )
+				{
+					for ( size_t i = 0 ; i < payload_size; i++ )
+					{
+						_buff[PAYLOAD_DATA_POS + i + _offset] = payload_data[i];
+					}
+				}
 			}
 			return _buff;
+
 		}
 		// --------------------------------------------------------------------
 		void de_serialize( block_data_t* _buff, size_t _offset = 0 )
@@ -145,18 +159,32 @@ namespace wiselib
 			size_t PAYLOAD_DATA_POS = PAYLOAD_SIZE_POS + sizeof(size_t);
 			protocol_id = read<Os, block_data_t, uint8_t>( _buff + PROTOCOL_ID_POS + _offset );
 			payload_size = read<Os, block_data_t, size_t>( _buff + PAYLOAD_SIZE_POS + _offset );
-			for ( size_t i = 0 ; i < payload_size; i++ )
+			if ( payload_size <= NB_MAX_PROTOCOL_PAYLOAD_SIZE )
 			{
-				 payload_data[i] = _buff[PAYLOAD_DATA_POS + i + _offset];
+				for ( size_t i = 0 ; i < payload_size; i++ )
+				{
+					 payload_data[i] = _buff[PAYLOAD_DATA_POS + i + _offset];
+				}
 			}
 		}
 		// --------------------------------------------------------------------
 		size_t serial_size()
 		{
-			size_t PROTOCOL_ID_POS = 0;
-			size_t PAYLOAD_SIZE_POS = PROTOCOL_ID_POS + sizeof(uint8_t);
-			size_t PAYLOAD_DATA_POS = PAYLOAD_SIZE_POS + sizeof(size_t);
-			return PAYLOAD_DATA_POS + sizeof( block_data_t) * payload_size;
+			if ( payload_size != 0 )
+			{
+				size_t PROTOCOL_ID_POS = 0;
+				size_t PAYLOAD_SIZE_POS = PROTOCOL_ID_POS + sizeof(uint8_t);
+				size_t PAYLOAD_DATA_POS = PAYLOAD_SIZE_POS + sizeof(size_t);
+				if ( payload_size <= NB_MAX_PROTOCOL_PAYLOAD_SIZE )
+				{
+					return PAYLOAD_DATA_POS + sizeof( block_data_t) * payload_size;
+				}
+				else
+				{
+					return PAYLOAD_SIZE_POS + sizeof(size_t);
+				}
+			}
+			return 0;
 		}
 		// --------------------------------------------------------------------
 	private:
