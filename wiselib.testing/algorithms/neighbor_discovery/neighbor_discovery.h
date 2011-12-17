@@ -86,6 +86,7 @@ namespace wiselib
 			radio().enable_radio();
 			recv_callback_id_ = radio().template reg_recv_callback<self_t, &self_t::receive>( this );
 			beacons();
+			nb_daemon();
 		};
 		// --------------------------------------------------------------------
 		void disable()
@@ -335,8 +336,11 @@ namespace wiselib
 						else
 						{
 							events_flag = events_flag | ProtocolSettings::NEW_NB;
-							pit->get_neighborhood_ref()->push_back( new_neighbor );
-							pit->resolve_overflow_strategy( _from );
+							if ( remove_worst_neighbor( *pit ) != 0 )
+							{
+								pit->get_neighborhood_ref()->push_back( new_neighbor );
+								pit->resolve_overflow_strategy( _from );
+							}
 #ifdef NB_DEBUG_RECEIVE
 							debug().debug("NeighborDiscovery-receive %x - Neighbor %x was inserted and active.", radio().id(), _from );
 #endif
@@ -453,10 +457,9 @@ namespace wiselib
 					uint32_t dead_time = ( clock().seconds( current_time ) - clock().seconds( nit->get_last_beacon() ) ) * 1000 + ( clock().milliseconds( current_time ) - clock().milliseconds( nit->get_last_beacon() ) );
 					if ( dead_time < nit->get_beacon_period() + NB_RELAX_MILLIS )
 					{
-						nit->set_last_time( current_time );
 						nit->inc_total_beacons_expected( dead_time / nit->get_beacon_period(), pit->resolve_lost_beacon_weight( nit->get_id() ) );
 						nit->set_consecutive_beacons( 0 );
-						nit->inc_consecutive_beacons_lost( dead_time / nit->get_beacon_period(), pit->resolve_lost_beacon_weight( nit->get_id() ) );
+						nit->inc_consecutive_beacons_lost( dead_time / nit->get_beacon_period() );
 						nit->set_beacon_period( nit->get_beacon_period() );
 						nit->set_last_beacon( current_time );
 					}
@@ -465,7 +468,7 @@ namespace wiselib
 			timer().template set_timer<self_t, &self_t::nb_daemon> ( nb_daemon_period, this, 0 );
 		}
 		// --------------------------------------------------------------------
-		void remove_worst_node( Protocol& pv_ref )
+		uint8_t remove_worst_neighbor( Protocol& pv_ref )
 		{
 			uint8_t max_consecutive_beacons_lost = 0;
 			uint8_t min_link_stab_ratio = 0;
@@ -477,12 +480,12 @@ namespace wiselib
 			Neighbor_vector_iterator mlsr_in	= pv_ref.get_neighborhood_ref()->begin();
 			Neighbor_vector_iterator mal		= pv_ref.get_neighborhood_ref()->begin();
 			Neighbor_vector_iterator mal_in		= pv_ref.get_neighborhood_ref()->begin();
-			for ( Neighbor_vector_iterator nit = pv_ref.get_neighborhood_ref()->begin(); nit != pv_ref->get_neighborhood_ref()->end(); ++nit )
+			for ( Neighbor_vector_iterator nit = pv_ref.get_neighborhood_ref()->begin(); nit != pv_ref.get_neighborhood_ref()->end(); ++nit )
 			{
 				if ( ( max_consecutive_beacons_lost < nit->get_consecutive_beacons_lost() ) && ( nit->get_active() == 0 ) )
 				{
 					mcb = nit;
-					max_consecutive_beacons_lost = nit->get_consecutive_beacons_lost;
+					max_consecutive_beacons_lost = nit->get_consecutive_beacons_lost();
 				}
 				if ( ( min_link_stab_ratio < nit->get_link_stab_ratio() ) && ( nit->get_active() == 0 ) )
 				{
@@ -492,7 +495,7 @@ namespace wiselib
 				if ( ( min_link_stab_ratio < nit->get_link_stab_ratio_inverse() ) && ( nit->get_active() == 0 ) )
 				{
 					mlsr_in = nit;
-					min_link_stab_ratio_inverse = nit->get_tab_ratio_inverse();
+					min_link_stab_ratio_inverse = nit->get_link_stab_ratio_inverse();
 				}
 				if ( ( max_avg_lqi < nit->get_avg_LQI() ) && ( nit->get_active() == 0 ) )
 				{
