@@ -5,6 +5,7 @@
 #define NB_CHANNEL 0
 #define NB_TRANSMISSION_POWER_DB 0
 #define NB_RELAX_MILLIS 50 //great care with this one...
+#define NB_DAEMON_PERIOD 1000
 
 //default registered protocol settings
 #define NB_MAX_AVG_LQI_THRESHOLD 255
@@ -32,7 +33,7 @@
 
 #define NB_DEBUG
 #ifdef NB_DEBUG
-//#define NB_DEBUG_BEACONS
+#define NB_DEBUG_BEACONS
 #define NB_DEBUG_RECEIVE
 #endif
 

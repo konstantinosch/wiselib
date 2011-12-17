@@ -58,7 +58,8 @@ namespace wiselib
 			transmission_power_dB_strategy		( FIXED_PERIOD ),
 			protocol_max_payload_size_strategy	( FIXED_PAYLOAD_SIZE ),
 			beacon_period_strategy				( FIXED_TRANSM ),
-			relax_millis						( NB_RELAX_MILLIS )
+			relax_millis						( NB_RELAX_MILLIS ),
+			nb_daemon_period					( NB_DAEMON_PERIOD )
 		{};
 		// --------------------------------------------------------------------
 		~NeighborDiscovery()
@@ -176,7 +177,7 @@ namespace wiselib
 				beacon.de_serialize( message->payload() );
 #ifdef NB_DEBUG_RECEIVE
 				debug().debug("NeighborDiscovery-receive %x - Received beacon message.", radio().id() );
-				//beacon.print( debug() );
+				beacon.print( debug() );
 #endif
 				time_t current_time = clock().time();
 				uint8_t beacon_lqi = _ex.link_metric();
@@ -422,8 +423,7 @@ namespace wiselib
 			{
 				neighbors_total_payload_size = it->serial_size() + neighbors_total_payload_size;
 			}
-			//Beacon b;
-			//debug().debug( " protocol_total_payload_size + neighbors_total_payload_size + sizeof(message_id_t) + sizeof(size_t) + _psett.>get_protocol_payload_ref()->serial_size() = %d + %d + %d + %d + %d + %d vs %d", protocol_total_payload_size, neighbors_total_payload_size, b.serial_size(), sizeof(message_id_t), sizeof(size_t), _psett.get_protocol_payload_ref()->serial_size(), Radio::MAX_MESSAGE_LENGTH );
+			Beacon b;
 			if ( protocol_total_payload_size + neighbors_total_payload_size + b.serial_size() + sizeof(message_id_t) + sizeof(size_t) + _psett.get_protocol_payload_ref()->serial_size() > Radio::MAX_MESSAGE_LENGTH )
 			{
 				return NO_PAYLOAD_SPACE;
@@ -441,6 +441,96 @@ namespace wiselib
 			p.set_event_notifier_callback( event_notifier_delegate_t::template from_method<T, TMethod > ( _obj_pnt ) );
 			protocols.push_back( p );
 			return SUCCESS;
+		}
+		// --------------------------------------------------------------------
+		void nb_daemon( void* user_data = NULL )
+		{
+			time_t current_time = clock().time();
+			for ( Protocol_vector_iterator pit = protocols.begin(); pit != protocols.end(); ++pit )
+			{
+				for ( Neighbor_vector_iterator nit = pit->get_neighborhood_ref()->begin(); nit != pit->get_neighborhood_ref()->end(); ++nit )
+				{
+					uint32_t dead_time = ( clock().seconds( current_time ) - clock().seconds( nit->get_last_beacon() ) ) * 1000 + ( clock().milliseconds( current_time ) - clock().milliseconds( nit->get_last_beacon() ) );
+					if ( dead_time < nit->get_beacon_period() + NB_RELAX_MILLIS )
+					{
+						nit->set_last_time( current_time );
+						nit->inc_total_beacons_expected( dead_time / nit->get_beacon_period(), pit->resolve_lost_beacon_weight( nit->get_id() ) );
+						nit->set_consecutive_beacons( 0 );
+						nit->inc_consecutive_beacons_lost( dead_time / nit->get_beacon_period(), pit->resolve_lost_beacon_weight( nit->get_id() ) );
+						nit->set_beacon_period( nit->get_beacon_period() );
+						nit->set_last_beacon( current_time );
+					}
+				}
+			}
+			timer().template set_timer<self_t, &self_t::nb_daemon> ( nb_daemon_period, this, 0 );
+		}
+		// --------------------------------------------------------------------
+		void remove_worst_node( Protocol& pv_ref )
+		{
+			uint8_t max_consecutive_beacons_lost = 0;
+			uint8_t min_link_stab_ratio = 0;
+			uint8_t min_link_stab_ratio_inverse = 0;
+			uint8_t max_avg_lqi = 0;
+			uint8_t max_avg_lqi_inverse = 0;
+			Neighbor_vector_iterator mcb		= pv_ref.get_neighborhood_ref()->begin();
+			Neighbor_vector_iterator mlsr		= pv_ref.get_neighborhood_ref()->begin();
+			Neighbor_vector_iterator mlsr_in	= pv_ref.get_neighborhood_ref()->begin();
+			Neighbor_vector_iterator mal		= pv_ref.get_neighborhood_ref()->begin();
+			Neighbor_vector_iterator mal_in		= pv_ref.get_neighborhood_ref()->begin();
+			for ( Neighbor_vector_iterator nit = pv_ref.get_neighborhood_ref()->begin(); nit != pv_ref->get_neighborhood_ref()->end(); ++nit )
+			{
+				if ( ( max_consecutive_beacons_lost < nit->get_consecutive_beacons_lost() ) && ( nit->get_active() == 0 ) )
+				{
+					mcb = nit;
+					max_consecutive_beacons_lost = nit->get_consecutive_beacons_lost;
+				}
+				if ( ( min_link_stab_ratio < nit->get_link_stab_ratio() ) && ( nit->get_active() == 0 ) )
+				{
+					mlsr = nit;
+					min_link_stab_ratio = nit->get_link_stab_ratio();
+				}
+				if ( ( min_link_stab_ratio < nit->get_link_stab_ratio_inverse() ) && ( nit->get_active() == 0 ) )
+				{
+					mlsr_in = nit;
+					min_link_stab_ratio_inverse = nit->get_tab_ratio_inverse();
+				}
+				if ( ( max_avg_lqi < nit->get_avg_LQI() ) && ( nit->get_active() == 0 ) )
+				{
+					mal_in = nit;
+					max_avg_lqi = nit->get_avg_LQI();
+				}
+				if ( ( max_avg_lqi_inverse < nit->get_avg_LQI_inverse() ) && ( nit->get_active() == 0 ) )
+				{
+					mal_in = nit;
+					max_avg_lqi_inverse = nit->get_avg_LQI_inverse();
+				}
+			}
+			if ( max_consecutive_beacons_lost !=0 )
+			{
+				pv_ref.get_neighborhood_ref()->erase( mcb );
+				return 1;
+			}
+			if ( min_link_stab_ratio !=0 )
+			{
+				pv_ref.get_neighborhood_ref()->erase( mlsr );
+				return 2;
+			}
+			if ( min_link_stab_ratio_inverse !=0 )
+			{
+				pv_ref.get_neighborhood_ref()->erase( mlsr_in );
+				return 3;
+			}
+			if ( max_avg_lqi !=0 )
+			{
+				pv_ref.get_neighborhood_ref()->erase( mal );
+				return 4;
+			}
+			if ( max_avg_lqi_inverse !=0 )
+			{
+				pv_ref.get_neighborhood_ref()->erase( mal_in );
+				return 5;
+			}
+			return 0;
 		}
 		// --------------------------------------------------------------------
 		uint8_t register_protocol( Protocol p )
@@ -464,8 +554,7 @@ namespace wiselib
 			{
 				neighbors_total_payload_size = it->serial_size() + neighbors_total_payload_size;
 			}
-			//Beacon b;
-			//debug().debug( " protocol_total_payload_size + neighbors_total_payload_size + sizeof(message_id_t) + sizeof(size_t) + p.get_protocol_settings_ref()->get_protocol_payload_ref()->serial_size() = %d + %d + %d + %d + %d + %d vs %d", protocol_total_payload_size, neighbors_total_payload_size, b.serial_size(), sizeof(message_id_t), sizeof(size_t), p.get_protocol_settings_ref()->get_protocol_payload_ref()->serial_size(), Radio::MAX_MESSAGE_LENGTH );
+			Beacon b;
 			if ( protocol_total_payload_size + neighbors_total_payload_size + b.serial_size() + sizeof(message_id_t) + sizeof(size_t) + p.get_protocol_settings_ref()->get_protocol_payload_ref()->serial_size() > Radio::MAX_MESSAGE_LENGTH )
 			{
 				return NO_PAYLOAD_SPACE;
@@ -696,6 +785,16 @@ namespace wiselib
 			relax_millis = _rm;
 		}
 		// --------------------------------------------------------------------
+		millis_t get_nb_daemon_period()
+		{
+			return nb_daemon_period;
+		}
+		// --------------------------------------------------------------------
+		void set_nb_daemon_period( millis_t _nbdp )
+		{
+			relax_millis = _nbdp;
+		}
+		// --------------------------------------------------------------------
 		void init( Radio& _radio, Timer& _timer, Debug& _debug, Clock& _clock )
 		{
 			radio_ = &_radio;
@@ -783,6 +882,7 @@ namespace wiselib
         uint8_t protocol_max_payload_size_strategy;
         uint8_t beacon_period_strategy;
         millis_t relax_millis;
+        millis_t nb_daemon_period;
         Radio * radio_;
         Clock * clock_;
         Timer * timer_;
