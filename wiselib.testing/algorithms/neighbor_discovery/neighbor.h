@@ -30,7 +30,7 @@ namespace wiselib
 			avg_LQI							( 0 ),
 			avg_LQI_inverse					( 0 ),
 			link_stab_ratio					( 0 ),
-			link_stab_ratio_inverse			( 0 ),
+			link_stab_ratio_inverse			( 100 ),
 			consecutive_beacons				( 0 ),
 			consecutive_beacons_lost		( 0 ),
 			beacon_period					( 0 ),

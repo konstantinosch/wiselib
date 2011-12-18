@@ -126,34 +126,66 @@ typedef typename NeighborDiscovery::Beacon Beacon;
 	// -----------------------------------------------------------------------
 	void neighbor_discovery_enable_task(void* userdata = NULL)
 	{
-#ifdef PLTT_PASSIVE_DEBUG_NEIGHBORHOOD_DISCOVERY
+//#ifdef PLTT_PASSIVE_DEBUG_NEIGHBORHOOD_DISCOVERY
 		debug().debug( "PLTT_Passive %x: Neighbor discovery enable task \n", self.get_node().get_id() );
-#endif
+//#endif
 		block_data_t buff[100];
+		debug().debug("1");
 		ProtocolPayload pp( NeighborDiscovery::TRACKING_PROTOCOL_ID, self.get_buffer_size(), self.set_buffer_from( buff ) );
+		debug().debug("2");
 		uint8_t ef = ProtocolSettings::NEW_NB|ProtocolSettings::UPDATE_NB|ProtocolSettings::NEW_PAYLOAD|ProtocolSettings::LOST_NB|ProtocolSettings::TRANS_DB_UPDATE|ProtocolSettings::BEACON_PERIOD_UPDATE|ProtocolSettings::NEIGHBOR_REMOVED;
-		ProtocolSettings ps( 100, 0, 100, 0, 100, 90, 100, 90, 10, 10, ef, -6, 100, 3000, 100, ProtocolSettings::RATIO_DIVIDER, 2, ProtocolSettings::MEAN_DEAD_TIME_PERIOD, 100, 100, ProtocolSettings::R_NR_WEIGHTED_PROPORTIONAL, 10, 10, pp );
+		debug().debug("3");
+		ProtocolSettings ps( 255, 0, 255, 0, 100, 90, 100, 90, 10, 10, ef, -6, 100, 3000, 100, ProtocolSettings::RATIO_DIVIDER, 2, ProtocolSettings::MEAN_DEAD_TIME_PERIOD, 100, 100, ProtocolSettings::R_NR_WEIGHTED_PROPORTIONAL, 10, 10, pp );
+		debug().debug("4");
 		uint8_t result = 0;
+		debug().debug("5");
 		result = neighbor_discovery(). template register_protocol<self_type, &self_type::sync_neighbors>( NeighborDiscovery::TRACKING_PROTOCOL_ID, ps, this  );
+		debug().debug("6");
+		debug().debug( " register protocol result : %i", result );
+		Protocol* prot_ref = neighbor_discovery().get_protocol_ref( NeighborDiscovery::TRACKING_PROTOCOL_ID );
+		if ( prot_ref != NULL )
+		{
+			debug().debug( "protocol exists");
+			prot_ref->print( debug() );
+		}
+		else
+		{
+			debug().debug( "protocol does not exist");
+		}
 		neighbor_discovery().enable();
+
 		timer().template set_timer<self_type, &self_type::neighbor_discovery_unregister_task> ( nb_convergence_time, this, 0 );
 	}
 	// -----------------------------------------------------------------------
 	void neighbor_discovery_unregister_task( void* userdata = NULL )
 	{
-#ifdef PLTT_PASSIVE_DEBUG_NEIGHBORHOOD_DISCOVERY
+//#ifdef PLTT_PASSIVE_DEBUG_NEIGHBORHOOD_DISCOVERY
 		debug().debug( "PLTT_Passive %x: Neighbor discovery unregister task \n", self.get_node().get_id() );
-#endif
+//#endif
 //#ifdef CONFIG_NEIGHBORHOOD_DISCOVERY_STABILITY_FILTER
 //		filter_neighbors();
 //#endif
-		neighbor_discovery().set_status( NeighborDiscovery::WAITING_STATUS );
-		Neighbor_vector* nb_neighbors = neighbor_discovery().get_protocol_ref( NeighborDiscovery::TRACKING_PROTOCOL_ID )->get_neighborhood_ref();
-		for ( Neighbor_vector_iterator nit = nb_neighbors->begin(); nit != nb_neighbors->end(); ++nit )
+		Protocol* prot_ref = neighbor_discovery().get_protocol_ref( NeighborDiscovery::TRACKING_PROTOCOL_ID );
+		if ( prot_ref != NULL )
 		{
-			if ( self.get_node().get_id() == 0x96e5 )
-			nit->print( debug() );
+			debug().debug( "protocol exists");
+			prot_ref->print( debug() );
 		}
+		else
+		{
+			debug().debug( "protocol does not exist");
+		}
+		prot_ref = neighbor_discovery().get_protocol_ref( NeighborDiscovery::NB_PROTOCOL_ID );
+		if ( prot_ref != NULL )
+		{
+			debug().debug( "protocol exists");
+			prot_ref->print( debug() );
+		}
+		else
+		{
+			debug().debug( "protocol does not exist");
+		}
+		neighbor_discovery().disable();
 		//radio_callback_id_ = radio().template reg_recv_callback<self_type, &self_type::receive> (this);
 		//update_traces();
 #ifdef PLTT_PASSIVE_DEBUG_NEIGHBORHOOD_DISCOVERY
