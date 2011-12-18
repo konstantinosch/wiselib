@@ -201,7 +201,7 @@ namespace wiselib
 				}
 				else if( p_ref->get_ratio_normalization_strategy() == ProtocolSettings::R_NR_WEIGHTED_PROPORTIONAL )
 				{
-					return p_ref->get_beacon_weight() * n_ref->get_total_beacons_expected() / 100;
+					return p_ref->get_beacon_weight() * n_ref->get_total_beacons_expected();
 				}
 				return 1;
 			}

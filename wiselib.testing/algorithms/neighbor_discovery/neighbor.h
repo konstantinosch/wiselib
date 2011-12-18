@@ -27,10 +27,10 @@ namespace wiselib
 			id								( 0 ),
 			total_beacons					( 0 ),
 			total_beacons_expected			( 0 ),
-			avg_LQI							( 0 ),
-			avg_LQI_inverse					( 0 ),
+			avg_LQI							( 255 ),
+			avg_LQI_inverse					( 255 ),
 			link_stab_ratio					( 0 ),
-			link_stab_ratio_inverse			( 100 ),
+			link_stab_ratio_inverse			( 0 ),
 			consecutive_beacons				( 0 ),
 			consecutive_beacons_lost		( 0 ),
 			beacon_period					( 0 ),
@@ -88,10 +88,9 @@ namespace wiselib
 			return total_beacons;
 		}
 		// --------------------------------------------------------------------
-		void inc_total_beacons( uint32_t _tbeac, uint32_t _tbeac_w )
+		void inc_total_beacons( uint32_t _tbeac )
 		{
 			//TODO overflow
-			link_stab_ratio = ( ( total_beacons + _tbeac * _tbeac_w ) * 100 ) / ( total_beacons_expected + _tbeac_w );
 			total_beacons = total_beacons + _tbeac;
 		}
 		// --------------------------------------------------------------------
@@ -105,15 +104,15 @@ namespace wiselib
 			return total_beacons_expected;
 		}
 		// --------------------------------------------------------------------
-		void inc_total_beacons_expected( uint32_t _tbeac_exp, uint32_t _tbeac_exp_w )
+		void inc_total_beacons_expected( uint32_t _tbeac_exp = 1)
 		{
 			//TODO overflow
-			link_stab_ratio = ( ( total_beacons ) * 100 ) / ( total_beacons_expected + ( _tbeac_exp * _tbeac_exp_w ) );
 			total_beacons_expected = total_beacons_expected + _tbeac_exp;
 		}
 		// --------------------------------------------------------------------
-		void set_total_beacons_expected( uint32_t _tbeac_exp )
+		void set_total_beacons_expected( uint32_t _tbeac_exp = 1)
 		{
+			//TODO overflow
 			total_beacons_expected = _tbeac_exp;
 		}
 		// --------------------------------------------------------------------
@@ -144,6 +143,12 @@ namespace wiselib
 		// --------------------------------------------------------------------
 		uint8_t get_link_stab_ratio()
 		{
+			return link_stab_ratio;
+		}
+		// --------------------------------------------------------------------
+		uint8_t update_link_stab_ratio( uint32_t _tbeac, uint32_t _tbeac_w, uint32_t _tbeac_exp, uint32_t _tbeac_exp_w )
+		{
+			link_stab_ratio = ( ( total_beacons + _tbeac * ( _tbeac_w / 100 ) ) * 100 ) / ( total_beacons_expected + ( _tbeac_exp * ( _tbeac_exp_w / 100 ) ) + _tbeac_w * ( _tbeac_w / 100 ) );
 			return link_stab_ratio;
 		}
 		// --------------------------------------------------------------------
