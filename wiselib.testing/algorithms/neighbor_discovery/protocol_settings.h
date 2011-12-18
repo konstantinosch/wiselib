@@ -442,7 +442,7 @@ namespace wiselib
 			RESET_STAB_INVERSE = 8,
 			RESET_AVG_LQI = 16,
 			RESET_AVG_LQI_INVERSE = 32,
-			RATIO_DIVIDER = 64
+			RATIO_DIVIDER = 64,
 		};
 		// --------------------------------------------------------------------
 		enum event_codes
@@ -452,7 +452,8 @@ namespace wiselib
 			NEW_PAYLOAD = 4,
 			LOST_NB = 8,
 			TRANS_DB_UPDATE = 16,
-			BEACON_PERIOD_UPDATE = 32
+			BEACON_PERIOD_UPDATE = 32,
+			NEIGHBOR_REMOVED = 64
 		};
 		// --------------------------------------------------------------------
 		enum dead_time_strategies

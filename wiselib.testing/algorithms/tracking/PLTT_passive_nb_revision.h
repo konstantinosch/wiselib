@@ -115,94 +115,58 @@ typedef typename NeighborDiscovery::Beacon Beacon;
 #ifdef PLTT_PASSIVE_DEBUG_MISC
 		debug().debug( "PLTT_Passive %x: Boot \n", self.get_node().get_id() );
 #endif
-
-		block_data_t buff[100];
-		ProtocolPayload pp( NeighborDiscovery::TRACKING_PROTOCOL_ID, self.get_buffer_size(), self.set_buffer_from( buff ) );
-		uint8_t ef = ProtocolSettings::NEW_NB|ProtocolSettings::UPDATE_NB|ProtocolSettings::NEW_PAYLOAD|ProtocolSettings::LOST_NB|ProtocolSettings::TRANS_DB_UPDATE|ProtocolSettings::BEACON_PERIOD_UPDATE;
-		ProtocolSettings ps( 100, 0, 100, 0, 100, 90, 100, 90, 10, 10, ef, -6, 100, 3000, 100, ProtocolSettings::RATIO_DIVIDER, 2, ProtocolSettings::MEAN_DEAD_TIME_PERIOD, 100, 100, ProtocolSettings::R_NR_WEIGHTED_PROPORTIONAL, 10, 10, pp );
-		neighbor_discovery().enable();
-		uint8_t result = 0;
-
-		result = neighbor_discovery(). template register_protocol<self_type, &self_type::sync_neighbors>( NeighborDiscovery::TRACKING_PROTOCOL_ID, ps, this  );
-		debug().debug( " result : %d ", result );
-
-
-//			SUCCESS,
-//			PROT_NUM_IN_USE,
-//			PROT_LIST_FULL,
-//			INV_PROT_ID,
-//			NO_PAYLOAD_SPACE,
-//			PAYLOAD_SIZE_OUT_OF_BOUNDS,
-//			ERROR_CODES_NUM_VALUES
-
-
-		//Protocol p;
-		//neighbor_discovery().register_protocol( p );
-
-
-
-
-		//p.set_protocol_id( NeighborDiscovery::TRACKING_PROTOCOL_ID );
-		//p.set_protocol_settings( ps );
-		//p.template set_event_notifier_callback<self_type,&self_type::sync_neighbors>( this );
-
-
-
-
-
-		//clock().seconds();
-		//radio().enable_radio();
-		//TxPower power;
-		//power.set_dB( transmission_power_dB);
-		//radio().set_power( power );
-		//millis_t r = rand()() % random_enable_timer_range;
-		//timer().template set_timer<self_type, &self_type::neighbor_discovery_oldenable_task> (r, this, 0);
+		radio().enable_radio();
+		TxPower power;
+		power.set_dB( transmission_power_dB);
+		radio().set_power( power );
+		millis_t r = rand()() % random_enable_timer_range;
+		timer().template set_timer<self_type, &self_type::neighbor_discovery_enable_task> (r, this, 0);
 		debug().debug( "out" );
 	}
 	// -----------------------------------------------------------------------
-	void neighbor_discovery_oldenable_task(void* userdata = NULL)
+	void neighbor_discovery_enable_task(void* userdata = NULL)
 	{
 #ifdef PLTT_PASSIVE_DEBUG_NEIGHBORHOOD_DISCOVERY
 		debug().debug( "PLTT_Passive %x: Neighbor discovery enable task \n", self.get_node().get_id() );
 #endif
-//		block_data_t buff[Radio::MAX_MESSAGE_LENGTH];
-//		self.get_node().get_position().set_buffer_from( buff );
-//		uint8_t flags = NeighborDiscovery_old::NEW_PAYLOAD_BIDI|NeighborDiscovery_old::DROPPED_NB|NeighborDiscovery_old::LOST_NB_BIDI;
-//		neighbor_discovery().init( radio(), clock(), timer(), debug() );
-//		neighbor_discovery().template reg_event_callback<self_type,	&self_type::sync_neighbors> ( 2, flags, this );
-//		neighbor_discovery().register_payload_space( 2 );
-//		neighbor_discovery().set_payload( 2, buff, self.get_node().get_position().get_buffer_size() );
-//#ifdef PLTT_PASSIVE_DEBUG_NEIGHBORHOOD_DISCOVERY
-//		neighbor_discovery().register_debug_callback( 0 );
-//#endif
-//		neighbor_discovery().enable();
-//		timer().template set_timer<self_type, &self_type::neighbor_discovery_oldunregister_task> ( nb_convergence_time, this, 0 );
+		block_data_t buff[100];
+		ProtocolPayload pp( NeighborDiscovery::TRACKING_PROTOCOL_ID, self.get_buffer_size(), self.set_buffer_from( buff ) );
+		uint8_t ef = ProtocolSettings::NEW_NB|ProtocolSettings::UPDATE_NB|ProtocolSettings::NEW_PAYLOAD|ProtocolSettings::LOST_NB|ProtocolSettings::TRANS_DB_UPDATE|ProtocolSettings::BEACON_PERIOD_UPDATE|ProtocolSettings::NEIGHBOR_REMOVED;
+		ProtocolSettings ps( 100, 0, 100, 0, 100, 90, 100, 90, 10, 10, ef, -6, 100, 3000, 100, ProtocolSettings::RATIO_DIVIDER, 2, ProtocolSettings::MEAN_DEAD_TIME_PERIOD, 100, 100, ProtocolSettings::R_NR_WEIGHTED_PROPORTIONAL, 10, 10, pp );
+		uint8_t result = 0;
+		result = neighbor_discovery(). template register_protocol<self_type, &self_type::sync_neighbors>( NeighborDiscovery::TRACKING_PROTOCOL_ID, ps, this  );
+		neighbor_discovery().enable();
+		timer().template set_timer<self_type, &self_type::neighbor_discovery_unregister_task> ( nb_convergence_time, this, 0 );
 	}
 	// -----------------------------------------------------------------------
-	void neighbor_discovery_oldunregister_task( void* userdata = NULL )
+	void neighbor_discovery_unregister_task( void* userdata = NULL )
 	{
-//#ifdef PLTT_PASSIVE_DEBUG_NEIGHBORHOOD_DISCOVERY
-//		debug().debug( "PLTT_Passive %x: Neighbor discovery unregister task \n", self.get_node().get_id() );
-//#endif
+#ifdef PLTT_PASSIVE_DEBUG_NEIGHBORHOOD_DISCOVERY
+		debug().debug( "PLTT_Passive %x: Neighbor discovery unregister task \n", self.get_node().get_id() );
+#endif
 //#ifdef CONFIG_NEIGHBORHOOD_DISCOVERY_STABILITY_FILTER
 //		filter_neighbors();
 //#endif
-//		radio_callback_id_ = radio().template reg_recv_callback<self_type, &self_type::receive> (this);
-//		update_traces();
-//#ifdef PLTT_PASSIVE_DEBUG_NEIGHBORHOOD_DISCOVERY
-//			debug().debug( "PLTT_Passive %x (%i, %i): NB READY! - Neighbor discovery unregister - size of neighbor list %i vs nb size %i ", self.get_node().get_id(), self.get_node().get_position().get_x(), self.get_node().get_position().get_y(), neighbors.size(), neighbor_discovery().neighborhood.size() );
-//			print_neighbors();
-//
-//#endif
-//#ifdef PLTT_SECURE
-//		decryption_request_daemon();
-//#endif
-//#ifdef CONFIG_PROACTIVE_INHIBITION
-//		proactive_inhibition_daemon();
-//#endif
-//		neighbor_discovery().unregister_payload_space( 2 );
-//		neighbor_discovery().unreg_event_callback( 2 );
-//		neighbor_discovery().disable();
+		neighbor_discovery().set_status( NeighborDiscovery::WAITING_STATUS );
+		Neighbor_vector* nb_neighbors = neighbor_discovery().get_protocol_ref( NeighborDiscovery::TRACKING_PROTOCOL_ID )->get_neighborhood_ref();
+		for ( Neighbor_vector_iterator nit = nb_neighbors->begin(); nit != nb_neighbors->end(); ++nit )
+		{
+			if ( self.get_node().get_id() == 0x96e5 )
+			nit->print( debug() );
+		}
+		//radio_callback_id_ = radio().template reg_recv_callback<self_type, &self_type::receive> (this);
+		//update_traces();
+#ifdef PLTT_PASSIVE_DEBUG_NEIGHBORHOOD_DISCOVERY
+			debug().debug( "PLTT_Passive %x (%i, %i): NB READY! - Neighbor discovery unregister - size of neighbor list %i vs nb size %i ", self.get_node().get_id(), self.get_node().get_position().get_x(), self.get_node().get_position().get_y(), neighbors.size(), neighbor_discovery().neighborhood.size() );
+			print_neighbors();
+
+#endif
+#ifdef PLTT_SECURE
+		decryption_request_daemon();
+#endif
+#ifdef CONFIG_PROACTIVE_INHIBITION
+		proactive_inhibition_daemon();
+#endif
 	}
 	// -----------------------------------------------------------------------
 	void disable(void)
@@ -857,42 +821,42 @@ typedef typename NeighborDiscovery::Beacon Beacon;
 	}
 #endif
 	// -----------------------------------------------------------------------
-#ifdef CONFIG_NEIGHBORHOOD_DISCOVERY_STABILITY_FILTER
-	void filter_neighbors( void* userdata = NULL )
-	{
-		PLTT_NodeList tobefiltered;
-#ifdef PLTT_PASSIVE_DEBUG_NEIGHBORHOOD_DISCOVERY
-		debug().debug( "PLTT_Passive %x: Filter neighbors - size of neighbors vector = %i \n", self.get_node().get_id(), neighbors.size() );
-#endif
-		for ( PLTT_NodeListIterator i = neighbors.begin(); i != neighbors.end(); ++i )
-		{
-#ifdef PLTT_PASSIVE_DEBUG_NEIGHBORHOOD_DISCOVERY
-			debug().debug( "PLTT_Passive %x: Filter neighbors - Inside loop size %x has %i stab, avg_LQI_rec %i, avg_LQI_send %i, stab_send %i \n", self.get_node().get_id(), i->get_node().get_id(), neighbor_discovery().get_nb_receive_stability( i->get_node().get_id() ), neighbor_discovery().get_nb_avg_LQI_rec( i->get_node().get_id() ), neighbor_discovery().get_nb_avg_LQI_send( i->get_node().get_id() ), neighbor_discovery().get_nb_stability_send( i->get_node().get_id() ) );
-#endif
-			if  ( neighbor_discovery().get_nb_receive_stability( i->get_node().get_id() ) <= 0 )
-			{
-					tobefiltered.push_back( *i );
-			}
-		}
-#ifdef PLTT_PASSIVE_DEBUG_NEIGHBORHOOD_DISCOVERY
-		debug().debug( "PLTT_Passive %x: Sync neighbors - size of filter vector = %i \n", self.get_node().get_id(), tobefiltered.size() );
-#endif
-		for ( PLTT_NodeListIterator z = tobefiltered.begin(); z != tobefiltered.end(); ++z )
-		{
-			for ( PLTT_NodeListIterator j = neighbors.begin(); j != neighbors.end(); ++j )
-			{
-				if ( j->get_node().get_id() == z->get_node().get_id() )
-				{
-#ifdef PLTT_PASSIVE_DEBUG_NEIGHBORHOOD_DISCOVERY
-					debug().debug( " PLTT_Passive %x: Filter neighbors - Erasing %x due to stab requirements", self.get_node().get_id(), j->get_node().get_id() );
-#endif
-					neighbors.erase( j );
-					break;
-				}
-			}
-		}
-	}
-#endif
+//#ifdef CONFIG_NEIGHBORHOOD_DISCOVERY_STABILITY_FILTER
+//	void filter_neighbors( void* userdata = NULL )
+//	{
+//		PLTT_NodeList tobefiltered;
+//#ifdef PLTT_PASSIVE_DEBUG_NEIGHBORHOOD_DISCOVERY
+//		debug().debug( "PLTT_Passive %x: Filter neighbors - size of neighbors vector = %i \n", self.get_node().get_id(), neighbors.size() );
+//#endif
+//		for ( PLTT_NodeListIterator i = neighbors.begin(); i != neighbors.end(); ++i )
+//		{
+//#ifdef PLTT_PASSIVE_DEBUG_NEIGHBORHOOD_DISCOVERY
+//			debug().debug( "PLTT_Passive %x: Filter neighbors - Inside loop size %x has %i stab, avg_LQI_rec %i, avg_LQI_send %i, stab_send %i \n", self.get_node().get_id(), i->get_node().get_id(), neighbor_discovery().get_nb_receive_stability( i->get_node().get_id() ), neighbor_discovery().get_nb_avg_LQI_rec( i->get_node().get_id() ), neighbor_discovery().get_nb_avg_LQI_send( i->get_node().get_id() ), neighbor_discovery().get_nb_stability_send( i->get_node().get_id() ) );
+//#endif
+//			if  ( neighbor_discovery().get_nb_receive_stability( i->get_node().get_id() ) <= 0 )
+//			{
+//					tobefiltered.push_back( *i );
+//			}
+//		}
+//#ifdef PLTT_PASSIVE_DEBUG_NEIGHBORHOOD_DISCOVERY
+//		debug().debug( "PLTT_Passive %x: Sync neighbors - size of filter vector = %i \n", self.get_node().get_id(), tobefiltered.size() );
+//#endif
+//		for ( PLTT_NodeListIterator z = tobefiltered.begin(); z != tobefiltered.end(); ++z )
+//		{
+//			for ( PLTT_NodeListIterator j = neighbors.begin(); j != neighbors.end(); ++j )
+//			{
+//				if ( j->get_node().get_id() == z->get_node().get_id() )
+//				{
+//#ifdef PLTT_PASSIVE_DEBUG_NEIGHBORHOOD_DISCOVERY
+//					debug().debug( " PLTT_Passive %x: Filter neighbors - Erasing %x due to stab requirements", self.get_node().get_id(), j->get_node().get_id() );
+//#endif
+//					neighbors.erase( j );
+//					break;
+//				}
+//			}
+//		}
+//	}
+//#endif
 	// -----------------------------------------------------------------------
 #ifdef CONFIG_PROACTIVE_INHIBITION
 		void inhibit_traces( PLTT_Node n )

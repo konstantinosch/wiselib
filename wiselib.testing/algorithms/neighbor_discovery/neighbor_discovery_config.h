@@ -31,7 +31,7 @@
 #define NB_LOST_BEACON_WEIGHT 1
 
 
-#define NB_DEBUG
+//#define NB_DEBUG
 #ifdef NB_DEBUG
 #define NB_DEBUG_BEACONS
 #define NB_DEBUG_RECEIVE
