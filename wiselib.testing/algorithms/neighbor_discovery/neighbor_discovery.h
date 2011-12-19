@@ -205,7 +205,7 @@ namespace wiselib
 									debug().debug( "NeighborDiscovery-receive %x - Neighbor %x is on time same as advertised for protocol %i with dead_time : %d.", radio().id(), _from, pit->get_protocol_id(), dead_time );
 #endif
 									new_neighbor = *nit;
-									new_neighbor.update_link_stab_ratio(1, pit->resolve_beacon_weight( _from ), 1, pit->resolve_lost_beacon_weight( _from ) );
+									new_neighbor.update_link_stab_ratio( 1, pit->resolve_beacon_weight( _from ), 0, pit->resolve_lost_beacon_weight( _from ), debug() );
 									new_neighbor.inc_total_beacons( 1 );
 									new_neighbor.inc_total_beacons_expected( 1 );
 									new_neighbor.update_avg_LQI( beacon_lqi, 1 );
@@ -221,7 +221,7 @@ namespace wiselib
 									debug().debug( "NeighborDiscovery-receive %x - Neighbor %x was late same as advertised for protocol %i with dead_time : %d.", radio().id(), _from, pit->get_protocol_id(), dead_time );
 #endif
 									new_neighbor = *nit;
-									new_neighbor.update_link_stab_ratio(1, pit->resolve_beacon_weight( _from ), dead_time / nit->get_beacon_period(), pit->resolve_lost_beacon_weight( _from ) );
+									new_neighbor.update_link_stab_ratio( 1, pit->resolve_beacon_weight( _from ), dead_time / nit->get_beacon_period(), pit->resolve_lost_beacon_weight( _from ), debug() );
 									new_neighbor.inc_total_beacons( 1 );
 									new_neighbor.inc_total_beacons_expected( dead_time / nit->get_beacon_period() );
 									new_neighbor.update_avg_LQI( beacon_lqi, 1 );
@@ -240,7 +240,7 @@ namespace wiselib
 									debug().debug( "NeighborDiscovery-receive %x - Neighbor %x is on time same as advertised for protocol %i with dead_time : %d.", radio().id(), _from, pit->get_protocol_id(), dead_time );
 #endif
 									new_neighbor = *nit;
-									new_neighbor.update_link_stab_ratio(1, pit->resolve_beacon_weight( _from ), 1, pit->resolve_lost_beacon_weight( _from ) );
+									new_neighbor.update_link_stab_ratio( 1, pit->resolve_beacon_weight( _from ), 0, pit->resolve_lost_beacon_weight( _from ), debug() );
 									new_neighbor.inc_total_beacons( 1 );
 									new_neighbor.inc_total_beacons_expected( 1 );
 									new_neighbor.update_avg_LQI( beacon_lqi, 1 );
@@ -276,7 +276,7 @@ namespace wiselib
 									}
 									uint32_t dead_time_messages_lost = ( dead_time - last_beacon_period_update ) * approximate_beacon_period;
 									new_neighbor = *nit;
-									new_neighbor.update_link_stab_ratio(1, pit->resolve_beacon_weight( _from ), dead_time_messages_lost + beacon.get_beacon_period_update_counter(), pit->resolve_lost_beacon_weight( _from ) );
+									new_neighbor.update_link_stab_ratio(1, pit->resolve_beacon_weight( _from ), dead_time_messages_lost + beacon.get_beacon_period_update_counter(), pit->resolve_lost_beacon_weight( _from ), debug() );
 									new_neighbor.inc_total_beacons( 1 );
 									new_neighbor.inc_total_beacons_expected( dead_time_messages_lost + beacon.get_beacon_period_update_counter() );
 									new_neighbor.update_avg_LQI( beacon_lqi, 1 );
@@ -499,6 +499,9 @@ namespace wiselib
 		// --------------------------------------------------------------------
 		void nb_daemon( void* user_data = NULL )
 		{
+#ifdef NB_DEBUG_NB_DAEMON
+			debug().debug("NeighborDiscovery-nb_daemon %x - Entering.", radio().id() );
+#endif
 			if ( status == ACTIVE_STATUS )
 			{
 				time_t current_time = clock().time();
@@ -507,10 +510,13 @@ namespace wiselib
 					for ( Neighbor_vector_iterator nit = pit->get_neighborhood_ref()->begin(); nit != pit->get_neighborhood_ref()->end(); ++nit )
 					{
 						uint32_t dead_time = ( clock().seconds( current_time ) - clock().seconds( nit->get_last_beacon() ) ) * 1000 + ( clock().milliseconds( current_time ) - clock().milliseconds( nit->get_last_beacon() ) );
-						if ( dead_time < nit->get_beacon_period() + NB_RELAX_MILLIS )
+						if ( ( dead_time > nit->get_beacon_period() + NB_RELAX_MILLIS ) && ( nit->get_id() != radio().id() ) )
 						{
+#ifdef NB_DEBUG_NB_DAEMON
+							debug().debug("NeighborDiscovery-nb_daemon %x - Teasing node %x.", radio().id(), nit->get_id() );
+#endif
 							nit->inc_total_beacons_expected( dead_time / nit->get_beacon_period() );
-							nit->update_link_stab_ratio( 0, pit->resolve_beacon_weight( nit->get_id() ), dead_time / nit->get_beacon_period(), pit->resolve_lost_beacon_weight( nit->get_id() ) );
+							nit->update_link_stab_ratio( 0, pit->resolve_beacon_weight( nit->get_id() ), dead_time / nit->get_beacon_period(), pit->resolve_lost_beacon_weight( nit->get_id() ), debug() );
 							nit->set_consecutive_beacons( 0 );
 							nit->inc_consecutive_beacons_lost( dead_time / nit->get_beacon_period() );
 							nit->set_beacon_period( nit->get_beacon_period() );
@@ -520,6 +526,9 @@ namespace wiselib
 				}
 				timer().template set_timer<self_t, &self_t::nb_daemon> ( nb_daemon_period, this, 0 );
 			}
+#ifdef NB_DEBUG_NB_DAEMON
+			debug().debug("NeighborDiscovery-nb_daemon %x - Exiting.", radio().id() );
+#endif
 		}
 		// --------------------------------------------------------------------
 		uint8_t remove_worst_neighbor( Protocol& pv_ref )

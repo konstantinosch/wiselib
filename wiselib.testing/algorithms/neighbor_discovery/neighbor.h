@@ -88,7 +88,7 @@ namespace wiselib
 			return total_beacons;
 		}
 		// --------------------------------------------------------------------
-		void inc_total_beacons( uint32_t _tbeac )
+		void inc_total_beacons( uint32_t _tbeac = 1 )
 		{
 			//TODO overflow
 			total_beacons = total_beacons + _tbeac;
@@ -126,7 +126,7 @@ namespace wiselib
 			avg_LQI = _alqi;
 		}
 		// --------------------------------------------------------------------
-		void update_avg_LQI( uint8_t _lqi, uint32_t _lqi_w )
+		void update_avg_LQI( uint8_t _lqi, uint32_t _lqi_w = 1 )
 		{
 			avg_LQI = ( ( avg_LQI * total_beacons ) + _lqi * _lqi_w ) / ( total_beacons + _lqi_w );
 		}
@@ -146,8 +146,16 @@ namespace wiselib
 			return link_stab_ratio;
 		}
 		// --------------------------------------------------------------------
-		uint8_t update_link_stab_ratio( uint32_t _tbeac, uint32_t _tbeac_w, uint32_t _tbeac_exp, uint32_t _tbeac_exp_w )
+		uint8_t update_link_stab_ratio( uint32_t _tbeac, uint32_t _tbeac_w, uint32_t _tbeac_exp, uint32_t _tbeac_exp_w, Debug& debug )
 		{
+#ifdef NB_DEBUG_NEIGHBOR_UPDATE_LINK_STAB_RATIO
+			debug.debug( " total_beacons = %d ", total_beacons );
+			debug.debug( " total_beacons_expected = %d ", total_beacons_expected );
+			debug.debug( " new beacons _tbeac = %d, weighted at %d ", _tbeac, _tbeac_w );
+			debug.debug( " beacons expected _tbeac_exp = %d, weighted at %d", _tbeac_exp, _tbeac_exp_w );
+			uint32_t r = ( ( total_beacons + _tbeac * ( _tbeac_w / 100 ) ) * 100 ) / ( total_beacons_expected + ( _tbeac_exp * ( _tbeac_exp_w / 100 ) ) + _tbeac_w * ( _tbeac_w / 100 ) );
+			debug.debug( " 32bit value : %d", r );
+#endif
 			link_stab_ratio = ( ( total_beacons + _tbeac * ( _tbeac_w / 100 ) ) * 100 ) / ( total_beacons_expected + ( _tbeac_exp * ( _tbeac_exp_w / 100 ) ) + _tbeac_w * ( _tbeac_w / 100 ) );
 			return link_stab_ratio;
 		}
@@ -309,9 +317,9 @@ namespace wiselib
 			debug.debug( "total_beacons : %d", total_beacons );
 			debug.debug( "total_beacons_expected : %d", total_beacons_expected );
 			debug.debug( "avg_LQI : %d", avg_LQI );
-			debug.debug( "avg_LQI_inverse : %d", avg_LQI_inverse );
-			debug.debug( "link_stab_ratio : %d", link_stab_ratio );
-			debug.debug( "link_stab_ratio_inverse : %d", link_stab_ratio_inverse );
+			debug.debug( "avg_LQI_inverse : %i", avg_LQI_inverse );
+			debug.debug( "link_stab_ratio : %i", link_stab_ratio );
+			debug.debug( "link_stab_ratio_inverse : %i", link_stab_ratio_inverse );
 			debug.debug( "consecutive_beacons : %d", consecutive_beacons );
 			debug.debug( "consecutive_beacons_lost : %d", consecutive_beacons_lost );
 			debug.debug( "beacon_period : %d", beacon_period );
