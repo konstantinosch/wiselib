@@ -34,7 +34,7 @@ namespace wiselib
 			min_link_stab_ratio_inverse_threshold	( NB_MIN_LINK_STAB_RATIO_INVERSE_THRESHOLD ),
 			consecutive_beacons_threshold 			( NB_CONSECUTIVE_BEACONS_THRESHOLD ),
 			consecutive_beacons_lost_threshold		( NB_CONSECUTIVE_BEACONS_LOST_THRESHOLD ),
-			events_flag								( NEW_NB | UPDATE_NB | NEW_PAYLOAD | LOST_NB | TRANS_DB_UPDATE | BEACON_PERIOD_UPDATE ),
+			events_flag								( NEW_NB | UPDATE_NB | NEW_PAYLOAD | LOST_NB | TRANS_DB_UPDATE | BEACON_PERIOD_UPDATE | NEIGHBOR_REMOVED ),
 			proposed_transmission_power_dB			( NB_PROPOSED_TRANSMISSION_POWER_DB ),
 			proposed_transmission_power_dB_weight	( NB_PROPOSED_TRANSMISSION_POWER_DB_WEIGHT ),
 			proposed_beacon_period					( NB_PROPOSED_BEACON_PERIOD ),

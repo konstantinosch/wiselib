@@ -350,14 +350,22 @@ namespace wiselib
 							events_flag = events_flag | ProtocolSettings::NEW_NB;
 							if ( pit->get_neighborhood_ref()->size() == pit->get_neighborhood_ref()->max_size() )
 							{
-								//debug().debug( " size vs max size : %i vs %i", )
-								if ( remove_worst_neighbor( *pit ) == 0 )
+								uint8_t rs = remove_worst_neighbor( *pit );
+								if ( rs == 0 )
 								{
 									pit->get_neighborhood_ref()->push_back( new_neighbor );
 									pit->resolve_overflow_strategy( _from );
 #ifdef NB_DEBUG_RECEIVE
 									debug().debug("NeighborDiscovery-receive %x - Neighbor %x was inserted and active for protocol %i.", radio().id(), _from, pit->get_protocol_id() );
 #endif
+								}
+								else
+								{
+									if ( pit->get_protocol_settings_ref()->get_events_flag() & ProtocolSettings::BEACON_PERIOD_UPDATE )
+									{
+										events_flag = ProtocolSettings::BEACON_PERIOD_UPDATE;
+										pit->get_event_notifier_callback()( events_flag, radio().id(), 0, NULL );
+									}
 								}
 							}
 							else
@@ -414,12 +422,21 @@ namespace wiselib
 						{
 							if (pit->get_neighborhood_ref()->size() == pit->get_neighborhood_ref()->max_size() )
 							{
-								if ( remove_worst_neighbor( *pit ) == 0 )
+								uint8_t rs = remove_worst_neighbor( *pit );
+								if ( rs == 0 )
 								{
 									pit->get_neighborhood_ref()->push_back( new_neighbor );
 #ifdef NB_DEBUG_RECEIVE
 									debug().debug("NeighborDiscovery-receive %x - Neighbor %x was inserted but inactive for protocol %i.", radio().id(), _from, pit->get_protocol_id() );
 #endif
+								}
+								else
+								{
+									if ( pit->get_protocol_settings_ref()->get_events_flag() & ProtocolSettings::BEACON_PERIOD_UPDATE )
+									{
+										events_flag = ProtocolSettings::BEACON_PERIOD_UPDATE;
+										pit->get_event_notifier_callback()( events_flag, radio().id(), 0, NULL );
+									}
 								}
 							}
 							else
@@ -531,19 +548,19 @@ namespace wiselib
 #endif
 		}
 		// --------------------------------------------------------------------
-		uint8_t remove_worst_neighbor( Protocol& pv_ref )
+		uint8_t remove_worst_neighbor( Protocol& p_ref )
 		{
 			uint8_t max_consecutive_beacons_lost = 0;
 			uint8_t min_link_stab_ratio = 100;
 			uint8_t min_link_stab_ratio_inverse = 100;
 			uint8_t max_avg_lqi = 0;
 			uint8_t max_avg_lqi_inverse = 0;
-			Neighbor_vector_iterator mcb		= pv_ref.get_neighborhood_ref()->begin();
-			Neighbor_vector_iterator mlsr		= pv_ref.get_neighborhood_ref()->begin();
-			Neighbor_vector_iterator mlsr_in	= pv_ref.get_neighborhood_ref()->begin();
-			Neighbor_vector_iterator mal		= pv_ref.get_neighborhood_ref()->begin();
-			Neighbor_vector_iterator mal_in		= pv_ref.get_neighborhood_ref()->begin();
-			for ( Neighbor_vector_iterator nit = pv_ref.get_neighborhood_ref()->begin(); nit != pv_ref.get_neighborhood_ref()->end(); ++nit )
+			Neighbor_vector_iterator mcb		= p_ref.get_neighborhood_ref()->begin();
+			Neighbor_vector_iterator mlsr		= p_ref.get_neighborhood_ref()->begin();
+			Neighbor_vector_iterator mlsr_in	= p_ref.get_neighborhood_ref()->begin();
+			Neighbor_vector_iterator mal		= p_ref.get_neighborhood_ref()->begin();
+			Neighbor_vector_iterator mal_in		= p_ref.get_neighborhood_ref()->begin();
+			for ( Neighbor_vector_iterator nit = p_ref.get_neighborhood_ref()->begin(); nit != p_ref.get_neighborhood_ref()->end(); ++nit )
 			{
 				if ( ( max_consecutive_beacons_lost < nit->get_consecutive_beacons_lost() ) && ( nit->get_active() == 0 ) )
 				{
@@ -573,27 +590,27 @@ namespace wiselib
 			}
 			if ( max_consecutive_beacons_lost !=0 )
 			{
-				pv_ref.get_neighborhood_ref()->erase( mcb );
+				p_ref.get_neighborhood_ref()->erase( mcb );
 				return ProtocolSettings::NEIGHBOR_REMOVED;
 			}
 			if ( min_link_stab_ratio !=0 )
 			{
-				pv_ref.get_neighborhood_ref()->erase( mlsr );
+				p_ref.get_neighborhood_ref()->erase( mlsr );
 				return ProtocolSettings::NEIGHBOR_REMOVED;
 			}
 			if ( min_link_stab_ratio_inverse !=0 )
 			{
-				pv_ref.get_neighborhood_ref()->erase( mlsr_in );
+				p_ref.get_neighborhood_ref()->erase( mlsr_in );
 				return ProtocolSettings::NEIGHBOR_REMOVED;
 			}
 			if ( max_avg_lqi !=0 )
 			{
-				pv_ref.get_neighborhood_ref()->erase( mal );
+				p_ref.get_neighborhood_ref()->erase( mal );
 				return ProtocolSettings::NEIGHBOR_REMOVED;
 			}
 			if ( max_avg_lqi_inverse !=0 )
 			{
-				pv_ref.get_neighborhood_ref()->erase( mal_in );
+				p_ref.get_neighborhood_ref()->erase( mal_in );
 				return ProtocolSettings::NEIGHBOR_REMOVED;
 			}
 			return 0;
@@ -677,6 +694,7 @@ namespace wiselib
 		// --------------------------------------------------------------------
 		millis_t get_beacon_period()
 		{
+			millis_t beacon_period_old = beacon_period;
 			if ( beacon_period_strategy == FIXED_PERIOD )
 			{
 				return beacon_period;
@@ -691,7 +709,7 @@ namespace wiselib
 						least = it->get_protocol_settings_ref()->get_proposed_beacon_period();
 					}
 				}
-				return least;
+				beacon_period = least;
 			}
 			else if ( beacon_period_strategy == MEAN_PERIOD )
 			{
@@ -703,7 +721,7 @@ namespace wiselib
 					num = num + 1;
 				}
 				millis_t mean = sum / num;
-				return mean;
+				beacon_period = mean;
 			}
 			else if ( beacon_period_strategy == WEIGHTED_MEAN_PERIOD )
 			{
@@ -715,7 +733,17 @@ namespace wiselib
 					num = it->get_protocol_settings_ref()->get_proposed_beacon_period_weight() + num;
 				}
 				millis_t weighted_mean = sum / num;
-				return weighted_mean;
+				beacon_period = weighted_mean;
+			}
+			if ( beacon_period_old != beacon_period )
+			{
+				for ( Protocol_vector_iterator pit = protocols.begin(); pit != protocols.end(); ++pit )
+				{
+					if ( pit->get_protocol_settings_ref()->get_events_flag() & ProtocolSettings::BEACON_PERIOD_UPDATE )
+					{
+						pit->get_event_notifier_callback()( ProtocolSettings::BEACON_PERIOD_UPDATE, radio().id(), 0, NULL );
+					}
+				}
 			}
 			return beacon_period;
 		}
@@ -727,6 +755,7 @@ namespace wiselib
 		// --------------------------------------------------------------------
 		int8_t get_transmission_power_dB()
 		{
+			int8_t old_transmission_power_dB = transmission_power_dB;
 			if ( transmission_power_dB_strategy == FIXED_TRANSM )
 			{
 				return transmission_power_dB;
@@ -734,38 +763,48 @@ namespace wiselib
 			else if ( transmission_power_dB_strategy == LEAST_TRANSM )
 			{
 				int8_t least = 128;
-				for ( Protocol_vector_iterator it = protocols.begin(); it != protocols.end(); ++it )
+				for ( Protocol_vector_iterator pit = protocols.begin(); pit != protocols.end(); ++pit )
 				{
-					if ( it->get_protocol_settings_ref()->get_proposed_transmission_power_dB() < least )
+					if ( pit->get_protocol_settings_ref()->get_proposed_transmission_power_dB() < least )
 					{
-						least = it->get_protocol_settings_ref()->get_proposed_transmission_power_dB();
+						least = pit->get_protocol_settings_ref()->get_proposed_transmission_power_dB();
 					}
 				}
-				return least;
+				transmission_power_dB = least;
 			}
 			else if ( transmission_power_dB_strategy == MEAN_TRANSM )
 			{
 				int8_t sum, num;
 				sum = num = 0;
-				for ( Protocol_vector_iterator it = protocols.begin(); it != protocols.end(); ++it )
+				for ( Protocol_vector_iterator pit = protocols.begin(); pit != protocols.end(); ++pit )
 				{
-					sum = it->get_protocol_settings_ref()->get_proposed_transmission_power_dB() + sum;
+					sum = pit->get_protocol_settings_ref()->get_proposed_transmission_power_dB() + sum;
 					num = num + 1;
 				}
 				int8_t mean = sum / num;
-				return mean;
+				transmission_power_dB = mean;
 			}
 			else if ( transmission_power_dB_strategy == WEIGHTED_MEAN_TRANSM )
 			{
 				int8_t sum, num;
 				sum = num = 0;
-				for ( Protocol_vector_iterator it = protocols.begin(); it != protocols.end(); ++it )
+				for ( Protocol_vector_iterator pit = protocols.begin(); pit != protocols.end(); ++pit )
 				{
-					sum = it->get_protocol_settings_ref()->get_proposed_transmission_power_dB() * it->get_protocol_settings_ref()->get_proposed_transmission_power_dB_weight() + sum;
-					num = it->get_protocol_settings_ref()->get_proposed_transmission_power_dB_weight() + num;
+					sum = pit->get_protocol_settings_ref()->get_proposed_transmission_power_dB() * pit->get_protocol_settings_ref()->get_proposed_transmission_power_dB_weight() + sum;
+					num = pit->get_protocol_settings_ref()->get_proposed_transmission_power_dB_weight() + num;
 				}
 				int8_t weighted_mean = sum / num;
-				return weighted_mean;
+				transmission_power_dB = weighted_mean;
+			}
+			if ( old_transmission_power_dB != transmission_power_dB )
+			{
+				for ( Protocol_vector_iterator pit = protocols.begin(); pit != protocols.end(); ++pit )
+				{
+					if ( pit->get_protocol_settings_ref()->get_events_flag() & ProtocolSettings::TRANS_DB_UPDATE )
+					{
+						pit->get_event_notifier_callback()( ProtocolSettings::TRANS_DB_UPDATE, radio().id(), 0, NULL );
+					}
+				}
 			}
 			return transmission_power_dB;
 		}

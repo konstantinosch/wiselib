@@ -153,10 +153,10 @@ namespace wiselib
 			debug.debug( " total_beacons_expected = %d ", total_beacons_expected );
 			debug.debug( " new beacons _tbeac = %d, weighted at %d ", _tbeac, _tbeac_w );
 			debug.debug( " beacons expected _tbeac_exp = %d, weighted at %d", _tbeac_exp, _tbeac_exp_w );
-			uint32_t r = ( ( total_beacons + _tbeac * ( _tbeac_w / 100 ) ) * 100 ) / ( total_beacons_expected + ( _tbeac_exp * ( _tbeac_exp_w / 100 ) ) + _tbeac_w * ( _tbeac_w / 100 ) );
-			debug.debug( " 32bit value : %d", r );
+			//uint32_t r = ( ( total_beacons + _tbeac * ( _tbeac_w / 100 ) ) * 100 ) / ( total_beacons_expected + ( _tbeac_exp * ( _tbeac_exp_w / 100 ) ) + _tbeac * ( _tbeac_w / 100 ) );
+			//debug.debug( " 32bit value : %d", r );
 #endif
-			link_stab_ratio = (uint8_t) r;// ( ( total_beacons + _tbeac * ( _tbeac_w / 100 ) ) * 100 ) / ( total_beacons_expected + ( _tbeac_exp * ( _tbeac_exp_w / 100 ) ) + _tbeac_w * ( _tbeac_w / 100 ) );
+			link_stab_ratio = ( ( total_beacons + _tbeac * ( _tbeac_w / 100 ) ) * 100 ) / ( total_beacons_expected + ( _tbeac_exp * ( _tbeac_exp_w / 100 ) ) + _tbeac * ( _tbeac_w / 100 ) );
 			return link_stab_ratio;
 		}
 		// --------------------------------------------------------------------
@@ -254,7 +254,6 @@ namespace wiselib
 			{
 				active = 0;
 			}
-
 		}
 		// --------------------------------------------------------------------
 		uint8_t get_active()
