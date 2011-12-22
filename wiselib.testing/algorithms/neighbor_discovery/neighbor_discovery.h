@@ -128,8 +128,18 @@ namespace wiselib
 #ifdef NB_DEBUG_BEACONS
 						debug().debug( "NeighborDiscovery-beacons %x - Neighbor exists.", radio().id() );
 #endif
+#ifdef NB_DEBUG_STATS
+						debug().debug( " %x - %d ", radio().id(), n->get_total_beacons() );
+						if ( n->get_total_beacons() == 100 )
+						{
+							set_status( WAITING_STATUS );
+							p_ptr->print( debug(), radio() );
+							return;
+						}
+#endif
 						n->inc_beacon_period_update_counter();
 						n->set_beacon_period( bp );
+						n->inc_total_beacons();
 						Beacon beacon;
 						beacon.set_protocol_payloads( protocols );
 						Neighbor_vector nv = p_ptr->get_neighborhood();
@@ -142,7 +152,7 @@ namespace wiselib
 						send( Radio::BROADCAST_ADDRESS, beacon_size, buff, NB_MESSAGE );
 #ifdef NB_DEBUG_BEACONS
 						debug().debug( "NeighborDiscovery-beacons %x - Sending beacon.", radio().id() );
-						beacon.print( debug() );
+						beacon.print( debug(), radio() );
 #endif
 						timer().template set_timer<self_t, &self_t::beacons> ( bp, this, 0 );
 					}
@@ -178,7 +188,7 @@ namespace wiselib
 				beacon.de_serialize( message->payload() );
 #ifdef NB_DEBUG_RECEIVE
 				debug().debug( "NeighborDiscovery-receive %x - Received beacon message.", radio().id() );
-				beacon.print( debug() );
+				beacon.print( debug(), radio() );
 #endif
 				time_t current_time = clock().time();
 				uint8_t beacon_lqi = _ex.link_metric();
@@ -319,7 +329,7 @@ namespace wiselib
 					}
 #ifdef NB_DEBUG_RECEIVE
 					debug().debug( "$$$" );
-					new_neighbor.print( debug() );
+					new_neighbor.print( debug(), radio() );
 					debug().debug("beacon_lqi : %i", beacon_lqi );
 					debug().debug( "$$$" );
 #endif

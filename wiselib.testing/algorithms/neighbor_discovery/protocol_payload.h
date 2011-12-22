@@ -114,7 +114,8 @@ namespace wiselib
 			return *this;
 		}
 		// --------------------------------------------------------------------
-		void print( Debug& debug )
+#ifdef NB_DEBUG
+		void print( Debug& debug, Radio& radio )
 		{
 			debug.debug( "-------------------------------------------------------");
 			debug.debug( "protocol_payload :");
@@ -130,6 +131,7 @@ namespace wiselib
 			}
 			debug.debug( "-------------------------------------------------------");
 		}
+#endif
 		// --------------------------------------------------------------------
 		block_data_t* serialize( block_data_t* _buff, size_t _offset = 0 )
 		{

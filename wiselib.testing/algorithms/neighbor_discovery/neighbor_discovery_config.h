@@ -1,7 +1,7 @@
 //default NB protocol settings
 #define NB_MAX_NEIGHBORS 25
 #define NB_MAX_REGISTERED_PROTOCOLS 2
-#define NB_BEACON_PERIOD 3000
+#define NB_BEACON_PERIOD 4600
 #define NB_CHANNEL 0
 #define NB_TRANSMISSION_POWER_DB 0
 #define NB_RELAX_MILLIS 200 //great care with this one...
@@ -31,12 +31,13 @@
 #define NB_LOST_BEACON_WEIGHT 1
 
 
-//#define NB_DEBUG
+#define NB_DEBUG
 #ifdef NB_DEBUG
-#define NB_DEBUG_BEACONS
-#define NB_DEBUG_RECEIVE
-#define NB_DEBUG_REGISTER_PROTOCOL
-#define NB_DEBUG_NB_DAEMON
-#define NB_DEBUG_NEIGHBOR_UPDATE_LINK_STAB_RATIO
+//#define NB_DEBUG_BEACONS
+//#define NB_DEBUG_RECEIVE
+//#define NB_DEBUG_REGISTER_PROTOCOL
+//#define NB_DEBUG_NB_DAEMON
+//#define NB_DEBUG_NEIGHBOR_UPDATE_LINK_STAB_RATIO
+#define NB_DEBUG_STATS
 #endif
 

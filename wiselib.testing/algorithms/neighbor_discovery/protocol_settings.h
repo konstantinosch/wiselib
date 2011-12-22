@@ -403,7 +403,8 @@ namespace wiselib
 			return *this;
 		}
 		// --------------------------------------------------------------------
-		void print( Debug& debug )
+#ifdef NB_DEBUG
+		void print( Debug& debug, Radio& radio )
 		{
 			debug.debug( "-------------------------------------------------------");
 			debug.debug( "protocol_settings :");
@@ -430,9 +431,10 @@ namespace wiselib
 			debug.debug( "ratio_normalization_strategy : %d", ratio_normalization_strategy );
 			debug.debug( "beacon_weight : %d", beacon_weight );
 			debug.debug( "lost_beacon_weight : %d", lost_beacon_weight );
-			protocol_payload.print( debug );
+			protocol_payload.print( debug, radio );
 			debug.debug( "-------------------------------------------------------");
 		}
+#endif
 		// --------------------------------------------------------------------
 		enum overflow_strategy
 		{

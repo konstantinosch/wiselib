@@ -241,20 +241,26 @@ namespace wiselib
 			return *this;
 		}
 		// --------------------------------------------------------------------
-		void print( Debug& debug )
+#ifdef NB_DEBUG
+		void print( Debug& debug, Radio& radio )
 		{
+#ifndef NB_DEBUG_STATS
 			debug.debug( "-------------------------------------------------------");
 			debug.debug( "protocol :");
 			debug.debug( "protocol_id : %d", protocol_id );
 			debug.debug( "settings :");
-			settings.print( debug );
+			settings.print( debug, radio );
 			debug.debug( "neighborhood :");
+#endif
 			for ( Neighbor_vector_iterator it = neighborhood.begin(); it != neighborhood.end(); ++it )
 			{
-				it->print( debug );
+				it->print( debug, radio );
 			}
+#ifndef NB_DEBUG_STATS
 			debug.debug( "-------------------------------------------------------");
+#endif
 		}
+#endif
 		// --------------------------------------------------------------------
 		void null_callback( uint8_t null_event, node_id_t null_node_id, uint8_t null_len, uint8_t* null_data )
 		{}
