@@ -100,6 +100,7 @@ namespace wiselib
 		// --------------------------------------------------------------------
 		Neighbor_vector fill_active_neighborhood( Neighbor_vector& _nv )
 		{
+			_nv.clear();
 			for ( Neighbor_vector_iterator it = neighborhood.begin(); it != neighborhood.end(); ++it )
 			{
 				if ( it->get_active() == 1 )
