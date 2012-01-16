@@ -18,7 +18,7 @@ namespace wiselib
 				typename Clock_P,
 				typename Timer_P,
 				typename Debug_P>
-	class NeighborDiscovery
+	class NeighborDiscovery_Type
 	{
 	public:
 		typedef Os_P Os;
@@ -34,13 +34,13 @@ namespace wiselib
 		typedef typename Radio::ExtendedData ExData;
 		typedef typename Radio::TxPower TxPower;
 		typedef typename Timer::millis_t millis_t;
-		typedef NeighborDiscovery<Os, Radio, Clock, Timer, Debug> self_t;
-		typedef NeighborDiscovery_MessageType<Os, Radio> Message;
-		typedef Neighbor<Os, Radio, Clock, Timer, Debug> Neighbor;
-		typedef ProtocolPayload< Os, Radio, Debug> ProtocolPayload;
-		typedef ProtocolSettings<Os, Radio, Timer, Debug> ProtocolSettings;
-		typedef Protocol<Os, Radio, Clock, Timer, Debug> Protocol;
-		typedef Beacon<Os, Radio, Clock, Timer, Debug> Beacon;
+		typedef NeighborDiscovery_Type<Os, Radio, Clock, Timer, Debug> self_t;
+		typedef NeighborDiscoveryMessage_Type<Os, Radio> Message;
+		typedef Neighbor_Type<Os, Radio, Clock, Timer, Debug> Neighbor;
+		typedef ProtocolPayload_Type< Os, Radio, Debug> ProtocolPayload;
+		typedef ProtocolSettings_Type<Os, Radio, Timer, Debug> ProtocolSettings;
+		typedef Protocol_Type<Os, Radio, Clock, Timer, Debug> Protocol;
+		typedef Beacon_Type<Os, Radio, Clock, Timer, Debug> Beacon;
 		typedef vector_static<Os, Neighbor, NB_MAX_NEIGHBORS> Neighbor_vector;
 		typedef typename Neighbor_vector::iterator Neighbor_vector_iterator;
 		typedef vector_static<Os, ProtocolPayload, NB_MAX_REGISTERED_PROTOCOLS> ProtocolPayload_vector;
@@ -49,7 +49,7 @@ namespace wiselib
 		typedef typename Protocol_vector::iterator Protocol_vector_iterator;
 		typedef delegate4<void, uint8_t, node_id_t, uint8_t, uint8_t*> event_notifier_delegate_t;
 		// --------------------------------------------------------------------
-		NeighborDiscovery()	:
+		NeighborDiscovery_Type()	:
 			status								( WAITING_STATUS ),
 			beacon_period						( NB_BEACON_PERIOD ),
 			channel								( NB_CHANNEL ),
@@ -62,7 +62,7 @@ namespace wiselib
 			nb_daemon_period					( NB_DAEMON_PERIOD )
 		{};
 		// --------------------------------------------------------------------
-		~NeighborDiscovery()
+		~NeighborDiscovery_Type()
 		{};
 		// --------------------------------------------------------------------
 		void enable()

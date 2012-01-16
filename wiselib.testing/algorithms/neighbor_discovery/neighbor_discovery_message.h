@@ -23,7 +23,7 @@ namespace wiselib
 {
 	template<	typename OsModel_P,
 				typename Radio_P>
-	class NeighborDiscovery_MessageType
+	class NeighborDiscoveryMessage_Type
 	{
 	public:
 		typedef OsModel_P OsModel;
@@ -32,7 +32,7 @@ namespace wiselib
 		typedef typename Radio::size_t size_t;
 		typedef typename Radio::message_id_t message_id_t;
 		// --------------------------------------------------------------------
-		inline NeighborDiscovery_MessageType();
+		inline NeighborDiscoveryMessage_Type();
 		// --------------------------------------------------------------------
 		inline message_id_t msg_id()
 		{
@@ -72,8 +72,8 @@ namespace wiselib
 	// -----------------------------------------------------------------------
 	template<typename OsModel_P,
 		typename Radio_P>
-	NeighborDiscovery_MessageType<OsModel_P, Radio_P>::
-	NeighborDiscovery_MessageType()
+	NeighborDiscoveryMessage_Type<OsModel_P, Radio_P>::
+	NeighborDiscoveryMessage_Type()
 	{
 		set_msg_id( 0 );
 		size_t len = 0;

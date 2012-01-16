@@ -92,11 +92,12 @@ typedef typename NeighborDiscovery::ProtocolSettings ProtocolSettings;
 typedef typename NeighborDiscovery::Neighbor Neighbor;
 typedef typename NeighborDiscovery::ProtocolPayload ProtocolPayload;
 typedef typename NeighborDiscovery::Protocol Protocol;
+typedef typename NeighborDiscovery::Beacon Beacon;
 typedef typename NeighborDiscovery::Neighbor_vector Neighbor_vector;
 typedef typename NeighborDiscovery::Neighbor_vector_iterator Neighbor_vector_iterator;
 typedef typename NeighborDiscovery::ProtocolPayload_vector ProtocolPayload_vector;
 typedef typename NeighborDiscovery::ProtocolPayload_vector_iterator ProtocolPayload_vector_iterator;
-typedef typename NeighborDiscovery::Beacon Beacon;
+
 
 
 

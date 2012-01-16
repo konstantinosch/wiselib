@@ -10,7 +10,7 @@ namespace wiselib
 				typename Radio_P,
 				typename Timer_P,
 				typename Debug_P>
-	class ProtocolSettings
+	class ProtocolSettings_Type
 	{
 	public:
 		typedef Os_P Os;
@@ -20,10 +20,10 @@ namespace wiselib
 		typedef typename Radio::node_id_t node_id_t;
 		typedef typename Radio::size_t size_t;
 		typedef typename Timer::millis_t millis_t;
-		typedef ProtocolPayload<Os, Radio, Debug> ProtocolPayload;
-		typedef ProtocolSettings<Os, Radio, Timer, Debug> self_type;
+		typedef ProtocolPayload_Type<Os, Radio, Debug> ProtocolPayload;
+		typedef ProtocolSettings_Type<Os, Radio, Timer, Debug> self_type;
 		// --------------------------------------------------------------------
-		ProtocolSettings()	:
+		ProtocolSettings_Type()	:
 			max_avg_LQI_threshold 					( NB_MAX_AVG_LQI_THRESHOLD ),
 			min_avg_LQI_threshold 					( NB_MIN_AVG_LQI_THRESHOLD ),
 			max_avg_LQI_inverse_threshold 			( NB_MAX_AVG_LQI_INVERSE_THRESHOLD ),
@@ -49,30 +49,30 @@ namespace wiselib
 			lost_beacon_weight						( NB_LOST_BEACON_WEIGHT )
 		{}
 		// --------------------------------------------------------------------
-		ProtocolSettings(	uint8_t _maxLQI,
-							uint8_t _minLQI,
-							uint8_t _maxLQI_in,
-							uint8_t _minLQI_in,
-							uint8_t _maxlsr,
-							uint8_t _minlsr,
-							uint8_t _maxlsr_in,
-							uint8_t _minlsr_in,
-							uint8_t _cb,
-							uint8_t _cblost,
-							uint8_t _ef,
-							int8_t _tp_dB,
-							uint8_t _tp_dB_w,
-							millis_t _pb,
-							uint8_t _pb_w,
-							uint8_t _ofs,
-							uint32_t _rd,
-							uint8_t _dt_s,
-							uint8_t _odtp_w,
-							uint8_t _ndtp_w,
-							uint8_t _rn_s,
-							uint32_t _b_w,
-							uint32_t _lb_w,
-							ProtocolPayload _pp )
+		ProtocolSettings_Type(	uint8_t _maxLQI,
+								uint8_t _minLQI,
+								uint8_t _maxLQI_in,
+								uint8_t _minLQI_in,
+								uint8_t _maxlsr,
+								uint8_t _minlsr,
+								uint8_t _maxlsr_in,
+								uint8_t _minlsr_in,
+								uint8_t _cb,
+								uint8_t _cblost,
+								uint8_t _ef,
+								int8_t _tp_dB,
+								uint8_t _tp_dB_w,
+								millis_t _pb,
+								uint8_t _pb_w,
+								uint8_t _ofs,
+								uint32_t _rd,
+								uint8_t _dt_s,
+								uint8_t _odtp_w,
+								uint8_t _ndtp_w,
+								uint8_t _rn_s,
+								uint32_t _b_w,
+								uint32_t _lb_w,
+								ProtocolPayload _pp )
 		{
 			max_avg_LQI_threshold = _maxLQI;
 			min_avg_LQI_threshold = _minLQI;
@@ -100,7 +100,7 @@ namespace wiselib
 			protocol_payload = _pp;
 		}
 		// --------------------------------------------------------------------
-		~ProtocolSettings()
+		~ProtocolSettings_Type()
 		{}
 		// --------------------------------------------------------------------
 		uint8_t get_max_avg_LQI_threshold()
@@ -374,7 +374,7 @@ namespace wiselib
 			beacon_weight = _bl_w;
 		}
 		// --------------------------------------------------------------------
-		ProtocolSettings& operator=( const ProtocolSettings& _psett )
+		ProtocolSettings_Type& operator=( const ProtocolSettings_Type& _psett )
 		{
 			max_avg_LQI_threshold = _psett.max_avg_LQI_threshold;
 			min_avg_LQI_threshold = _psett.min_avg_LQI_threshold;

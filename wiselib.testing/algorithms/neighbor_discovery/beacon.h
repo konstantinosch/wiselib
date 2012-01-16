@@ -14,7 +14,7 @@ namespace wiselib
 				typename Clock_P,
 				typename Timer_P,
 				typename Debug_P>
-	class Beacon
+	class Beacon_Type
 	{
 	public:
 		typedef Os_P Os;
@@ -26,24 +26,24 @@ namespace wiselib
 		typedef typename Radio::size_t size_t;
 		typedef typename Radio::block_data_t block_data_t;
 		typedef typename Timer::millis_t millis_t;
-		typedef Neighbor<Os, Radio, Clock, Timer, Debug> Neighbor;
-		typedef ProtocolPayload<Os, Radio, Debug> ProtocolPayload;
-		typedef ProtocolSettings<Os, Radio, Timer, Debug> ProtocolSettings;
-		typedef Protocol<Os, Radio, Clock, Timer, Debug> Protocol;
+		typedef Neighbor_Type<Os, Radio, Clock, Timer, Debug> Neighbor;
+		typedef ProtocolPayload_Type<Os, Radio, Debug> ProtocolPayload;
+		typedef ProtocolSettings_Type<Os, Radio, Timer, Debug> ProtocolSettings;
+		typedef Protocol_Type<Os, Radio, Clock, Timer, Debug> Protocol;
 		typedef vector_static<Os, Neighbor, NB_MAX_NEIGHBORS> Neighbor_vector;
 		typedef typename Neighbor_vector::iterator Neighbor_vector_iterator;
 		typedef vector_static<Os, ProtocolPayload, NB_MAX_REGISTERED_PROTOCOLS> ProtocolPayload_vector;
 		typedef typename ProtocolPayload_vector::iterator ProtocolPayload_vector_iterator;
 		typedef vector_static<Os, Protocol, NB_MAX_REGISTERED_PROTOCOLS> Protocol_vector;
 		typedef typename Protocol_vector::iterator Protocol_vector_iterator;
-		typedef Beacon<Os, Radio, Clock, Timer, Debug> self_type;
+		typedef Beacon_Type<Os, Radio, Clock, Timer, Debug> self_type;
 		// --------------------------------------------------------------------
-		Beacon() :
+		Beacon_Type() :
 			beacon_period					( 0 ),
 			beacon_period_update_counter	( 0 )
 		{}
 		// --------------------------------------------------------------------
-		~Beacon()
+		~Beacon_Type()
 		{}
 		// --------------------------------------------------------------------
 		Neighbor_vector get_neighborhood()
@@ -114,7 +114,7 @@ namespace wiselib
 			}
 		}
 		// --------------------------------------------------------------------
-		Beacon& operator=( const Beacon& _b )
+		Beacon_Type& operator=( const Beacon_Type& _b )
 		{
 			beacon_period_update_counter = _b.beacon_period_update_counter;
 			beacon_period = _b.beacon_period;

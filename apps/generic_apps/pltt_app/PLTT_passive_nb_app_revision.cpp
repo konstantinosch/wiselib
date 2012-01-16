@@ -40,7 +40,7 @@ typedef uint8 TimesNumber;
 typedef uint8 SecondsNumber;
 typedef uint32 AgentID;
 typedef uint32 Integer;
-typedef wiselib::NeighborDiscovery<Os, Radio, Clock, Timer, Debug> NeighborDiscovery;
+typedef wiselib::NeighborDiscovery_Type<Os, Radio, Clock, Timer, Debug> NeighborDiscovery;
 typedef wiselib::Position2DType<Os, Radio, CoordinatesNumber, Debug> Position;
 typedef wiselib::NodeType<Os, Radio, node_id_t, Position, Debug> Node;
 #ifdef PLTT_SECURE

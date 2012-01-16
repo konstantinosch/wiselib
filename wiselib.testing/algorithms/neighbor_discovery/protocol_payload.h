@@ -8,7 +8,7 @@ namespace wiselib
 	template< 	typename Os_P,
 				typename Radio_P,
 				typename Debug_P>
-	class ProtocolPayload
+	class ProtocolPayload_Type
 	{
 		typedef Os_P Os;
 		typedef Radio_P Radio;
@@ -16,9 +16,9 @@ namespace wiselib
 		typedef typename Radio::node_id_t node_id_t;
 		typedef typename Radio::size_t size_t;
 		typedef typename Radio::block_data_t block_data_t;
-		typedef ProtocolPayload< Os, Radio, Debug> self_type;
+		typedef ProtocolPayload_Type<Os, Radio, Debug> self_type;
 	public:
-		ProtocolPayload() :
+		ProtocolPayload_Type() :
 			payload_size		( NB_MAX_PROTOCOL_PAYLOAD_SIZE )
 		{
 			for ( size_t i = 0; i < NB_MAX_PROTOCOL_PAYLOAD_SIZE; i++ )
@@ -27,7 +27,7 @@ namespace wiselib
 			}
 		}
 		// --------------------------------------------------------------------
-		ProtocolPayload( uint8_t _pid, size_t _ps, block_data_t* _pd, size_t _offset = 0 )
+		ProtocolPayload_Type( uint8_t _pid, size_t _ps, block_data_t* _pd, size_t _offset = 0 )
 		{
 			protocol_id = _pid;
 			payload_size = _ps;
@@ -44,7 +44,7 @@ namespace wiselib
 			}
 		}
 		// --------------------------------------------------------------------
-		~ProtocolPayload()
+		~ProtocolPayload_Type()
 		{}
 		// --------------------------------------------------------------------
 		uint8_t get_protocol_id()
@@ -100,7 +100,7 @@ namespace wiselib
 			}
 		}
 		// --------------------------------------------------------------------
-		ProtocolPayload& operator=( const ProtocolPayload& _pp )
+		ProtocolPayload_Type& operator=( const ProtocolPayload_Type& _pp )
 		{
 			protocol_id = _pp.protocol_id;
 			payload_size = _pp.payload_size;

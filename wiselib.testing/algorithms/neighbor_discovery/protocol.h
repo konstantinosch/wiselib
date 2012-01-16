@@ -14,7 +14,7 @@ namespace wiselib
 				typename Clock_P,
 				typename Timer_P,
 				typename Debug_P>
-	class Protocol
+	class Protocol_Type
 	{
 	public:
 		typedef Os_P Os;
@@ -24,21 +24,21 @@ namespace wiselib
 		typedef Debug_P Debug;
 		typedef typename Radio::node_id_t node_id_t;
 		typedef typename Radio::size_t size_t;
-		typedef Neighbor<Os, Radio, Clock, Timer, Debug> Neighbor;
-		typedef ProtocolPayload<Os, Radio, Debug> ProtocolPayload;
-		typedef ProtocolSettings<Os, Radio, Timer, Debug> ProtocolSettings;
+		typedef Neighbor_Type<Os, Radio, Clock, Timer, Debug> Neighbor;
+		typedef ProtocolPayload_Type<Os, Radio, Debug> ProtocolPayload;
+		typedef ProtocolSettings_Type<Os, Radio, Timer, Debug> ProtocolSettings;
 		typedef vector_static<Os, Neighbor, NB_MAX_NEIGHBORS> Neighbor_vector;
 		typedef typename Neighbor_vector::iterator Neighbor_vector_iterator;
 		typedef vector_static<Os, ProtocolPayload, NB_MAX_REGISTERED_PROTOCOLS> ProtocolPayload_vector;
 		typedef typename ProtocolPayload_vector::iterator ProtocolPayload_vector_iterator;
 		typedef delegate4<void, uint8_t, node_id_t, uint8_t, uint8_t*> event_notifier_delegate_t;
-		typedef Protocol<Os, Radio, Clock, Timer, Debug> self_type;
+		typedef Protocol_Type<Os, Radio, Clock, Timer, Debug> self_type;
 		// --------------------------------------------------------------------
-		Protocol() :
+		Protocol_Type() :
 			protocol_id					( 0 ),
-			event_notifier_callback		( event_notifier_delegate_t::template from_method<Protocol, &Protocol::null_callback > ( this ) )
+			event_notifier_callback		( event_notifier_delegate_t::template from_method<Protocol_Type, &Protocol_Type::null_callback > ( this ) )
 		{}
-		~Protocol()
+		~Protocol_Type()
 		{}
 		// --------------------------------------------------------------------
 		void set_protocol_id( uint8_t _pid )
@@ -70,7 +70,7 @@ namespace wiselib
 		// --------------------------------------------------------------------
 		void reset_event_notifier_callback()
 		{
-			event_notifier_callback	= event_notifier_delegate_t::template from_method<Protocol, &Protocol::null_callback > ( this );
+			event_notifier_callback	= event_notifier_delegate_t::template from_method<Protocol_Type, &Protocol_Type::null_callback > ( this );
 		}
 		// --------------------------------------------------------------------
 		ProtocolSettings get_protocol_settings()
@@ -232,7 +232,7 @@ namespace wiselib
 			return 0;
 		}
 		// --------------------------------------------------------------------
-		Protocol& operator=( const Protocol& _p )
+		Protocol_Type& operator=( const Protocol_Type& _p )
 		{
 			protocol_id = _p.protocol_id;
 			event_notifier_callback = _p.event_notifier_callback;

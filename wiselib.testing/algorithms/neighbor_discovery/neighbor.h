@@ -8,7 +8,7 @@ namespace wiselib
 				typename Clock_P,
 				typename Timer_P,
 				typename Debug_P>
-	class Neighbor
+	class Neighbor_Type
 	{
 	public:
 		typedef Os_P Os;
@@ -21,9 +21,9 @@ namespace wiselib
 		typedef typename Radio::block_data_t block_data_t;
 		typedef typename Timer::millis_t millis_t;
 		typedef typename Clock::time_t time_t;
-		typedef Neighbor<Os, Radio, Clock, Timer, Debug> self_type;
+		typedef Neighbor_Type<Os, Radio, Clock, Timer, Debug> self_type;
 		// --------------------------------------------------------------------
-		Neighbor()	:
+		Neighbor_Type()	:
 			id								( 0 ),
 			total_beacons					( 0 ),
 			total_beacons_expected			( 0 ),
@@ -38,19 +38,19 @@ namespace wiselib
 			active							( 0 )
 		{}
 		// --------------------------------------------------------------------
-		Neighbor(	node_id_t _id,
-					uint32_t _tbeac,
-					uint32_t _tbeac_exp,
-					uint8_t _alqi,
-					uint8_t _alqi_in,
-					uint8_t _lsratio,
-					uint8_t _lsratio_in,
-					uint8_t _cb,
-					uint8_t _cb_lost,
-					millis_t _bp,
-					uint32_t _bpuc,
-					uint8_t _a,
-					time_t _lb )
+		Neighbor_Type(	node_id_t _id,
+						uint32_t _tbeac,
+						uint32_t _tbeac_exp,
+						uint8_t _alqi,
+						uint8_t _alqi_in,
+						uint8_t _lsratio,
+						uint8_t _lsratio_in,
+						uint8_t _cb,
+						uint8_t _cb_lost,
+						millis_t _bp,
+						uint32_t _bpuc,
+						uint8_t _a,
+						time_t _lb )
 		{
 			id = _id;
 			total_beacons = _tbeac;
@@ -70,7 +70,7 @@ namespace wiselib
 			last_beacon = _lb;
 		}
 		// --------------------------------------------------------------------
-		~Neighbor()
+		~Neighbor_Type()
 		{}
 		// --------------------------------------------------------------------
 		node_id_t get_id()
@@ -261,7 +261,7 @@ namespace wiselib
 			return active;
 		}
 		// --------------------------------------------------------------------
-		Neighbor& operator=( const Neighbor& _n )
+		Neighbor_Type& operator=( const Neighbor_Type& _n )
 		{
 			id = _n.id;
 			total_beacons = _n.total_beacons;

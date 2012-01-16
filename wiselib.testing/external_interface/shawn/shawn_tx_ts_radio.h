@@ -321,6 +321,11 @@ namespace wiselib
    typename ShawnTxTsRadioModel<OsModel_P>::TxPower ShawnTxTsRadioModel<OsModel_P>::power() {
      return TxPower(os().proc->owner_w().transmission_range());
    }
+   //------------------------------------------------------------------------
+   template<typename OsModel_P>
+   void ShawnTxTsRadioModel<OsModel_P>::set_channel(int c)
+   {}
+   //------------------------------------------------------------------------
 
 }
 
