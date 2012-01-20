@@ -126,8 +126,8 @@ namespace wiselib
 #ifdef NB_DEBUG
 		void print( Debug& debug, Radio& radio )
 		{
-			debug.debug( "-------------------------------------------------------");
-			debug.debug( "beacon :");
+			debug.debug( "-------------------------------------------------------\n");
+			debug.debug( "beacon :\n");
 			for ( ProtocolPayload_vector_iterator it = protocol_payloads.begin(); it != protocol_payloads.end(); ++it )
 			{
 				it->print( debug, radio );
@@ -136,9 +136,9 @@ namespace wiselib
 			{
 				it->print( debug, radio );
 			}
-			debug.debug( "beacon_period : %d", beacon_period );
-			debug.debug( "beacon_period_update_counter : %d", beacon_period_update_counter );
-			debug.debug( "-------------------------------------------------------");
+			debug.debug( "beacon_period : %d\n", beacon_period );
+			debug.debug( "beacon_period_update_counter : %d\n", beacon_period_update_counter );
+			debug.debug( "-------------------------------------------------------\n");
 		}
 #endif
 		// --------------------------------------------------------------------

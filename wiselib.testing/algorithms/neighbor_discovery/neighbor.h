@@ -329,7 +329,9 @@ namespace wiselib
 			debug.debug( "-------------------------------------------------------");
 #endif
 #ifdef NB_DEBUG_STATS
-			debug.debug( "NB_STATS:%x:%x:%d:%d:%d:%d:%d:%d:%d:%d:%d:%d:%d",
+			if ( radio.id() != id )
+			{
+				debug.debug( "NB_STATS:%x:%x:%d:%d:%d:%d:%d:%d:%d:%d:%d:%d:%d\n",
 					radio.id(),
 					id,
 					total_beacons,
@@ -343,6 +345,7 @@ namespace wiselib
 					beacon_period,
 					beacon_period_update_counter,
 					active );
+			}
 #endif
 		}
 #endif
