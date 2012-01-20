@@ -88,15 +88,15 @@ public:
 #endif
 
 
-typedef typename NeighborDiscovery::ProtocolSettings ProtocolSettings;
-typedef typename NeighborDiscovery::Neighbor Neighbor;
-typedef typename NeighborDiscovery::ProtocolPayload ProtocolPayload;
-typedef typename NeighborDiscovery::Protocol Protocol;
-typedef typename NeighborDiscovery::Beacon Beacon;
-typedef typename NeighborDiscovery::Neighbor_vector Neighbor_vector;
-typedef typename NeighborDiscovery::Neighbor_vector_iterator Neighbor_vector_iterator;
-typedef typename NeighborDiscovery::ProtocolPayload_vector ProtocolPayload_vector;
-typedef typename NeighborDiscovery::ProtocolPayload_vector_iterator ProtocolPayload_vector_iterator;
+	typedef typename NeighborDiscovery::ProtocolSettings ProtocolSettings;
+	typedef typename NeighborDiscovery::Neighbor Neighbor;
+	typedef typename NeighborDiscovery::ProtocolPayload ProtocolPayload;
+	typedef typename NeighborDiscovery::Protocol Protocol;
+	typedef typename NeighborDiscovery::Beacon Beacon;
+	typedef typename NeighborDiscovery::Neighbor_vector Neighbor_vector;
+	typedef typename NeighborDiscovery::Neighbor_vector_iterator Neighbor_vector_iterator;
+	typedef typename NeighborDiscovery::ProtocolPayload_vector ProtocolPayload_vector;
+	typedef typename NeighborDiscovery::ProtocolPayload_vector_iterator ProtocolPayload_vector_iterator;
 
 
 
@@ -122,13 +122,13 @@ typedef typename NeighborDiscovery::ProtocolPayload_vector_iterator ProtocolPayl
 		radio().set_power( power );
 		millis_t r = rand()() % random_enable_timer_range;
 		timer().template set_timer<self_type, &self_type::neighbor_discovery_enable_task> (r, this, 0);
-		debug().debug( "out" );
+		//debug().debug( "out" );
 	}
 	// -----------------------------------------------------------------------
 	void neighbor_discovery_enable_task(void* userdata = NULL)
 	{
 //#ifdef PLTT_PASSIVE_DEBUG_NEIGHBORHOOD_DISCOVERY
-		debug().debug( "PLTT_Passive %x: Neighbor discovery enable task \n", self.get_node().get_id() );
+//		debug().debug( "PLTT_Passive %x: Neighbor discovery enable task \n", self.get_node().get_id() );
 //#endif
 		block_data_t buff[100];
 		ProtocolPayload pp( NeighborDiscovery::TRACKING_PROTOCOL_ID, self.get_buffer_size(), self.set_buffer_from( buff ) );
@@ -137,7 +137,7 @@ typedef typename NeighborDiscovery::ProtocolPayload_vector_iterator ProtocolPayl
 		ProtocolSettings ps( 255, 0, 255, 0, 100, 90, 100, 90, 10, 10, ef, -6, 100, 3000, 100, ProtocolSettings::RATIO_DIVIDER, 2, ProtocolSettings::MEAN_DEAD_TIME_PERIOD, 100, 100, ProtocolSettings::R_NR_WEIGHTED_PROPORTIONAL, 10, 10, pp );
 		uint8_t result = 0;
 		result = neighbor_discovery(). template register_protocol<self_type, &self_type::sync_neighbors>( NeighborDiscovery::TRACKING_PROTOCOL_ID, ps, this  );
-		debug().debug( " register protocol result : %i", result );
+		//debug().debug( " register protocol result : %i", result );
 		//Protocol* prot_ref = neighbor_discovery().get_protocol_ref( NeighborDiscovery::TRACKING_PROTOCOL_ID );
 		//if ( prot_ref != NULL )
 		//{

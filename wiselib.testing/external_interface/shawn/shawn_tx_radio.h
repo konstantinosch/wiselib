@@ -59,7 +59,7 @@ namespace wiselib
       };
       // --------------------------------------------------------------------
       enum Restrictions {
-         MAX_MESSAGE_LENGTH = 0xff   ///< Maximal number of bytes in payload
+         MAX_MESSAGE_LENGTH = 0xfffffff  ///< Maximal number of bytes in payload
       };
       // --------------------------------------------------------------------
       class TxPower;
