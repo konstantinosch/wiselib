@@ -203,12 +203,12 @@ namespace wiselib
 		// --------------------------------------------------------------------
 		size_t serial_size()
 		{
-			uint8_t pp_size = 0;
+			size_t pp_size = 0;
 			for ( ProtocolPayload_vector_iterator it = protocol_payloads.begin(); it != protocol_payloads.end(); ++it )
 			{
 				pp_size = it->serial_size() + pp_size;
 			}
-			uint8_t n_size = 0;
+			size_t n_size = 0;
 			for ( Neighbor_vector_iterator it = neighborhood.begin(); it != neighborhood.end(); ++it )
 			{
 				n_size = it->serial_size() + n_size;

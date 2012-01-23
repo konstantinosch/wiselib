@@ -245,19 +245,19 @@ namespace wiselib
 		void print( Debug& debug, Radio& radio )
 		{
 #ifndef NB_DEBUG_STATS
-			debug.debug( "-------------------------------------------------------");
-			debug.debug( "protocol :");
-			debug.debug( "protocol_id : %d", protocol_id );
-			debug.debug( "settings :");
+			debug.debug( "-------------------------------------------------------\n");
+			debug.debug( "protocol :\n");
+			debug.debug( "protocol_id : %d\n", protocol_id );
+			debug.debug( "settings :\n");
 			settings.print( debug, radio );
-			debug.debug( "neighborhood :");
+			debug.debug( "neighborhood :\n");
 #endif
 			for ( Neighbor_vector_iterator it = neighborhood.begin(); it != neighborhood.end(); ++it )
 			{
 				it->print( debug, radio );
 			}
 #ifndef NB_DEBUG_STATS
-			debug.debug( "-------------------------------------------------------");
+			debug.debug( "-------------------------------------------------------\n");
 #endif
 		}
 #endif

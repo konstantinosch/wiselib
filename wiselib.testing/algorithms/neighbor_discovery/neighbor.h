@@ -149,10 +149,10 @@ namespace wiselib
 		uint8_t update_link_stab_ratio( uint32_t _tbeac, uint32_t _tbeac_w, uint32_t _tbeac_exp, uint32_t _tbeac_exp_w, Debug& debug )
 		{
 #ifdef NB_DEBUG_NEIGHBOR_UPDATE_LINK_STAB_RATIO
-			debug.debug( " total_beacons = %d ", total_beacons );
-			debug.debug( " total_beacons_expected = %d ", total_beacons_expected );
-			debug.debug( " new beacons _tbeac = %d, weighted at %d ", _tbeac, _tbeac_w );
-			debug.debug( " beacons expected _tbeac_exp = %d, weighted at %d", _tbeac_exp, _tbeac_exp_w );
+			debug.debug( " total_beacons = %d\n", total_beacons );
+			debug.debug( " total_beacons_expected = %d\n", total_beacons_expected );
+			debug.debug( " new beacons _tbeac = %d, weighted at %d\n",_tbeac, _tbeac_w );
+			debug.debug( " beacons expected _tbeac_exp = %d, weighted at %d\n",_tbeac_exp, _tbeac_exp_w );
 			//uint32_t r = ( ( total_beacons + _tbeac * ( _tbeac_w / 100 ) ) * 100 ) / ( total_beacons_expected + ( _tbeac_exp * ( _tbeac_exp_w / 100 ) ) + _tbeac * ( _tbeac_w / 100 ) );
 			//debug.debug( " 32bit value : %d", r );
 #endif
@@ -308,28 +308,27 @@ namespace wiselib
 			return LINK_STAB_RATIO_POS + sizeof( uint8_t );
 		}
 		// --------------------------------------------------------------------
-#ifdef NB_DEBUG
+
 		void print( Debug& debug, Radio& radio )
 		{
-#ifndef NB_DEBUG
-			debug.debug( "-------------------------------------------------------");
-			debug.debug( "neighbor :" );
-			debug.debug( "id : %x", id );
-			debug.debug( "total_beacons : %d", total_beacons );
-			debug.debug( "total_beacons_expected : %d", total_beacons_expected );
-			debug.debug( "avg_LQI : %d", avg_LQI );
-			debug.debug( "avg_LQI_inverse : %i", avg_LQI_inverse );
-			debug.debug( "link_stab_ratio : %i", link_stab_ratio );
-			debug.debug( "link_stab_ratio_inverse : %i", link_stab_ratio_inverse );
-			debug.debug( "consecutive_beacons : %d", consecutive_beacons );
-			debug.debug( "consecutive_beacons_lost : %d", consecutive_beacons_lost );
-			debug.debug( "beacon_period : %d", beacon_period );
-			debug.debug( "beacon_period_update_counter : %d", beacon_period_update_counter );
-			debug.debug( "active : %d", active );
-			debug.debug( "-------------------------------------------------------");
-#endif
-#ifdef NB_DEBUG_STATS
-			if ( radio.id() != id )
+#ifndef NB_DEBUG_STATS
+			debug.debug( "-------------------------------------------------------\n");
+			debug.debug( "neighbor :\n" );
+			debug.debug( "id : %x\n", id );
+			debug.debug( "total_beacons : %d\n", total_beacons );
+			debug.debug( "total_beacons_expected : %d\n", total_beacons_expected );
+			debug.debug( "avg_LQI : %d\n", avg_LQI );
+			debug.debug( "avg_LQI_inverse : %i\n", avg_LQI_inverse );
+			debug.debug( "link_stab_ratio : %i\n", link_stab_ratio );
+			debug.debug( "link_stab_ratio_inverse : %i\n", link_stab_ratio_inverse );
+			debug.debug( "consecutive_beacons : %d\n", consecutive_beacons );
+			debug.debug( "consecutive_beacons_lost : %d\n", consecutive_beacons_lost );
+			debug.debug( "beacon_period : %d\n", beacon_period );
+			debug.debug( "beacon_period_update_counter : %d\n", beacon_period_update_counter );
+			debug.debug( "active : %d\n", active );
+			debug.debug( "-------------------------------------------------------\n");
+#else
+			if ( active == 1 )
 			{
 				debug.debug( "NB_STATS:%x:%x:%d:%d:%d:%d:%d:%d:%d:%d:%d:%d:%d\n",
 					radio.id(),
@@ -348,7 +347,6 @@ namespace wiselib
 			}
 #endif
 		}
-#endif
 		// --------------------------------------------------------------------
 	private:
 		node_id_t id;

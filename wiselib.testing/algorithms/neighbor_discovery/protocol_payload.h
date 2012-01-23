@@ -117,16 +117,16 @@ namespace wiselib
 #ifdef NB_DEBUG
 		void print( Debug& debug, Radio& radio )
 		{
-			debug.debug( "-------------------------------------------------------");
-			debug.debug( "protocol_payload :");
-			debug.debug( "protocol_id : %d ", protocol_id );
-			debug.debug( "max_payload_size : %d", NB_MAX_PROTOCOL_PAYLOAD_SIZE );
-			debug.debug( "payload_size : %d ", payload_size );
+			debug.debug( "-------------------------------------------------------\n");
+			debug.debug( "protocol_payload :\n");
+			debug.debug( "protocol_id : %d\n", protocol_id );
+			debug.debug( "max_payload_size : %d\n", NB_MAX_PROTOCOL_PAYLOAD_SIZE );
+			debug.debug( "payload_size : %d\n", payload_size );
 			if ( payload_size <= NB_MAX_PROTOCOL_PAYLOAD_SIZE )
 			{
 				for ( size_t i = 0; i < payload_size; i++ )
 				{
-					debug.debug( "payload %d 'th byte : %d", i, payload_data[i] );
+					debug.debug( "payload %d 'th byte : %d\n", i, payload_data[i] );
 				}
 			}
 			debug.debug( "-------------------------------------------------------");

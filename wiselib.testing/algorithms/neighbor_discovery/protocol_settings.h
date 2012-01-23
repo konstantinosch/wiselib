@@ -406,31 +406,31 @@ namespace wiselib
 #ifdef NB_DEBUG
 		void print( Debug& debug, Radio& radio )
 		{
-			debug.debug( "-------------------------------------------------------");
-			debug.debug( "protocol_settings :");
-			debug.debug( "max_avg_LQI_threshold : %d", max_avg_LQI_threshold );
-			debug.debug( "min_avg_LQI_threshold : %d", min_avg_LQI_threshold );
-			debug.debug( "max_avg_LQI_inverse_threshold : %d", max_avg_LQI_inverse_threshold );
-			debug.debug( "min_avg_LQI_inverse_threshold : %d", min_avg_LQI_inverse_threshold );
-			debug.debug( "max_link_stab_ratio_threshold : %d", max_link_stab_ratio_threshold );
-			debug.debug( "min_link_stab_ratio_threshold : %d", min_link_stab_ratio_threshold );
-			debug.debug( "max_link_stab_ratio_inverse_threshold : %d", max_link_stab_ratio_inverse_threshold );
-			debug.debug( "min_link_stab_ratio_inverse_threshold : %d", min_link_stab_ratio_inverse_threshold );
-			debug.debug( "consecutive_beacons_threshold : %d", consecutive_beacons_threshold );
-			debug.debug( "consecutive_beacons_lost_threshold : %d", consecutive_beacons_lost_threshold );
-			debug.debug( "events_flag : %d ", events_flag );
-			debug.debug( "proposed transmission_power_dB : %i ", proposed_transmission_power_dB );
-			debug.debug( "proposed transmission_power_dB_weight : %d ", proposed_transmission_power_dB_weight );
-			debug.debug( "proposed_beacon_period : %d ", proposed_beacon_period );
-			debug.debug( "proposed_beacon_period_weight : %d", proposed_beacon_period_weight );
-			debug.debug( "overflow_strategy : %d", overflow_strategy );
-			debug.debug( "ratio_divider : %d", ratio_divider );
-			debug.debug( "dead_time_strategy : %d", dead_time_strategy );
-			debug.debug( "old_dead_time_period_weight : %d", old_dead_time_period_weight );
-			debug.debug( "new_dead_time_period_weight : %d", new_dead_time_period_weight );
-			debug.debug( "ratio_normalization_strategy : %d", ratio_normalization_strategy );
-			debug.debug( "beacon_weight : %d", beacon_weight );
-			debug.debug( "lost_beacon_weight : %d", lost_beacon_weight );
+			debug.debug( "-------------------------------------------------------\n");
+			debug.debug( "protocol_settings :\n");
+			debug.debug( "max_avg_LQI_threshold : %d\n", max_avg_LQI_threshold );
+			debug.debug( "min_avg_LQI_threshold : %d\n", min_avg_LQI_threshold );
+			debug.debug( "max_avg_LQI_inverse_threshold : %d\n", max_avg_LQI_inverse_threshold );
+			debug.debug( "min_avg_LQI_inverse_threshold : %d\n", min_avg_LQI_inverse_threshold );
+			debug.debug( "max_link_stab_ratio_threshold : %d\n", max_link_stab_ratio_threshold );
+			debug.debug( "min_link_stab_ratio_threshold : %d\n", min_link_stab_ratio_threshold );
+			debug.debug( "max_link_stab_ratio_inverse_threshold : %d\n", max_link_stab_ratio_inverse_threshold );
+			debug.debug( "min_link_stab_ratio_inverse_threshold : %d\n", min_link_stab_ratio_inverse_threshold );
+			debug.debug( "consecutive_beacons_threshold : %d\n", consecutive_beacons_threshold );
+			debug.debug( "consecutive_beacons_lost_threshold : %d\n", consecutive_beacons_lost_threshold );
+			debug.debug( "events_flag : %d\n", events_flag );
+			debug.debug( "proposed transmission_power_dB : %i\n", proposed_transmission_power_dB );
+			debug.debug( "proposed transmission_power_dB_weight : %d\n", proposed_transmission_power_dB_weight );
+			debug.debug( "proposed_beacon_period : %d\n", proposed_beacon_period );
+			debug.debug( "proposed_beacon_period_weight : %d\n", proposed_beacon_period_weight );
+			debug.debug( "overflow_strategy : %d\n", overflow_strategy );
+			debug.debug( "ratio_divider : %d\n", ratio_divider );
+			debug.debug( "dead_time_strategy : %d\n", dead_time_strategy );
+			debug.debug( "old_dead_time_period_weight : %d\n", old_dead_time_period_weight );
+			debug.debug( "new_dead_time_period_weight : %d\n", new_dead_time_period_weight );
+			debug.debug( "ratio_normalization_strategy : %d\n", ratio_normalization_strategy );
+			debug.debug( "beacon_weight : %d\n", beacon_weight );
+			debug.debug( "lost_beacon_weight : %d\n", lost_beacon_weight );
 			protocol_payload.print( debug, radio );
 			debug.debug( "-------------------------------------------------------");
 		}

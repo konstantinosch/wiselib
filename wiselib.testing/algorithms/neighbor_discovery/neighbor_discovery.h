@@ -111,7 +111,7 @@ namespace wiselib
 		void beacons( void* _data = NULL )
 		{
 #ifdef NB_DEBUG_BEACONS
-			debug().debug( "NeighborDiscovery-beacons %x - Entering", radio().id() );
+			debug().debug( "NeighborDiscovery-beacons %x - Entering.\n", radio().id() );
 #endif
 			if ( get_status() == ACTIVE_STATUS )
 			{
@@ -119,22 +119,20 @@ namespace wiselib
 				if ( p_ptr != NULL )
 				{
 #ifdef NB_DEBUG_BEACONS
-					debug().debug( "NeighborDiscovery-beacons %x - Protocol exists.", radio().id() );
+					debug().debug( "NeighborDiscovery-beacons %x - Protocol exists.\n", radio().id() );
 #endif
 					millis_t bp = get_beacon_period();
 					Neighbor* n = p_ptr->get_neighbor_ref( radio().id() );
 					if ( n != NULL )
 					{
 #ifdef NB_DEBUG_BEACONS
-						debug().debug( "NeighborDiscovery-beacons %x - Neighbor exists.", radio().id() );
+						debug().debug( "NeighborDiscovery-beacons %x - Neighbor exists.\n", radio().id() );
 #endif
 #ifdef NB_DEBUG_STATS
-						//debug().debug( " %x - %d ", radio().id(), n->get_total_beacons() );
-						//p_ptr->print( debug(), radio() );
 						if ( n->get_total_beacons() == 100 )
 						{
 							set_status( WAITING_STATUS );
-							//p_ptr->print( debug(), radio() );
+							p_ptr->print( debug(), radio() );
 							return;
 						}
 #endif
@@ -149,32 +147,30 @@ namespace wiselib
 						beacon.set_beacon_period_update_counter( n->get_beacon_period_update_counter() );
 						block_data_t buff[Radio::MAX_MESSAGE_LENGTH];
 						beacon.serialize( buff );
-
 						size_t beacon_size = beacon.serial_size();
 						send( Radio::BROADCAST_ADDRESS, beacon_size, buff, NB_MESSAGE );
-//#ifdef NB_DEBUG_BEACONS
+#ifdef NB_DEBUG_BEACONS
 						debug().debug( "NeighborDiscovery-beacons %x - Sending beacon.\n", radio().id() );
-						debug().debug( "serial_size : %d\n", beacon_size );
 						beacon.print( debug(), radio() );
-//#endif
+#endif
 						timer().template set_timer<self_t, &self_t::beacons> ( bp, this, 0 );
 					}
 					else
 					{
 #ifdef NB_DEBUG_BEACONS
-						debug().debug( "NeighborDiscovery-beacons %x - Neighbor does not exist.", radio().id() );
+						debug().debug( "NeighborDiscovery-beacons %x - Neighbor does not exist.\n", radio().id() );
 #endif
 					}
 				}
 				else
 				{
 #ifdef NB_DEBUG_BEACONS
-					debug().debug( "NeighborDiscovery-beacons %x - Protocol does not exist.", radio().id() );
+					debug().debug( "NeighborDiscovery-beacons %x - Protocol does not exist.\n", radio().id() );
 #endif
 				}
 			}
 #ifdef NB_DEBUG_BEACONS
-			debug().debug( "NeighborDiscovery-beacons %x - Exiting", radio().id() );
+			debug().debug( "NeighborDiscovery-beacons %x - Exiting.\n", radio().id() );
 #endif
 		}
 		// --------------------------------------------------------------------
@@ -183,7 +179,7 @@ namespace wiselib
 			if ( _from != radio().id() )
 			{
 #ifdef NB_DEBUG_RECEIVE
-			debug().debug( "NeighborDiscovery-receive %x - From %x Entering", radio().id(), _from );
+			debug().debug( "NeighborDiscovery-receive %x - From %x Entering.\n", radio().id(), _from );
 #endif
 			message_id_t msg_id = *_msg;
 			if ( msg_id == NB_MESSAGE )
@@ -191,11 +187,9 @@ namespace wiselib
 				Message *message = (Message*) _msg;
 				Beacon beacon;
 				beacon.de_serialize( message->payload() );
-//#ifdef NB_DEBUG_RECEIVE
+#ifdef NB_DEBUG_RECEIVE
 				debug().debug( "NeighborDiscovery-receive %x - Received beacon message.\n", radio().id() );
-				debug().debug( " beacon len vs beacon serial size : %d vs %d\n", _len, beacon.serial_size() );
-				beacon.print( debug(), radio() );
-//#endif
+#endif
 				time_t current_time = clock().time();
 				uint8_t beacon_lqi = _ex.link_metric();
 				for ( Protocol_vector_iterator pit = protocols.begin(); pit != protocols.end(); ++pit )
@@ -208,7 +202,7 @@ namespace wiselib
 						if ( _from == nit->get_id() )
 						{
 #ifdef NB_DEBUG_RECEIVE
-							debug().debug( "NeighborDiscovery-receive %x - Neighbor %x is known for protocol %i.", radio().id(), _from, pit->get_protocol_id() );
+							debug().debug( "NeighborDiscovery-receive %x - Neighbor %x is known for protocol %i.\n", radio().id(), _from, pit->get_protocol_id() );
 #endif
 							update_neighbor_it = nit;
 							found_flag = 1;
@@ -218,7 +212,7 @@ namespace wiselib
 								if ( dead_time < beacon.get_beacon_period() + NB_RELAX_MILLIS )
 								{
 #ifdef NB_DEBUG_RECEIVE
-									debug().debug( "NeighborDiscovery-receive %x - Neighbor %x is on time same as advertised for protocol %i with dead_time : %d.", radio().id(), _from, pit->get_protocol_id(), dead_time );
+									debug().debug( "NeighborDiscovery-receive %x - Neighbor %x is on time same as advertised for protocol %i with dead_time : %d.\n", radio().id(), _from, pit->get_protocol_id(), dead_time );
 #endif
 									new_neighbor = *nit;
 									new_neighbor.update_link_stab_ratio( 1, pit->resolve_beacon_weight( _from ), 0, pit->resolve_lost_beacon_weight( _from ), debug() );
@@ -234,7 +228,7 @@ namespace wiselib
 								else
 								{
 #ifdef NB_DEBUG_RECEIVE
-									debug().debug( "NeighborDiscovery-receive %x - Neighbor %x was late same as advertised for protocol %i with dead_time : %d.", radio().id(), _from, pit->get_protocol_id(), dead_time );
+									debug().debug( "NeighborDiscovery-receive %x - Neighbor %x was late same as advertised for protocol %i with dead_time : %d.\n", radio().id(), _from, pit->get_protocol_id(), dead_time );
 #endif
 									new_neighbor = *nit;
 									new_neighbor.update_link_stab_ratio( 1, pit->resolve_beacon_weight( _from ), dead_time / nit->get_beacon_period(), pit->resolve_lost_beacon_weight( _from ), debug() );
@@ -253,7 +247,7 @@ namespace wiselib
 								if ( dead_time < beacon.get_beacon_period() + NB_RELAX_MILLIS )
 								{
 #ifdef NB_DEBUG_RECEIVE
-									debug().debug( "NeighborDiscovery-receive %x - Neighbor %x is on time same as advertised for protocol %i with dead_time : %d.", radio().id(), _from, pit->get_protocol_id(), dead_time );
+									debug().debug( "NeighborDiscovery-receive %x - Neighbor %x is on time same as advertised for protocol %i with dead_time : %d.\n", radio().id(), _from, pit->get_protocol_id(), dead_time );
 #endif
 									new_neighbor = *nit;
 									new_neighbor.update_link_stab_ratio( 1, pit->resolve_beacon_weight( _from ), 0, pit->resolve_lost_beacon_weight( _from ), debug() );
@@ -269,7 +263,7 @@ namespace wiselib
 								else
 								{
 #ifdef NB_DEBUG_RECEIVE
-									debug().debug( "NeighborDiscovery-receive %x - Neighbor %x is late and not as advertised for protocol %id with dead_time : %d.", radio().id(), _from, pit->get_protocol_id(), dead_time );
+									debug().debug( "NeighborDiscovery-receive %x - Neighbor %x is late and not as advertised for protocol %id with dead_time : %d.\n", radio().id(), _from, pit->get_protocol_id(), dead_time );
 #endif
 									//TODO overflow here.
 									uint32_t last_beacon_period_update = beacon.get_beacon_period_update_counter() * beacon.get_beacon_period();
@@ -308,7 +302,7 @@ namespace wiselib
 					if ( found_flag == 0 )
 					{
 #ifdef NB_DEBUG_RECEIVE
-						debug().debug( "NeighborDiscovery-receive %x - Neighbor %x is unknown for protocol %i.", radio().id(), _from, pit->get_protocol_id() );
+						debug().debug( "NeighborDiscovery-receive %x - Neighbor %x is unknown for protocol %i.\n", radio().id(), _from, pit->get_protocol_id() );
 #endif
 						new_neighbor.set_id( _from );
 						new_neighbor.set_total_beacons( 1 );
@@ -327,17 +321,17 @@ namespace wiselib
 						if ( radio().id() == nit->get_id() )
 						{
 #ifdef NB_DEBUG_RECEIVE
-							debug().debug( "NeighborDiscovery-receive %x - Neighbor %x was aware of node for protocol %i.", radio().id(), _from, pit->get_protocol_id() );
+							debug().debug( "NeighborDiscovery-receive %x - Neighbor %x was aware of node for protocol %i.\n", radio().id(), _from, pit->get_protocol_id() );
 #endif
 							new_neighbor.set_avg_LQI_inverse( nit->get_avg_LQI() );
 							new_neighbor.set_link_stab_ratio_inverse( nit->get_link_stab_ratio() );
 						}
 					}
 #ifdef NB_DEBUG_RECEIVE
-					debug().debug( "$$$" );
+					debug().debug( "$$$\n" );
 					new_neighbor.print( debug(), radio() );
-					debug().debug("beacon_lqi : %i", beacon_lqi );
-					debug().debug( "$$$" );
+					debug().debug("beacon_lqi : %i\n", beacon_lqi );
+					debug().debug( "$$$\n" );
 #endif
 					uint8_t events_flag = 0;
 					if	(	( new_neighbor.get_avg_LQI() <= pit->get_protocol_settings_ref()->get_max_avg_LQI_threshold() ) &&
@@ -358,7 +352,7 @@ namespace wiselib
 							*update_neighbor_it = new_neighbor;
 							pit->resolve_overflow_strategy( _from );
 #ifdef NB_DEBUG_RECEIVE
-							debug().debug( "NeighborDiscovery-receive %x - Neighbor %x was updated and active for protocol %i.", radio().id(), _from, pit->get_protocol_id() );
+							debug().debug( "NeighborDiscovery-receive %x - Neighbor %x was updated and active for protocol %i.\n", radio().id(), _from, pit->get_protocol_id() );
 #endif
 						}
 						else
@@ -371,12 +365,10 @@ namespace wiselib
 								{
 									pit->get_neighborhood_ref()->push_back( new_neighbor );
 									pit->resolve_overflow_strategy( _from );
-//#ifdef NB_DEBUG_RECEIVE
+#ifdef NB_DEBUG_RECEIVE
 									debug().debug("NeighborDiscovery-receive %x - Neighbor %x was inserted and active for protocol %i.\n", radio().id(), _from, pit->get_protocol_id() );
-//#endif
-									//
 									new_neighbor.print( debug(), radio() );
-									//
+#endif
 								}
 								else
 								{
@@ -391,12 +383,11 @@ namespace wiselib
 							{
 								pit->get_neighborhood_ref()->push_back( new_neighbor );
 								pit->resolve_overflow_strategy( _from );
-//#ifdef NB_DEBUG_RECEIVE
+#ifdef NB_DEBUG_RECEIVE
 									debug().debug("NeighborDiscovery-receive %x - Neighbor %x was inserted and active for protocol %i.\n", radio().id(), _from, pit->get_protocol_id() );
-//#endif
-									//
 									new_neighbor.print( debug(), radio() );
-									//
+#endif
+
 							}
 						}
 						uint8_t payload_found_flag = 0;
@@ -405,7 +396,7 @@ namespace wiselib
 							if ( ppit->get_protocol_id() == pit->get_protocol_id() )
 							{
 #ifdef NB_DEBUG_RECEIVE
-								debug().debug("NeighborDiscovery-receive %x - Beacon carried a payload for protocol %i.", radio().id(), pit->get_protocol_id() );
+								debug().debug("NeighborDiscovery-receive %x - Beacon carried a payload for protocol %i.\n", radio().id(), pit->get_protocol_id() );
 #endif
 								events_flag = events_flag | ProtocolSettings::NEW_PAYLOAD;
 								payload_found_flag = 1;
@@ -414,7 +405,7 @@ namespace wiselib
 #ifdef NB_DEBUG_RECEIVE
 						if ( payload_found_flag == 0 )
 						{
-							debug().debug("NeighborDiscovery-receive %x - Beacon did not carry a payload for protocol %i.", radio().id(), pit->get_protocol_id() );
+							debug().debug("NeighborDiscovery-receive %x - Beacon did not carry a payload for protocol %i.\n", radio().id(), pit->get_protocol_id() );
 						}
 #endif
 						events_flag = pit->get_protocol_settings_ref()->get_events_flag() & events_flag;
@@ -433,7 +424,7 @@ namespace wiselib
 							*update_neighbor_it = new_neighbor;
 							events_flag = pit->get_protocol_settings_ref()->get_events_flag() & events_flag;
 #ifdef NB_DEBUG_RECEIVE
-							debug().debug("NeighborDiscovery-receive %x - Neighbor %x was updated but inactive for protocol %i.", radio().id(), _from, pit->get_protocol_id() );
+							debug().debug("NeighborDiscovery-receive %x - Neighbor %x was updated but inactive for protocol %i.\n", radio().id(), _from, pit->get_protocol_id() );
 #endif
 							if ( events_flag != 0 )
 							{
@@ -448,12 +439,10 @@ namespace wiselib
 								if ( rs == 0 )
 								{
 									pit->get_neighborhood_ref()->push_back( new_neighbor );
-//#ifdef NB_DEBUG_RECEIVE
+#ifdef NB_DEBUG_RECEIVE
 									debug().debug("NeighborDiscovery-receive %x - Neighbor %x was inserted but inactive for protocol %i.\n", radio().id(), _from, pit->get_protocol_id() );
-//#endif
-									//
 									new_neighbor.print( debug(), radio() );
-									//
+#endif
 								}
 								else
 								{
@@ -467,19 +456,17 @@ namespace wiselib
 							else
 							{
 								pit->get_neighborhood_ref()->push_back( new_neighbor );
-//#ifdef NB_DEBUG_RECEIVE
+#ifdef NB_DEBUG_RECEIVE
 								debug().debug("NeighborDiscovery-receive %x - Neighbor %x was inserted but inactive for protocol %i.\n", radio().id(), _from, pit->get_protocol_id() );
-//#endif
-								//
 								new_neighbor.print( debug(), radio() );
-								//
+#endif
 							}
 						}
 					}
 				}
 			}
 #ifdef NB_DEBUG_RECEIVE
-			debug().debug("NeighborDiscovery-receive %x - From %x Exiting", radio().id(), _from );
+			debug().debug("NeighborDiscovery-receive %x - From %x Exiting.\n", radio().id(), _from );
 #endif
 		}
 		}
@@ -488,7 +475,7 @@ namespace wiselib
 		uint8_t register_protocol( uint8_t _pid, ProtocolSettings _psett, T *_obj_pnt )
 		{
 #ifdef NB_DEBUG_REGISTER_PROTOCOL
-			debug().debug("NeighborDiscovery-register_protocols %x - Entering for protocol_id = %i.", radio().id(), _pid );
+			debug().debug("NeighborDiscovery-register_protocols %x - Entering for protocol_id = %i.\n", radio().id(), _pid );
 #endif
 			if ( protocols.max_size() == protocols.size() )
 			{
@@ -499,7 +486,7 @@ namespace wiselib
 				return PAYLOAD_SIZE_OUT_OF_BOUNDS;
 			}
 #ifdef NB_DEBUG_REGISTER_PROTOCOL
-			debug().debug("NeighborDiscovery-register_protocols %x - Before protocol loop for size calculations for protocol_id = %i.", radio().id(), _pid );
+			debug().debug("NeighborDiscovery-register_protocols %x - Before protocol loop for size calculations for protocol_id = %i.\n", radio().id(), _pid );
 #endif
 			size_t protocol_total_payload_size = 0;
 			for ( Protocol_vector_iterator it = protocols.begin(); it != protocols.end(); ++it )
@@ -512,7 +499,7 @@ namespace wiselib
 			{
 				Neighbor_vector* n_ref = prot_ref->get_neighborhood_ref();
 #ifdef NB_DEBUG_REGISTER_PROTOCOL
-			debug().debug("NeighborDiscovery-register_protocols %x - Before neighbor loop for size calculations for protocol_id = %i.", radio().id(), _pid );
+			debug().debug("NeighborDiscovery-register_protocols %x - Before neighbor loop for size calculations for protocol_id = %i.\n", radio().id(), _pid );
 #endif
 				for ( Neighbor_vector_iterator it = n_ref->begin(); it != n_ref->end(); ++it )
 				{
@@ -538,63 +525,43 @@ namespace wiselib
 			protocols.push_back( p );
 
 #ifdef NB_DEBUG_REGISTER_PROTOCOL
-			debug().debug("NeighborDiscovery-register_protocols %x - Exiting for protocol_id = %i.", radio().id(), _pid );
+			debug().debug("NeighborDiscovery-register_protocols %x - Exiting for protocol_id = %i.\n", radio().id(), _pid );
 #endif
 			return SUCCESS;
 		}
 		// --------------------------------------------------------------------
 		void nb_daemon( void* user_data = NULL )
 		{
-//#ifdef NB_DEBUG_NB_DAEMON
-//			debug().debug("NeighborDiscovery-nb_daemon %x - Entering.\n", radio().id() );
-//#endif
+#ifdef NB_DEBUG_NB_DAEMON
+			debug().debug("NeighborDiscovery-nb_daemon %x - Entering.\n", radio().id() );
+#endif
 			if ( status == ACTIVE_STATUS )
 			{
 				time_t current_time = clock().time();
 				for ( Protocol_vector_iterator pit = protocols.begin(); pit != protocols.end(); ++pit )
 				{
-					//debug().debug("1\n");
 					for ( Neighbor_vector_iterator nit = pit->get_neighborhood_ref()->begin(); nit != pit->get_neighborhood_ref()->end(); ++nit )
 					{
-						//debug().debug("2\n");
 						uint32_t dead_time = ( clock().seconds( current_time ) - clock().seconds( nit->get_last_beacon() ) ) * 1000 + ( clock().milliseconds( current_time ) - clock().milliseconds( nit->get_last_beacon() ) );
-//						if ( dead_time < 0 )
-//						{
-//							debug().debug("overflow with deadtime : %d \n", dead_time );
-//							debug().debug(" clock seconds current time: %d\n", clock().seconds( current_time ) );
-//							debug().debug(" clock seconds last beacon: %d\n", clock().seconds( nit->get_last_beacon() ) );
-//							debug().debug(" clock milliseconds current time: %d\n", clock().milliseconds( current_time ) );
-//							debug().debug(" clock milliseconds last beacon: %d\n", clock().milliseconds( nit->get_last_beacon() ) );
-//
-//						}
-						//debug().debug("dead time : %d \n", dead_time);
 						if ( ( dead_time > nit->get_beacon_period() + NB_RELAX_MILLIS ) && ( nit->get_id() != radio().id() ) )
 						{
-							//debug().debug("dead time : %d \n", dead_time);
-							//debug().debug("3\n");
-
-////#ifdef NB_DEBUG_NB_DAEMON
-//							debug().debug("NeighborDiscovery-nb_daemon %x - Teasing node %x.", radio().id(), nit->get_id() );
-////#endif
+#ifdef NB_DEBUG_NB_DAEMON
+							debug().debug("NeighborDiscovery-nb_daemon %x - Teasing node %x.", radio().id(), nit->get_id() );
+#endif
 							nit->inc_total_beacons_expected( dead_time / nit->get_beacon_period() );
 							nit->update_link_stab_ratio( 0, pit->resolve_beacon_weight( nit->get_id() ), dead_time / nit->get_beacon_period(), pit->resolve_lost_beacon_weight( nit->get_id() ), debug() );
 							nit->set_consecutive_beacons( 0 );
 							nit->inc_consecutive_beacons_lost( dead_time / nit->get_beacon_period() );
 							nit->set_beacon_period( nit->get_beacon_period() );
 							nit->set_last_beacon( current_time );
-							//nit->print( debug(), radio() );
 						}
-						//debug().debug("dead time : %d \n", dead_time);
-						//nit->print( debug(), radio() );
-						//debug().debug("4\n");
 					}
-					//debug().debug("5\n");
 				}
 				timer().template set_timer<self_t, &self_t::nb_daemon> ( nb_daemon_period, this, 0 );
 			}
-//#ifdef NB_DEBUG_NB_DAEMON
-//			debug().debug("NeighborDiscovery-nb_daemon %x - Exiting.\n", radio().id() );
-//#endif
+#ifdef NB_DEBUG_NB_DAEMON
+			debug().debug("NeighborDiscovery-nb_daemon %x - Exiting.\n", radio().id() );
+#endif
 		}
 		// --------------------------------------------------------------------
 		uint8_t remove_worst_neighbor( Protocol& p_ref )

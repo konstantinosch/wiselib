@@ -127,9 +127,9 @@ public:
 	// -----------------------------------------------------------------------
 	void neighbor_discovery_enable_task(void* userdata = NULL)
 	{
-//#ifdef PLTT_PASSIVE_DEBUG_NEIGHBORHOOD_DISCOVERY
-//		debug().debug( "PLTT_Passive %x: Neighbor discovery enable task \n", self.get_node().get_id() );
-//#endif
+#ifdef PLTT_PASSIVE_DEBUG_NEIGHBORHOOD_DISCOVERY
+		debug().debug( "PLTT_Passive %x: Neighbor discovery enable task \n", self.get_node().get_id() );
+#endif
 		block_data_t buff[100];
 		ProtocolPayload pp( NeighborDiscovery::TRACKING_PROTOCOL_ID, self.get_buffer_size(), self.set_buffer_from( buff ) );
 		//uint8_t ef = ProtocolSettings::NEW_NB|ProtocolSettings::UPDATE_NB|ProtocolSettings::NEW_PAYLOAD|ProtocolSettings::LOST_NB|ProtocolSettings::TRANS_DB_UPDATE|ProtocolSettings::BEACON_PERIOD_UPDATE|ProtocolSettings::NEIGHBOR_REMOVED;
@@ -137,7 +137,6 @@ public:
 		ProtocolSettings ps( 255, 0, 255, 0, 100, 90, 100, 90, 10, 10, ef, -6, 100, 3000, 100, ProtocolSettings::RATIO_DIVIDER, 2, ProtocolSettings::MEAN_DEAD_TIME_PERIOD, 100, 100, ProtocolSettings::R_NR_WEIGHTED_PROPORTIONAL, 10, 10, pp );
 		uint8_t result = 0;
 		result = neighbor_discovery(). template register_protocol<self_type, &self_type::sync_neighbors>( NeighborDiscovery::TRACKING_PROTOCOL_ID, ps, this  );
-		//debug().debug( " register protocol result : %i", result );
 		//Protocol* prot_ref = neighbor_discovery().get_protocol_ref( NeighborDiscovery::TRACKING_PROTOCOL_ID );
 		//if ( prot_ref != NULL )
 		//{
@@ -155,9 +154,9 @@ public:
 	// -----------------------------------------------------------------------
 	void neighbor_discovery_unregister_task( void* userdata = NULL )
 	{
-//#ifdef PLTT_PASSIVE_DEBUG_NEIGHBORHOOD_DISCOVERY
+#ifdef PLTT_PASSIVE_DEBUG_NEIGHBORHOOD_DISCOVERY
 		debug().debug( "PLTT_Passive %x: Neighbor discovery unregister task \n", self.get_node().get_id() );
-//#endif
+#endif
 //#ifdef CONFIG_NEIGHBORHOOD_DISCOVERY_STABILITY_FILTER
 //		filter_neighbors();
 //#endif
@@ -340,9 +339,9 @@ public:
 	// -----------------------------------------------------------------------
 	void sync_neighbors( uint8_t event, node_id_t from, uint8_t len, uint8_t* data )
 	{
-		//#ifdef PLTT_PASSIVE_DEBUG_NEIGHBORHOOD_DISCOVERY
-		//debug().debug( "PLTT_Passive %x: Sync neighbors\n", self.get_node().get_id() );
-		//#endif
+#ifdef PLTT_PASSIVE_DEBUG_NEIGHBORHOOD_DISCOVERY
+		debug().debug( "PLTT_Passive %x: Sync neighbors\n", self.get_node().get_id() );
+#endif
 		if ( event & ProtocolSettings::NEW_PAYLOAD )
 		{
 			PLTT_NodeListIterator i = neighbors.begin();
@@ -369,9 +368,9 @@ public:
 			{
 				if ( i->get_node().get_id() == from )
 				{
-					//#ifdef PLTT_PASSIVE_DEBUG_NEIGHBORHOOD_DISCOVERY
+#ifdef PLTT_PASSIVE_DEBUG_NEIGHBORHOOD_DISCOVERY
 					debug().debug( "PLTT_Passive %x: Erased neighbor %x due to protocol settings requirements", self.get_node().get_id(), from );
-					//#endif
+#endif
 					neighbors.erase( i );
 					return;
 				}
@@ -385,16 +384,15 @@ public:
 			{
 				if ( i->get_node().get_id() == from )
 				{
-					//#ifdef PLTT_PASSIVE_DEBUG_NEIGHBORHOOD_DISCOVERY
+#ifdef PLTT_PASSIVE_DEBUG_NEIGHBORHOOD_DISCOVERY
 					debug().debug( "PLTT_Passive %x: Erased neighbor %x due to memory limitations", self.get_node().get_id(), from );
-					//#endif
+#endif
 					neighbors.erase( i );
 					return;
 				}
 				++i;
 			}
 		}
-		//debug().debug( "in callback");
 	}
 	// -----------------------------------------------------------------------
 	PLTT_Trace* store_inhibit_trace( PLTT_Trace trace, uint8_t inhibition_flag = 0 )
