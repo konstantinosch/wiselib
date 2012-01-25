@@ -554,6 +554,19 @@ namespace wiselib
 							nit->inc_consecutive_beacons_lost( dead_time / nit->get_beacon_period() );
 							nit->set_beacon_period( nit->get_beacon_period() );
 							nit->set_last_beacon( current_time );
+							if 	( ( new_neighbor.get_link_stab_ratio() <= pit->get_protocol_settings_ref()->get_max_link_stab_ratio_threshold() ) &&
+								( new_neighbor.get_link_stab_ratio() >= pit->get_protocol_settings_ref()->get_min_link_stab_ratio_threshold() ) &&
+								( new_neighbor.get_link_stab_ratio_inverse() <= pit->get_protocol_settings_ref()->get_max_link_stab_ratio_inverse_threshold() ) &&
+								( new_neighbor.get_link_stab_ratio_inverse() >= pit->get_protocol_settings_ref()->get_min_link_stab_ratio_inverse_threshold() ) &&
+								( ( ( ( new_neighbor.get_consecutive_beacons() == 0 ) && ( new_neighbor.get_consecutive_beacons_lost() <= pit->get_protocol_settings_ref()->get_consecutive_beacons_lost_threshold() ) ) ) ||
+								( ( ( new_neighbor.get_consecutive_beacons() >= pit->get_protocol_settings_ref()->get_consecutive_beacons_threshold() ) && ( new_neighbor.get_consecutive_beacons_lost() == 0 ) ) ) ) )
+							{
+								nit->set_active();
+							}
+							else
+							{
+								nit->set_active( 0 );
+							}
 						}
 					}
 				}
