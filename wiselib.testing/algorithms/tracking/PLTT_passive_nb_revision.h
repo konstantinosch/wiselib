@@ -120,7 +120,7 @@ public:
 		TxPower power;
 		power.set_dB( transmission_power_dB);
 		radio().set_power( power );
-		millis_t r = rand()() % random_enable_timer_range;
+		millis_t r = /*rand()() % */random_enable_timer_range;
 		timer().template set_timer<self_type, &self_type::neighbor_discovery_enable_task> (r, this, 0);
 		//debug().debug( "out" );
 	}

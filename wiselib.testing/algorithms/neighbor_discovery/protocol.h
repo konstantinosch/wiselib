@@ -194,17 +194,17 @@ namespace wiselib
 				ProtocolSettings* p_ref = get_protocol_settings_ref();
 				if ( p_ref->get_ratio_normalization_strategy() == ProtocolSettings::R_NR_NORMAL )
 				{
-					return 1;
+					return 100;
 				}
 				else if ( p_ref->get_ratio_normalization_strategy() == ProtocolSettings::R_NR_WEIGHTED )
 				{
-					return p_ref->get_beacon_weight();
+					return p_ref->get_beacon_weight() * 100;
 				}
 				else if( p_ref->get_ratio_normalization_strategy() == ProtocolSettings::R_NR_WEIGHTED_PROPORTIONAL )
 				{
 					return p_ref->get_beacon_weight() * n_ref->get_total_beacons_expected();
 				}
-				return 1;
+				return 100;
 			}
 			return 0;
 		}
@@ -217,17 +217,17 @@ namespace wiselib
 				ProtocolSettings* p_ref = get_protocol_settings_ref();
 				if ( p_ref->get_ratio_normalization_strategy() == ProtocolSettings::R_NR_NORMAL )
 				{
-					return 1;
+					return 100;
 				}
 				else if ( p_ref->get_ratio_normalization_strategy() == ProtocolSettings::R_NR_WEIGHTED )
 				{
-					return p_ref->get_lost_beacon_weight();
+					return p_ref->get_lost_beacon_weight()*100;
 				}
 				else if( p_ref->get_ratio_normalization_strategy() == ProtocolSettings::R_NR_WEIGHTED_PROPORTIONAL )
 				{
 					return p_ref->get_lost_beacon_weight() * n_ref->get_total_beacons_expected();
 				}
-				return 1;
+				return 100;
 			}
 			return 0;
 		}

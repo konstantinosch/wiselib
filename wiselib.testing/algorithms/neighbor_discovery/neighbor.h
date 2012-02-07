@@ -146,7 +146,8 @@ namespace wiselib
 			return link_stab_ratio;
 		}
 		// --------------------------------------------------------------------
-		uint8_t update_link_stab_ratio( uint32_t _tbeac, uint32_t _tbeac_w, uint32_t _tbeac_exp, uint32_t _tbeac_exp_w, Debug& debug )
+		//uint8_t update_link_stab_ratio( uint32_t _tbeac, uint32_t _tbeac_w, uint32_t _tbeac_exp, uint32_t _tbeac_exp_w, Debug& debug )
+		uint8_t update_link_stab_ratio()
 		{
 #ifdef NB_DEBUG_NEIGHBOR_UPDATE_LINK_STAB_RATIO
 			debug.debug( " total_beacons = %d\n", total_beacons );
@@ -156,7 +157,8 @@ namespace wiselib
 			//uint32_t r = ( ( total_beacons + _tbeac * ( _tbeac_w / 100 ) ) * 100 ) / ( total_beacons_expected + ( _tbeac_exp * ( _tbeac_exp_w / 100 ) ) + _tbeac * ( _tbeac_w / 100 ) );
 			//debug.debug( " 32bit value : %d", r );
 #endif
-			link_stab_ratio = ( ( total_beacons + _tbeac * ( _tbeac_w / 100 ) ) * 100 ) / ( total_beacons_expected + ( _tbeac_exp * ( _tbeac_exp_w / 100 ) ) + _tbeac * ( _tbeac_w / 100 ) );
+			//link_stab_ratio = ( ( total_beacons + _tbeac * ( _tbeac_w / 100 ) ) * 100 ) / ( total_beacons_expected + ( _tbeac_exp * ( _tbeac_exp_w / 100 ) ) + _tbeac * ( _tbeac_w / 100 ) );
+			link_stab_ratio = ( total_beacons * 100 ) / total_beacons_expected;
 			return link_stab_ratio;
 		}
 		// --------------------------------------------------------------------
@@ -328,8 +330,8 @@ namespace wiselib
 			debug.debug( "active : %d\n", active );
 			debug.debug( "-------------------------------------------------------\n");
 #else
-			if ( active == 1 )
-			{
+			//if ( active == 1 )
+			//{
 				debug.debug( "NB_STATS:%x:%x:%d:%d:%d:%d:%d:%d:%d:%d:%d:%d:%d\n",
 					radio.id(),
 					id,
@@ -344,7 +346,7 @@ namespace wiselib
 					beacon_period,
 					beacon_period_update_counter,
 					active );
-			}
+			//}
 #endif
 		}
 		// --------------------------------------------------------------------

@@ -77,7 +77,7 @@ namespace wiselib
 			pp.set_protocol_id( NB_PROTOCOL_ID );
 			pp.set_payload_size( 0 );
 			uint8_t ef = ProtocolSettings::NEW_NB|ProtocolSettings::UPDATE_NB|ProtocolSettings::NEW_PAYLOAD|ProtocolSettings::LOST_NB|ProtocolSettings::TRANS_DB_UPDATE|ProtocolSettings::BEACON_PERIOD_UPDATE|ProtocolSettings::NEIGHBOR_REMOVED;
-			ProtocolSettings ps( 255, 0, 255, 0, 100, 0, 100, 0, 1, 0xff, ef, -6, 100, 3000, 100, ProtocolSettings::RATIO_DIVIDER, 2, ProtocolSettings::MEAN_DEAD_TIME_PERIOD, 100, 100, ProtocolSettings::R_NR_NORMAL, 1, 1, pp );
+			ProtocolSettings ps( 255, 0, 255, 0, 100, 0, 100, 1, 100, 0xff, ef, -6, 100, 3000, 100, ProtocolSettings::RATIO_DIVIDER, 2, ProtocolSettings::MEAN_DEAD_TIME_PERIOD, 100, 100, ProtocolSettings::R_NR_NORMAL, 1, 1, pp );
 			p.set_protocol_id( NB_PROTOCOL_ID );
 			p.set_neighborhood( neighbors );
 			p.set_protocol_settings( ps );
@@ -132,7 +132,10 @@ namespace wiselib
 						if ( n->get_total_beacons() == 100 )
 						{
 							set_status( WAITING_STATUS );
+							debug().debug( "node id %x\n", radio().id() );
+							debug().debug( "--------------------------\n" );
 							p_ptr->print( debug(), radio() );
+							debug().debug( "--------------------------\n" );
 							return;
 						}
 #endif
@@ -215,9 +218,10 @@ namespace wiselib
 									debug().debug( "NeighborDiscovery-receive %x - Neighbor %x is on time same as advertised for protocol %i with dead_time : %d.\n", radio().id(), _from, pit->get_protocol_id(), dead_time );
 #endif
 									new_neighbor = *nit;
-									new_neighbor.update_link_stab_ratio( 1, pit->resolve_beacon_weight( _from ), 0, pit->resolve_lost_beacon_weight( _from ), debug() );
-									new_neighbor.inc_total_beacons( 1 );
-									new_neighbor.inc_total_beacons_expected( 1 );
+									//new_neighbor.update_link_stab_ratio( 1, pit->resolve_beacon_weight( _from ), 0, pit->resolve_lost_beacon_weight( _from ), debug() );
+									new_neighbor.inc_total_beacons( 1 * pit->resolve_beacon_weight( _from ) / 100 );
+									new_neighbor.inc_total_beacons_expected( 1 * pit->resolve_beacon_weight( _from ) / 100 );
+									new_neighbor.update_link_stab_ratio();
 									new_neighbor.update_avg_LQI( beacon_lqi, 1 );
 									new_neighbor.inc_consecutive_beacons();
 									new_neighbor.set_consecutive_beacons_lost( 0 );
@@ -231,9 +235,10 @@ namespace wiselib
 									debug().debug( "NeighborDiscovery-receive %x - Neighbor %x was late same as advertised for protocol %i with dead_time : %d.\n", radio().id(), _from, pit->get_protocol_id(), dead_time );
 #endif
 									new_neighbor = *nit;
-									new_neighbor.update_link_stab_ratio( 1, pit->resolve_beacon_weight( _from ), dead_time / nit->get_beacon_period(), pit->resolve_lost_beacon_weight( _from ), debug() );
-									new_neighbor.inc_total_beacons( 1 );
-									new_neighbor.inc_total_beacons_expected( dead_time / nit->get_beacon_period() );
+									//new_neighbor.update_link_stab_ratio( 1, pit->resolve_beacon_weight( _from ), dead_time / nit->get_beacon_period(), pit->resolve_lost_beacon_weight( _from ), debug() );
+									new_neighbor.inc_total_beacons( 1 * pit->resolve_beacon_weight( _from ) / 100 );
+									new_neighbor.inc_total_beacons_expected( ( dead_time / nit->get_beacon_period() ) * ( pit->resolve_lost_beacon_weight( _from ) / 100 ) );
+									new_neighbor.update_link_stab_ratio();
 									new_neighbor.update_avg_LQI( beacon_lqi, 1 );
 									new_neighbor.set_consecutive_beacons( 0 );
 									new_neighbor.inc_consecutive_beacons_lost( dead_time / nit->get_beacon_period() );
@@ -250,9 +255,10 @@ namespace wiselib
 									debug().debug( "NeighborDiscovery-receive %x - Neighbor %x is on time same as advertised for protocol %i with dead_time : %d.\n", radio().id(), _from, pit->get_protocol_id(), dead_time );
 #endif
 									new_neighbor = *nit;
-									new_neighbor.update_link_stab_ratio( 1, pit->resolve_beacon_weight( _from ), 0, pit->resolve_lost_beacon_weight( _from ), debug() );
-									new_neighbor.inc_total_beacons( 1 );
-									new_neighbor.inc_total_beacons_expected( 1 );
+									//new_neighbor.update_link_stab_ratio( 1, pit->resolve_beacon_weight( _from ), 0, pit->resolve_lost_beacon_weight( _from ), debug() );
+									new_neighbor.inc_total_beacons( 1 * pit->resolve_beacon_weight( _from ) / 100 );
+									new_neighbor.inc_total_beacons_expected( 1 * pit->resolve_beacon_weight( _from ) / 100 );
+									new_neighbor.update_link_stab_ratio();
 									new_neighbor.update_avg_LQI( beacon_lqi, 1 );
 									new_neighbor.inc_consecutive_beacons();
 									new_neighbor.set_consecutive_beacons_lost( 0 );
@@ -286,9 +292,10 @@ namespace wiselib
 									}
 									uint32_t dead_time_messages_lost = ( dead_time - last_beacon_period_update ) * approximate_beacon_period;
 									new_neighbor = *nit;
-									new_neighbor.update_link_stab_ratio(1, pit->resolve_beacon_weight( _from ), dead_time_messages_lost + beacon.get_beacon_period_update_counter(), pit->resolve_lost_beacon_weight( _from ), debug() );
-									new_neighbor.inc_total_beacons( 1 );
-									new_neighbor.inc_total_beacons_expected( dead_time_messages_lost + beacon.get_beacon_period_update_counter() );
+									//new_neighbor.update_link_stab_ratio(1, pit->resolve_beacon_weight( _from ), dead_time_messages_lost + beacon.get_beacon_period_update_counter(), pit->resolve_lost_beacon_weight( _from ), debug() );
+									new_neighbor.inc_total_beacons( 1 * pit->resolve_beacon_weight( _from ) / 100 );
+									new_neighbor.inc_total_beacons_expected( ( dead_time_messages_lost + beacon.get_beacon_period_update_counter() ) * ( pit->resolve_lost_beacon_weight( _from ) / 100 ) );
+									new_neighbor.update_link_stab_ratio();
 									new_neighbor.update_avg_LQI( beacon_lqi, 1 );
 									new_neighbor.set_consecutive_beacons( 0 );
 									new_neighbor.inc_consecutive_beacons_lost( dead_time_messages_lost + beacon.get_beacon_period_update_counter() );
@@ -548,18 +555,19 @@ namespace wiselib
 #ifdef NB_DEBUG_NB_DAEMON
 							debug().debug("NeighborDiscovery-nb_daemon %x - Teasing node %x.", radio().id(), nit->get_id() );
 #endif
-							nit->inc_total_beacons_expected( dead_time / nit->get_beacon_period() );
-							nit->update_link_stab_ratio( 0, pit->resolve_beacon_weight( nit->get_id() ), dead_time / nit->get_beacon_period(), pit->resolve_lost_beacon_weight( nit->get_id() ), debug() );
+							nit->inc_total_beacons_expected( dead_time / nit->get_beacon_period() * ( pit->resolve_lost_beacon_weight( nit->get_id() ) / 100 ) );
+							//nit->update_link_stab_ratio( 0, pit->resolve_beacon_weight( nit->get_id() ), dead_time / nit->get_beacon_period(), pit->resolve_lost_beacon_weight( nit->get_id() ), debug() );
+							nit->update_link_stab_ratio();
 							nit->set_consecutive_beacons( 0 );
 							nit->inc_consecutive_beacons_lost( dead_time / nit->get_beacon_period() );
 							nit->set_beacon_period( nit->get_beacon_period() );
 							nit->set_last_beacon( current_time );
-							if 	( ( new_neighbor.get_link_stab_ratio() <= pit->get_protocol_settings_ref()->get_max_link_stab_ratio_threshold() ) &&
-								( new_neighbor.get_link_stab_ratio() >= pit->get_protocol_settings_ref()->get_min_link_stab_ratio_threshold() ) &&
-								( new_neighbor.get_link_stab_ratio_inverse() <= pit->get_protocol_settings_ref()->get_max_link_stab_ratio_inverse_threshold() ) &&
-								( new_neighbor.get_link_stab_ratio_inverse() >= pit->get_protocol_settings_ref()->get_min_link_stab_ratio_inverse_threshold() ) &&
-								( ( ( ( new_neighbor.get_consecutive_beacons() == 0 ) && ( new_neighbor.get_consecutive_beacons_lost() <= pit->get_protocol_settings_ref()->get_consecutive_beacons_lost_threshold() ) ) ) ||
-								( ( ( new_neighbor.get_consecutive_beacons() >= pit->get_protocol_settings_ref()->get_consecutive_beacons_threshold() ) && ( new_neighbor.get_consecutive_beacons_lost() == 0 ) ) ) ) )
+							if 	( ( nit->get_link_stab_ratio() <= pit->get_protocol_settings_ref()->get_max_link_stab_ratio_threshold() ) &&
+								( nit->get_link_stab_ratio() >= pit->get_protocol_settings_ref()->get_min_link_stab_ratio_threshold() ) &&
+								( nit->get_link_stab_ratio_inverse() <= pit->get_protocol_settings_ref()->get_max_link_stab_ratio_inverse_threshold() ) &&
+								( nit->get_link_stab_ratio_inverse() >= pit->get_protocol_settings_ref()->get_min_link_stab_ratio_inverse_threshold() ) &&
+								( ( ( ( nit->get_consecutive_beacons() == 0 ) && (nit->get_consecutive_beacons_lost() <= pit->get_protocol_settings_ref()->get_consecutive_beacons_lost_threshold() ) ) ) ||
+								( ( ( nit->get_consecutive_beacons() >= pit->get_protocol_settings_ref()->get_consecutive_beacons_threshold() ) && ( nit->get_consecutive_beacons_lost() == 0 ) ) ) ) )
 							{
 								nit->set_active();
 							}
