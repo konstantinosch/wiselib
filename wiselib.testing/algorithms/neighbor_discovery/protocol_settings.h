@@ -32,8 +32,8 @@ namespace wiselib
 			min_link_stab_ratio_threshold 			( NB_MIN_LINK_STABILITY_RATIO_THRESHOLD ),
 			max_link_stab_ratio_inverse_threshold	( NB_MAX_LINK_STAB_RATIO_INVERSE_THRESHOLD ),
 			min_link_stab_ratio_inverse_threshold	( NB_MIN_LINK_STAB_RATIO_INVERSE_THRESHOLD ),
-			consecutive_beacons_threshold 			( NB_CONSECUTIVE_BEACONS_THRESHOLD ),
-			consecutive_beacons_lost_threshold		( NB_CONSECUTIVE_BEACONS_LOST_THRESHOLD ),
+			//consecutive_beacons_threshold 			( NB_CONSECUTIVE_BEACONS_THRESHOLD ),
+			//consecutive_beacons_lost_threshold		( NB_CONSECUTIVE_BEACONS_LOST_THRESHOLD ),
 			events_flag								( NEW_NB | UPDATE_NB | NEW_PAYLOAD | LOST_NB | TRANS_DB_UPDATE | BEACON_PERIOD_UPDATE | NEIGHBOR_REMOVED ),
 			proposed_transmission_power_dB			( NB_PROPOSED_TRANSMISSION_POWER_DB ),
 			proposed_transmission_power_dB_weight	( NB_PROPOSED_TRANSMISSION_POWER_DB_WEIGHT ),
@@ -57,8 +57,8 @@ namespace wiselib
 								uint8_t _minlsr,
 								uint8_t _maxlsr_in,
 								uint8_t _minlsr_in,
-								uint8_t _cb,
-								uint8_t _cblost,
+								//uint8_t _cb,
+								//uint8_t _cblost,
 								uint8_t _ef,
 								int8_t _tp_dB,
 								uint8_t _tp_dB_w,
@@ -82,8 +82,8 @@ namespace wiselib
 			min_link_stab_ratio_threshold = _minlsr;
 			max_link_stab_ratio_inverse_threshold = _maxlsr_in;
 			min_link_stab_ratio_inverse_threshold = _minlsr_in,
-			consecutive_beacons_threshold = _cb;
-			consecutive_beacons_lost_threshold = _cblost;
+			//consecutive_beacons_threshold = _cb;
+			//consecutive_beacons_lost_threshold = _cblost;
 			events_flag = _ef;
 			proposed_transmission_power_dB = _tp_dB;
 			proposed_transmission_power_dB_weight = _tp_dB_w;
@@ -183,25 +183,25 @@ namespace wiselib
 			min_link_stab_ratio_inverse_threshold = _minlsr_in;
 		}
 		// --------------------------------------------------------------------
-		uint8_t get_consecutive_beacons_threshold()
-		{
-			return consecutive_beacons_threshold;
-		}
-		// --------------------------------------------------------------------
-		void set_consecutive_beacons_threshold( uint8_t _cb )
-		{
-			consecutive_beacons_threshold = _cb;
-		}
-		// --------------------------------------------------------------------
-		uint8_t get_consecutive_beacons_lost_threshold()
-		{
-			return consecutive_beacons_lost_threshold;
-		}
-		// --------------------------------------------------------------------
-		void set_consecutive_beacons_lost_threshold( uint8_t _cblost )
-		{
-			consecutive_beacons_lost_threshold = _cblost;
-		}
+//		uint8_t get_consecutive_beacons_threshold()
+//		{
+//			return consecutive_beacons_threshold;
+//		}
+//		// --------------------------------------------------------------------
+//		void set_consecutive_beacons_threshold( uint8_t _cb )
+//		{
+//			consecutive_beacons_threshold = _cb;
+//		}
+//		// --------------------------------------------------------------------
+//		uint8_t get_consecutive_beacons_lost_threshold()
+//		{
+//			return consecutive_beacons_lost_threshold;
+//		}
+//		// --------------------------------------------------------------------
+//		void set_consecutive_beacons_lost_threshold( uint8_t _cblost )
+//		{
+//			consecutive_beacons_lost_threshold = _cblost;
+//		}
 		// --------------------------------------------------------------------
 		uint8_t get_events_flag()
 		{
@@ -384,8 +384,8 @@ namespace wiselib
 			min_link_stab_ratio_threshold = _psett.min_link_stab_ratio_threshold;
 			max_link_stab_ratio_inverse_threshold = _psett.max_link_stab_ratio_inverse_threshold;
 			min_link_stab_ratio_inverse_threshold = _psett.min_link_stab_ratio_inverse_threshold;
-			consecutive_beacons_threshold = _psett.consecutive_beacons_threshold;
-			consecutive_beacons_lost_threshold = _psett.consecutive_beacons_lost_threshold;
+//			consecutive_beacons_threshold = _psett.consecutive_beacons_threshold;
+//			consecutive_beacons_lost_threshold = _psett.consecutive_beacons_lost_threshold;
 			events_flag = _psett.events_flag;
 			proposed_transmission_power_dB = _psett.proposed_transmission_power_dB;
 			proposed_transmission_power_dB_weight = _psett.proposed_transmission_power_dB_weight;
@@ -416,8 +416,8 @@ namespace wiselib
 			debug.debug( "min_link_stab_ratio_threshold : %d\n", min_link_stab_ratio_threshold );
 			debug.debug( "max_link_stab_ratio_inverse_threshold : %d\n", max_link_stab_ratio_inverse_threshold );
 			debug.debug( "min_link_stab_ratio_inverse_threshold : %d\n", min_link_stab_ratio_inverse_threshold );
-			debug.debug( "consecutive_beacons_threshold : %d\n", consecutive_beacons_threshold );
-			debug.debug( "consecutive_beacons_lost_threshold : %d\n", consecutive_beacons_lost_threshold );
+			//debug.debug( "consecutive_beacons_threshold : %d\n", consecutive_beacons_threshold );
+			//debug.debug( "consecutive_beacons_lost_threshold : %d\n", consecutive_beacons_lost_threshold );
 			debug.debug( "events_flag : %d\n", events_flag );
 			debug.debug( "proposed transmission_power_dB : %i\n", proposed_transmission_power_dB );
 			debug.debug( "proposed transmission_power_dB_weight : %d\n", proposed_transmission_power_dB_weight );
@@ -483,8 +483,8 @@ namespace wiselib
 		uint8_t min_link_stab_ratio_threshold;
 		uint8_t max_link_stab_ratio_inverse_threshold;
 		uint8_t min_link_stab_ratio_inverse_threshold;
-		uint8_t consecutive_beacons_threshold;
-		uint8_t consecutive_beacons_lost_threshold;
+		//uint8_t consecutive_beacons_threshold;
+		//uint8_t consecutive_beacons_lost_threshold;
 		uint8_t events_flag;
 		int8_t proposed_transmission_power_dB;
 		uint8_t proposed_transmission_power_dB_weight;

@@ -31,8 +31,8 @@ namespace wiselib
 			avg_LQI_inverse					( 255 ),
 			link_stab_ratio					( 0 ),
 			link_stab_ratio_inverse			( 0 ),
-			consecutive_beacons				( 0 ),
-			consecutive_beacons_lost		( 0 ),
+			//consecutive_beacons				( 0 ),
+			//consecutive_beacons_lost		( 0 ),
 			beacon_period					( 0 ),
 			beacon_period_update_counter	( 0 ),
 			active							( 0 )
@@ -45,8 +45,8 @@ namespace wiselib
 						uint8_t _alqi_in,
 						uint8_t _lsratio,
 						uint8_t _lsratio_in,
-						uint8_t _cb,
-						uint8_t _cb_lost,
+						//uint8_t _cb,
+						//uint8_t _cb_lost,
 						millis_t _bp,
 						uint32_t _bpuc,
 						uint8_t _a,
@@ -59,8 +59,8 @@ namespace wiselib
 			avg_LQI_inverse = _alqi_in;
 			link_stab_ratio = _lsratio;
 			link_stab_ratio_inverse = _lsratio_in;
-			consecutive_beacons = _cb;
-			consecutive_beacons_lost =  _cb_lost;
+			//consecutive_beacons = _cb;
+			//consecutive_beacons_lost =  _cb_lost;
 			beacon_period = _bp;
 			beacon_period_update_counter = _bpuc;
 			if ( _a != 0 )
@@ -177,38 +177,38 @@ namespace wiselib
 			link_stab_ratio_inverse = _lsratio_in;
 		}
 		// --------------------------------------------------------------------
-		uint8_t get_consecutive_beacons()
-		{
-			return consecutive_beacons;
-		}
-		// --------------------------------------------------------------------
-		void inc_consecutive_beacons( uint8_t _cb = 1 )
-		{
-			//TODO overflow
-			consecutive_beacons = consecutive_beacons + _cb;
-		}
-		// --------------------------------------------------------------------
-		void set_consecutive_beacons( uint8_t _cb )
-		{
-			consecutive_beacons = _cb;
-		}
-		// --------------------------------------------------------------------
-		uint8_t get_consecutive_beacons_lost()
-		{
-			return consecutive_beacons_lost;
-		}
-		// --------------------------------------------------------------------
-		void inc_consecutive_beacons_lost( uint8_t _cb_lost = 1 )
-		{
-			//TODO overflow
-			consecutive_beacons_lost = consecutive_beacons_lost + _cb_lost;
-		}
-		// --------------------------------------------------------------------
-		void set_consecutive_beacons_lost( uint8_t _cb_lost )
-		{
-			consecutive_beacons_lost = _cb_lost;
-		}
-		// --------------------------------------------------------------------
+//		uint8_t get_consecutive_beacons()
+//		{
+//			return consecutive_beacons;
+//		}
+//		// --------------------------------------------------------------------
+//		void inc_consecutive_beacons( uint8_t _cb = 1 )
+//		{
+//			//TODO overflow
+//			consecutive_beacons = consecutive_beacons + _cb;
+//		}
+//		// --------------------------------------------------------------------
+//		void set_consecutive_beacons( uint8_t _cb )
+//		{
+//			consecutive_beacons = _cb;
+//		}
+//		// --------------------------------------------------------------------
+//		uint8_t get_consecutive_beacons_lost()
+//		{
+//			return consecutive_beacons_lost;
+//		}
+//		// --------------------------------------------------------------------
+//		void inc_consecutive_beacons_lost( uint8_t _cb_lost = 1 )
+//		{
+//			//TODO overflow
+//			consecutive_beacons_lost = consecutive_beacons_lost + _cb_lost;
+//		}
+//		// --------------------------------------------------------------------
+//		void set_consecutive_beacons_lost( uint8_t _cb_lost )
+//		{
+//			consecutive_beacons_lost = _cb_lost;
+//		}
+//		// --------------------------------------------------------------------
 		millis_t get_beacon_period()
 		{
 			return beacon_period;
@@ -272,8 +272,8 @@ namespace wiselib
 			avg_LQI_inverse = _n.avg_LQI_inverse;
 			link_stab_ratio = _n.link_stab_ratio;
 			link_stab_ratio_inverse = _n.link_stab_ratio_inverse;
-			consecutive_beacons = _n.consecutive_beacons;
-			consecutive_beacons_lost = _n.consecutive_beacons_lost;
+			//consecutive_beacons = _n.consecutive_beacons;
+			//consecutive_beacons_lost = _n.consecutive_beacons_lost;
 			beacon_period = _n.beacon_period;
 			beacon_period_update_counter = _n.beacon_period_update_counter;
 			last_beacon = _n.last_beacon;
@@ -323,16 +323,16 @@ namespace wiselib
 			debug.debug( "avg_LQI_inverse : %i\n", avg_LQI_inverse );
 			debug.debug( "link_stab_ratio : %i\n", link_stab_ratio );
 			debug.debug( "link_stab_ratio_inverse : %i\n", link_stab_ratio_inverse );
-			debug.debug( "consecutive_beacons : %d\n", consecutive_beacons );
-			debug.debug( "consecutive_beacons_lost : %d\n", consecutive_beacons_lost );
+			//debug.debug( "consecutive_beacons : %d\n", consecutive_beacons );
+			//debug.debug( "consecutive_beacons_lost : %d\n", consecutive_beacons_lost );
 			debug.debug( "beacon_period : %d\n", beacon_period );
 			debug.debug( "beacon_period_update_counter : %d\n", beacon_period_update_counter );
 			debug.debug( "active : %d\n", active );
 			debug.debug( "-------------------------------------------------------\n");
 #else
-			//if ( active == 1 )
-			//{
-				debug.debug( "NB_STATS:%x:%x:%d:%d:%d:%d:%d:%d:%d:%d:%d:%d:%d\n",
+			if ( active == 1 )
+			{
+				debug.debug( "NB_STATS:%x:%x:%d:%d:%d:%d:%d:%d:%d:%d:%d\n",
 					radio.id(),
 					id,
 					total_beacons,
@@ -341,12 +341,12 @@ namespace wiselib
 					avg_LQI_inverse,
 					link_stab_ratio,
 					link_stab_ratio_inverse,
-					consecutive_beacons,
-					consecutive_beacons_lost,
+					//consecutive_beacons,
+					//consecutive_beacons_lost,
 					beacon_period,
 					beacon_period_update_counter,
 					active );
-			//}
+			}
 #endif
 		}
 		// --------------------------------------------------------------------
@@ -358,8 +358,8 @@ namespace wiselib
 		uint8_t avg_LQI_inverse;
 		uint8_t link_stab_ratio;
 		uint8_t link_stab_ratio_inverse;
-		uint8_t consecutive_beacons;
-		uint8_t consecutive_beacons_lost;
+		//uint8_t consecutive_beacons;
+		//uint8_t consecutive_beacons_lost;
 		millis_t beacon_period;
 		uint32_t beacon_period_update_counter;
 		uint8_t active;

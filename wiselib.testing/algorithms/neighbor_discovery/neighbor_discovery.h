@@ -77,7 +77,7 @@ namespace wiselib
 			pp.set_protocol_id( NB_PROTOCOL_ID );
 			pp.set_payload_size( 0 );
 			uint8_t ef = ProtocolSettings::NEW_NB|ProtocolSettings::UPDATE_NB|ProtocolSettings::NEW_PAYLOAD|ProtocolSettings::LOST_NB|ProtocolSettings::TRANS_DB_UPDATE|ProtocolSettings::BEACON_PERIOD_UPDATE|ProtocolSettings::NEIGHBOR_REMOVED;
-			ProtocolSettings ps( 255, 0, 255, 0, 100, 0, 100, 1, 100, 0xff, ef, -6, 100, 3000, 100, ProtocolSettings::RATIO_DIVIDER, 2, ProtocolSettings::MEAN_DEAD_TIME_PERIOD, 100, 100, ProtocolSettings::R_NR_NORMAL, 1, 1, pp );
+			ProtocolSettings ps( 255, 0, 255, 0, 100, 0, 100, 0 /* 10, 0xff*/, ef, -6, 100, 3000, 100, ProtocolSettings::RATIO_DIVIDER, 2, ProtocolSettings::MEAN_DEAD_TIME_PERIOD, 100, 100, ProtocolSettings::R_NR_NORMAL, 1, 1, pp );
 			p.set_protocol_id( NB_PROTOCOL_ID );
 			p.set_neighborhood( neighbors );
 			p.set_protocol_settings( ps );
@@ -223,8 +223,8 @@ namespace wiselib
 									new_neighbor.inc_total_beacons_expected( 1 * pit->resolve_beacon_weight( _from ) / 100 );
 									new_neighbor.update_link_stab_ratio();
 									new_neighbor.update_avg_LQI( beacon_lqi, 1 );
-									new_neighbor.inc_consecutive_beacons();
-									new_neighbor.set_consecutive_beacons_lost( 0 );
+									//new_neighbor.inc_consecutive_beacons();
+									//new_neighbor.set_consecutive_beacons_lost( 0 );
 									new_neighbor.set_beacon_period( beacon.get_beacon_period() );
 									new_neighbor.set_beacon_period_update_counter( beacon.get_beacon_period_update_counter() );
 									new_neighbor.set_last_beacon( current_time );
@@ -240,8 +240,8 @@ namespace wiselib
 									new_neighbor.inc_total_beacons_expected( ( dead_time / nit->get_beacon_period() ) * ( pit->resolve_lost_beacon_weight( _from ) / 100 ) );
 									new_neighbor.update_link_stab_ratio();
 									new_neighbor.update_avg_LQI( beacon_lqi, 1 );
-									new_neighbor.set_consecutive_beacons( 0 );
-									new_neighbor.inc_consecutive_beacons_lost( dead_time / nit->get_beacon_period() );
+									//new_neighbor.set_consecutive_beacons( 0 );
+									//new_neighbor.inc_consecutive_beacons_lost( dead_time / nit->get_beacon_period() );
 									new_neighbor.set_beacon_period( beacon.get_beacon_period() );
 									new_neighbor.set_beacon_period_update_counter( beacon.get_beacon_period_update_counter() );
 									new_neighbor.set_last_beacon( current_time );
@@ -260,8 +260,8 @@ namespace wiselib
 									new_neighbor.inc_total_beacons_expected( 1 * pit->resolve_beacon_weight( _from ) / 100 );
 									new_neighbor.update_link_stab_ratio();
 									new_neighbor.update_avg_LQI( beacon_lqi, 1 );
-									new_neighbor.inc_consecutive_beacons();
-									new_neighbor.set_consecutive_beacons_lost( 0 );
+									//new_neighbor.inc_consecutive_beacons();
+									//new_neighbor.set_consecutive_beacons_lost( 0 );
 									new_neighbor.set_beacon_period( beacon.get_beacon_period() );
 									new_neighbor.set_beacon_period_update_counter( beacon.get_beacon_period_update_counter() );
 									new_neighbor.set_last_beacon( current_time );
@@ -297,8 +297,8 @@ namespace wiselib
 									new_neighbor.inc_total_beacons_expected( ( dead_time_messages_lost + beacon.get_beacon_period_update_counter() ) * ( pit->resolve_lost_beacon_weight( _from ) / 100 ) );
 									new_neighbor.update_link_stab_ratio();
 									new_neighbor.update_avg_LQI( beacon_lqi, 1 );
-									new_neighbor.set_consecutive_beacons( 0 );
-									new_neighbor.inc_consecutive_beacons_lost( dead_time_messages_lost + beacon.get_beacon_period_update_counter() );
+									//new_neighbor.set_consecutive_beacons( 0 );
+									//new_neighbor.inc_consecutive_beacons_lost( dead_time_messages_lost + beacon.get_beacon_period_update_counter() );
 									new_neighbor.set_beacon_period( beacon.get_beacon_period() );
 									new_neighbor.set_beacon_period_update_counter( beacon.get_beacon_period_update_counter() );
 									new_neighbor.set_last_beacon( current_time );
@@ -317,8 +317,8 @@ namespace wiselib
 						new_neighbor.set_link_stab_ratio( 100 );
 						new_neighbor.set_link_stab_ratio_inverse( 0 );
 						new_neighbor.set_avg_LQI( beacon_lqi );
-						new_neighbor.set_consecutive_beacons( 1 );
-						new_neighbor.set_consecutive_beacons_lost( 0 );
+						//new_neighbor.set_consecutive_beacons( 1 );
+						//new_neighbor.set_consecutive_beacons_lost( 0 );
 						new_neighbor.set_beacon_period( beacon.get_beacon_period() );
 						new_neighbor.set_beacon_period_update_counter( beacon.get_beacon_period_update_counter() );
 						new_neighbor.set_last_beacon( current_time );
@@ -348,9 +348,9 @@ namespace wiselib
 							( new_neighbor.get_link_stab_ratio() <= pit->get_protocol_settings_ref()->get_max_link_stab_ratio_threshold() ) &&
 							( new_neighbor.get_link_stab_ratio() >= pit->get_protocol_settings_ref()->get_min_link_stab_ratio_threshold() ) &&
 							( new_neighbor.get_link_stab_ratio_inverse() <= pit->get_protocol_settings_ref()->get_max_link_stab_ratio_inverse_threshold() ) &&
-							( new_neighbor.get_link_stab_ratio_inverse() >= pit->get_protocol_settings_ref()->get_min_link_stab_ratio_inverse_threshold() ) &&
+							( new_neighbor.get_link_stab_ratio_inverse() >= pit->get_protocol_settings_ref()->get_min_link_stab_ratio_inverse_threshold() ) /*&&
 							( ( ( ( new_neighbor.get_consecutive_beacons() == 0 ) && ( new_neighbor.get_consecutive_beacons_lost() <= pit->get_protocol_settings_ref()->get_consecutive_beacons_lost_threshold() ) ) ) ||
-							( ( ( new_neighbor.get_consecutive_beacons() >= pit->get_protocol_settings_ref()->get_consecutive_beacons_threshold() ) && ( new_neighbor.get_consecutive_beacons_lost() == 0 ) ) ) ) )
+							( ( ( new_neighbor.get_consecutive_beacons() >= pit->get_protocol_settings_ref()->get_consecutive_beacons_threshold() ) && ( new_neighbor.get_consecutive_beacons_lost() == 0 ) ) ) )*/ )
 					{
 						new_neighbor.set_active();
 						if ( found_flag == 1 )
@@ -558,16 +558,16 @@ namespace wiselib
 							nit->inc_total_beacons_expected( dead_time / nit->get_beacon_period() * ( pit->resolve_lost_beacon_weight( nit->get_id() ) / 100 ) );
 							//nit->update_link_stab_ratio( 0, pit->resolve_beacon_weight( nit->get_id() ), dead_time / nit->get_beacon_period(), pit->resolve_lost_beacon_weight( nit->get_id() ), debug() );
 							nit->update_link_stab_ratio();
-							nit->set_consecutive_beacons( 0 );
-							nit->inc_consecutive_beacons_lost( dead_time / nit->get_beacon_period() );
+							//nit->set_consecutive_beacons( 0 );
+							//nit->inc_consecutive_beacons_lost( dead_time / nit->get_beacon_period() );
 							nit->set_beacon_period( nit->get_beacon_period() );
 							nit->set_last_beacon( current_time );
 							if 	( ( nit->get_link_stab_ratio() <= pit->get_protocol_settings_ref()->get_max_link_stab_ratio_threshold() ) &&
 								( nit->get_link_stab_ratio() >= pit->get_protocol_settings_ref()->get_min_link_stab_ratio_threshold() ) &&
 								( nit->get_link_stab_ratio_inverse() <= pit->get_protocol_settings_ref()->get_max_link_stab_ratio_inverse_threshold() ) &&
-								( nit->get_link_stab_ratio_inverse() >= pit->get_protocol_settings_ref()->get_min_link_stab_ratio_inverse_threshold() ) &&
+								( nit->get_link_stab_ratio_inverse() >= pit->get_protocol_settings_ref()->get_min_link_stab_ratio_inverse_threshold() ) /*&&
 								( ( ( ( nit->get_consecutive_beacons() == 0 ) && (nit->get_consecutive_beacons_lost() <= pit->get_protocol_settings_ref()->get_consecutive_beacons_lost_threshold() ) ) ) ||
-								( ( ( nit->get_consecutive_beacons() >= pit->get_protocol_settings_ref()->get_consecutive_beacons_threshold() ) && ( nit->get_consecutive_beacons_lost() == 0 ) ) ) ) )
+								( ( ( nit->get_consecutive_beacons() >= pit->get_protocol_settings_ref()->get_consecutive_beacons_threshold() ) && ( nit->get_consecutive_beacons_lost() == 0 ) ) ) ) */ )
 							{
 								nit->set_active();
 							}
@@ -587,23 +587,23 @@ namespace wiselib
 		// --------------------------------------------------------------------
 		uint8_t remove_worst_neighbor( Protocol& p_ref )
 		{
-			uint8_t max_consecutive_beacons_lost = 0;
+			//uint8_t max_consecutive_beacons_lost = 0;
 			uint8_t min_link_stab_ratio = 100;
 			uint8_t min_link_stab_ratio_inverse = 100;
 			uint8_t max_avg_lqi = 0;
 			uint8_t max_avg_lqi_inverse = 0;
-			Neighbor_vector_iterator mcb		= p_ref.get_neighborhood_ref()->begin();
+			//Neighbor_vector_iterator mcb		= p_ref.get_neighborhood_ref()->begin();
 			Neighbor_vector_iterator mlsr		= p_ref.get_neighborhood_ref()->begin();
 			Neighbor_vector_iterator mlsr_in	= p_ref.get_neighborhood_ref()->begin();
 			Neighbor_vector_iterator mal		= p_ref.get_neighborhood_ref()->begin();
 			Neighbor_vector_iterator mal_in		= p_ref.get_neighborhood_ref()->begin();
 			for ( Neighbor_vector_iterator nit = p_ref.get_neighborhood_ref()->begin(); nit != p_ref.get_neighborhood_ref()->end(); ++nit )
 			{
-				if ( ( max_consecutive_beacons_lost < nit->get_consecutive_beacons_lost() ) && ( nit->get_active() == 0 ) )
-				{
-					mcb = nit;
-					max_consecutive_beacons_lost = nit->get_consecutive_beacons_lost();
-				}
+				//if ( ( max_consecutive_beacons_lost < nit->get_consecutive_beacons_lost() ) && ( nit->get_active() == 0 ) )
+				//{
+				//	mcb = nit;
+				//	max_consecutive_beacons_lost = nit->get_consecutive_beacons_lost();
+				//}
 				if ( ( min_link_stab_ratio > nit->get_link_stab_ratio() ) && ( nit->get_active() == 0 ) )
 				{
 					mlsr = nit;
@@ -625,11 +625,11 @@ namespace wiselib
 					max_avg_lqi_inverse = nit->get_avg_LQI_inverse();
 				}
 			}
-			if ( max_consecutive_beacons_lost !=0 )
-			{
-				p_ref.get_neighborhood_ref()->erase( mcb );
-				return ProtocolSettings::NEIGHBOR_REMOVED;
-			}
+			//if ( max_consecutive_beacons_lost !=0 )
+			//{
+			//	p_ref.get_neighborhood_ref()->erase( mcb );
+			//	return ProtocolSettings::NEIGHBOR_REMOVED;
+			//}
 			if ( min_link_stab_ratio !=0 )
 			{
 				p_ref.get_neighborhood_ref()->erase( mlsr );
