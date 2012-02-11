@@ -1,5 +1,5 @@
 //#define PLTT_DEBUG
-//#define PLTT_SECURE
+#define PLTT_SECURE
 
 //target configuration
 //#define PLTT_TARGET_MINI_RUN
