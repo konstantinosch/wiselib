@@ -129,15 +129,16 @@ namespace wiselib
 						debug().debug( "NeighborDiscovery-beacons %x - Neighbor exists.\n", radio().id() );
 #endif
 #ifdef NB_DEBUG_STATS
-						if ( n->get_total_beacons() == 100 )
-						{
-							set_status( WAITING_STATUS );
-							debug().debug( "node id %x\n", radio().id() );
-							debug().debug( "--------------------------\n" );
-							p_ptr->print( debug(), radio() );
-							debug().debug( "--------------------------\n" );
-							return;
-						}
+						//if ( n->get_total_beacons() == 100 )
+						//{
+						//	set_status( WAITING_STATUS );
+						//
+						//	debug().debug( "node id %x\n", radio().id() );
+						//	debug().debug( "--------------------------\n" );
+						//	p_ptr->print( debug(), radio() );
+						//	debug().debug( "--------------------------\n" );
+						//	return;
+						//}
 #endif
 						n->inc_beacon_period_update_counter();
 						n->set_beacon_period( bp );
@@ -356,6 +357,10 @@ namespace wiselib
 						if ( found_flag == 1 )
 						{
 							events_flag = events_flag | ProtocolSettings::UPDATE_NB;
+							if ( new_neighbor.get_beacon_period() != update_neighbor_it->get_beacon_period() )
+							{
+								events_flag = events_flag | ProtocolSettings::BEACON_PERIOD_UPDATE;
+							}
 							*update_neighbor_it = new_neighbor;
 							pit->resolve_overflow_strategy( _from );
 #ifdef NB_DEBUG_RECEIVE
@@ -377,14 +382,13 @@ namespace wiselib
 									new_neighbor.print( debug(), radio() );
 #endif
 								}
+#ifdef NB_DEBUG_RECEIVE
 								else
 								{
-									if ( pit->get_protocol_settings_ref()->get_events_flag() & ProtocolSettings::BEACON_PERIOD_UPDATE )
-									{
-										events_flag = ProtocolSettings::BEACON_PERIOD_UPDATE;
-										pit->get_event_notifier_callback()( events_flag, radio().id(), 0, NULL );
-									}
+									debug().debug("NeighborDiscovery-receive %x - Neighbor %x was could be inserted and would be active for protocol %i.\n", radio().id(), _from, pit->get_protocol_id() );
+									new_neighbor.print( debug(), radio() );
 								}
+#endif
 							}
 							else
 							{
@@ -394,10 +398,10 @@ namespace wiselib
 									debug().debug("NeighborDiscovery-receive %x - Neighbor %x was inserted and active for protocol %i.\n", radio().id(), _from, pit->get_protocol_id() );
 									new_neighbor.print( debug(), radio() );
 #endif
-
 							}
 						}
 						uint8_t payload_found_flag = 0;
+						ProtocolPayload pp;
 						for ( ProtocolPayload_vector_iterator ppit = beacon.get_protocol_payloads_ref()->begin(); ppit != beacon.get_protocol_payloads_ref()->end(); ++ppit )
 						{
 							if ( ppit->get_protocol_id() == pit->get_protocol_id() )
@@ -406,6 +410,7 @@ namespace wiselib
 								debug().debug("NeighborDiscovery-receive %x - Beacon carried a payload for protocol %i.\n", radio().id(), pit->get_protocol_id() );
 #endif
 								events_flag = events_flag | ProtocolSettings::NEW_PAYLOAD;
+								pp = *ppit;
 								payload_found_flag = 1;
 							}
 						}
@@ -418,7 +423,7 @@ namespace wiselib
 						events_flag = pit->get_protocol_settings_ref()->get_events_flag() & events_flag;
 						if ( events_flag != 0 )
 						{
-							pit->get_event_notifier_callback()( events_flag, _from, pit->get_protocol_settings_ref()->get_protocol_payload().get_payload_size(), pit->get_protocol_settings_ref()->get_protocol_payload().get_payload_data() );
+							pit->get_event_notifier_callback()( events_flag, _from, pp.get_payload_size(), pp.get_payload_data() );
 						}
 					}
 					else
@@ -427,16 +432,10 @@ namespace wiselib
 						if ( found_flag == 1 )
 						{
 							events_flag = events_flag | ProtocolSettings::LOST_NB;
-
 							*update_neighbor_it = new_neighbor;
-							events_flag = pit->get_protocol_settings_ref()->get_events_flag() & events_flag;
 #ifdef NB_DEBUG_RECEIVE
 							debug().debug("NeighborDiscovery-receive %x - Neighbor %x was updated but inactive for protocol %i.\n", radio().id(), _from, pit->get_protocol_id() );
 #endif
-							if ( events_flag != 0 )
-							{
-								pit->get_event_notifier_callback()( events_flag, _from, 0, NULL );
-							}
 						}
 						else
 						{
@@ -451,14 +450,13 @@ namespace wiselib
 									new_neighbor.print( debug(), radio() );
 #endif
 								}
+#ifdef NB_DEBUG_RECEIVE
 								else
 								{
-									if ( pit->get_protocol_settings_ref()->get_events_flag() & ProtocolSettings::BEACON_PERIOD_UPDATE )
-									{
-										events_flag = ProtocolSettings::BEACON_PERIOD_UPDATE;
-										pit->get_event_notifier_callback()( events_flag, radio().id(), 0, NULL );
-									}
+									debug().debug("NeighborDiscovery-receive %x - Neighbor %x could not be inserted but would be inactive for protocol %i.\n", radio().id(), _from, pit->get_protocol_id() );
+									new_neighbor.print( debug(), radio() );
 								}
+#endif
 							}
 							else
 							{
@@ -468,6 +466,11 @@ namespace wiselib
 								new_neighbor.print( debug(), radio() );
 #endif
 							}
+						}
+						events_flag = pit->get_protocol_settings_ref()->get_events_flag() & events_flag;
+						if ( events_flag != 0 )
+						{
+							pit->get_event_notifier_callback()( events_flag, _from, 0, NULL );
 						}
 					}
 				}

@@ -270,7 +270,7 @@ namespace wiselib
 		event_notifier_delegate_t event_notifier_callback;
 		ProtocolSettings settings;
 		Neighbor_vector neighborhood;
-		ProtocolPayload protocol_payload;
+		//ProtocolPayload protocol_payload;
 	};
 }
 #endif

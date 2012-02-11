@@ -330,7 +330,7 @@ namespace wiselib
 			debug.debug( "active : %d\n", active );
 			debug.debug( "-------------------------------------------------------\n");
 #else
-			if ( active == 1 )
+			//if ( active == 1 )
 			{
 				debug.debug( "NB_STATS:%x:%x:%d:%d:%d:%d:%d:%d:%d:%d:%d\n",
 					radio.id(),
