@@ -147,7 +147,7 @@ namespace wiselib
 		}
 		// --------------------------------------------------------------------
 		//uint8_t update_link_stab_ratio( uint32_t _tbeac, uint32_t _tbeac_w, uint32_t _tbeac_exp, uint32_t _tbeac_exp_w, Debug& debug )
-		uint8_t update_link_stab_ratio()
+		void update_link_stab_ratio()
 		{
 #ifdef NB_DEBUG_NEIGHBOR_UPDATE_LINK_STAB_RATIO
 			debug.debug( " total_beacons = %d\n", total_beacons );
@@ -158,8 +158,29 @@ namespace wiselib
 			//debug.debug( " 32bit value : %d", r );
 #endif
 			//link_stab_ratio = ( ( total_beacons + _tbeac * ( _tbeac_w / 100 ) ) * 100 ) / ( total_beacons_expected + ( _tbeac_exp * ( _tbeac_exp_w / 100 ) ) + _tbeac * ( _tbeac_w / 100 ) );
+			if ( 1 )
+			{
+
+			}
+			else if ( total_beacons_expected == 0 )
+			{
+				link_stab_ratio = 0;
+			}
 			link_stab_ratio = ( total_beacons * 100 ) / total_beacons_expected;
-			return link_stab_ratio;
+		}
+		// --------------------------------------------------------------------
+		void update_link_stab_ratio_inverse( uint8_t _b_w, uint8_t _lb_w )
+		{
+			link_stab_ratio_inverse = ( 100 * _b_w + ( 100 - link_stab_ratio_inverse ) * _lb_w ) / ( ( link_stab_ratio_inverse * _b_w ) + ( ( 100 - link_stab_ratio_inverse ) * _lb_w ) );
+
+			if ( link_stab_ratio_inverse > 100 )
+			{
+				link_stab_ratio_inverse = 100;
+			}
+			else if ( tmp_link_stab_ratio_inverse <= 0 )
+			{
+				link_stab_ratio_inverse = 0;
+			}
 		}
 		// --------------------------------------------------------------------
 		void set_link_stab_ratio( uint8_t _lsratio )

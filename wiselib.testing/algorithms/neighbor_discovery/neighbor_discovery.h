@@ -333,6 +333,7 @@ namespace wiselib
 #endif
 							new_neighbor.set_avg_LQI_inverse( nit->get_avg_LQI() );
 							new_neighbor.set_link_stab_ratio_inverse( nit->get_link_stab_ratio() );
+							new_neighbor.update_link_stab_ratio_inverse( pit->resolve_beacon_weight( _from ), pit->resolve_lost_beacon_weight( _from ) );
 						}
 					}
 #ifdef NB_DEBUG_RECEIVE
