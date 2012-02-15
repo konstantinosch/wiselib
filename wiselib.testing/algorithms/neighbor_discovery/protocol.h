@@ -188,48 +188,48 @@ namespace wiselib
 		// --------------------------------------------------------------------
 		uint32_t resolve_beacon_weight( node_id_t _nid )
 		{
-			Neighbor* n_ref = get_neighbor_ref( _nid );
-			if ( n_ref != NULL )
-			{
+			//Neighbor* n_ref = get_neighbor_ref( _nid );
+			//if ( n_ref != NULL )
+			//{
 				ProtocolSettings* p_ref = get_protocol_settings_ref();
 				if ( p_ref->get_ratio_normalization_strategy() == ProtocolSettings::R_NR_NORMAL )
 				{
-					return 100;
+					return 1;
 				}
 				else if ( p_ref->get_ratio_normalization_strategy() == ProtocolSettings::R_NR_WEIGHTED )
 				{
-					return p_ref->get_beacon_weight() * 100;
+					return p_ref->get_beacon_weight();
 				}
-				else if( p_ref->get_ratio_normalization_strategy() == ProtocolSettings::R_NR_WEIGHTED_PROPORTIONAL )
-				{
-					return p_ref->get_beacon_weight() * n_ref->get_total_beacons_expected();
-				}
-				return 100;
-			}
-			return 0;
+//				else if( p_ref->get_ratio_normalization_strategy() == ProtocolSettings::R_NR_WEIGHTED_PROPORTIONAL )
+//				{
+//					return p_ref->get_beacon_weight() * n_ref->get_total_beacons_expected();
+//				}
+				//return 1;
+			//}
+			//return 0;
 		}
 		// --------------------------------------------------------------------
 		uint32_t resolve_lost_beacon_weight( node_id_t _nid )
 		{
-			Neighbor* n_ref = get_neighbor_ref( _nid );
-			if ( n_ref != NULL )
-			{
+			//Neighbor* n_ref = get_neighbor_ref( _nid );
+			//if ( n_ref != NULL )
+			//{
 				ProtocolSettings* p_ref = get_protocol_settings_ref();
 				if ( p_ref->get_ratio_normalization_strategy() == ProtocolSettings::R_NR_NORMAL )
 				{
-					return 100;
+					return 1;
 				}
 				else if ( p_ref->get_ratio_normalization_strategy() == ProtocolSettings::R_NR_WEIGHTED )
 				{
-					return p_ref->get_lost_beacon_weight()*100;
+					return p_ref->get_lost_beacon_weight();
 				}
-				else if( p_ref->get_ratio_normalization_strategy() == ProtocolSettings::R_NR_WEIGHTED_PROPORTIONAL )
-				{
-					return p_ref->get_lost_beacon_weight() * n_ref->get_total_beacons_expected();
-				}
-				return 100;
-			}
-			return 0;
+//				else if( p_ref->get_ratio_normalization_strategy() == ProtocolSettings::R_NR_WEIGHTED_PROPORTIONAL )
+//				{
+//					return p_ref->get_lost_beacon_weight() * n_ref->get_total_beacons_expected();
+//				}
+				//return 1;
+			//}
+			//return 0;
 		}
 		// --------------------------------------------------------------------
 		Protocol_Type& operator=( const Protocol_Type& _p )

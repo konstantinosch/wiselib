@@ -31,8 +31,6 @@ namespace wiselib
 			avg_LQI_inverse					( 255 ),
 			link_stab_ratio					( 0 ),
 			link_stab_ratio_inverse			( 0 ),
-			//consecutive_beacons				( 0 ),
-			//consecutive_beacons_lost		( 0 ),
 			beacon_period					( 0 ),
 			beacon_period_update_counter	( 0 ),
 			active							( 0 )
@@ -45,8 +43,6 @@ namespace wiselib
 						uint8_t _alqi_in,
 						uint8_t _lsratio,
 						uint8_t _lsratio_in,
-						//uint8_t _cb,
-						//uint8_t _cb_lost,
 						millis_t _bp,
 						uint32_t _bpuc,
 						uint8_t _a,
@@ -59,8 +55,6 @@ namespace wiselib
 			avg_LQI_inverse = _alqi_in;
 			link_stab_ratio = _lsratio;
 			link_stab_ratio_inverse = _lsratio_in;
-			//consecutive_beacons = _cb;
-			//consecutive_beacons_lost =  _cb_lost;
 			beacon_period = _bp;
 			beacon_period_update_counter = _bpuc;
 			if ( _a != 0 )
@@ -146,21 +140,11 @@ namespace wiselib
 			return link_stab_ratio;
 		}
 		// --------------------------------------------------------------------
-		//uint8_t update_link_stab_ratio( uint32_t _tbeac, uint32_t _tbeac_w, uint32_t _tbeac_exp, uint32_t _tbeac_exp_w, Debug& debug )
 		void update_link_stab_ratio()
 		{
-#ifdef NB_DEBUG_NEIGHBOR_UPDATE_LINK_STAB_RATIO
-			debug.debug( " total_beacons = %d\n", total_beacons );
-			debug.debug( " total_beacons_expected = %d\n", total_beacons_expected );
-			debug.debug( " new beacons _tbeac = %d, weighted at %d\n",_tbeac, _tbeac_w );
-			debug.debug( " beacons expected _tbeac_exp = %d, weighted at %d\n",_tbeac_exp, _tbeac_exp_w );
-			//uint32_t r = ( ( total_beacons + _tbeac * ( _tbeac_w / 100 ) ) * 100 ) / ( total_beacons_expected + ( _tbeac_exp * ( _tbeac_exp_w / 100 ) ) + _tbeac * ( _tbeac_w / 100 ) );
-			//debug.debug( " 32bit value : %d", r );
-#endif
-			//link_stab_ratio = ( ( total_beacons + _tbeac * ( _tbeac_w / 100 ) ) * 100 ) / ( total_beacons_expected + ( _tbeac_exp * ( _tbeac_exp_w / 100 ) ) + _tbeac * ( _tbeac_w / 100 ) );
-			if ( 1 )
+			if ( total_beacons >= total_beacons_expected )
 			{
-
+				link_stab_ratio = 100;
 			}
 			else if ( total_beacons_expected == 0 )
 			{
@@ -171,15 +155,18 @@ namespace wiselib
 		// --------------------------------------------------------------------
 		void update_link_stab_ratio_inverse( uint8_t _b_w, uint8_t _lb_w )
 		{
-			link_stab_ratio_inverse = ( 100 * _b_w + ( 100 - link_stab_ratio_inverse ) * _lb_w ) / ( ( link_stab_ratio_inverse * _b_w ) + ( ( 100 - link_stab_ratio_inverse ) * _lb_w ) );
-
-			if ( link_stab_ratio_inverse > 100 )
+			int32_t tmp_link_stab_ratio_inverse = ( ( 100 * _b_w - ( 100 - link_stab_ratio_inverse ) * _lb_w ) * 100 ) / ( ( link_stab_ratio_inverse * _b_w ) + ( ( 100 - link_stab_ratio_inverse ) * _lb_w ) );
+			if ( tmp_link_stab_ratio_inverse >= 100 )
 			{
 				link_stab_ratio_inverse = 100;
 			}
-			else if ( tmp_link_stab_ratio_inverse <= 0 )
+			else if ( tmp_link_stab_ratio_inverse < 0 )
 			{
 				link_stab_ratio_inverse = 0;
+			}
+			else
+			{
+				link_stab_ratio_inverse = tmp_link_stab_ratio_inverse;
 			}
 		}
 		// --------------------------------------------------------------------
@@ -198,38 +185,6 @@ namespace wiselib
 			link_stab_ratio_inverse = _lsratio_in;
 		}
 		// --------------------------------------------------------------------
-//		uint8_t get_consecutive_beacons()
-//		{
-//			return consecutive_beacons;
-//		}
-//		// --------------------------------------------------------------------
-//		void inc_consecutive_beacons( uint8_t _cb = 1 )
-//		{
-//			//TODO overflow
-//			consecutive_beacons = consecutive_beacons + _cb;
-//		}
-//		// --------------------------------------------------------------------
-//		void set_consecutive_beacons( uint8_t _cb )
-//		{
-//			consecutive_beacons = _cb;
-//		}
-//		// --------------------------------------------------------------------
-//		uint8_t get_consecutive_beacons_lost()
-//		{
-//			return consecutive_beacons_lost;
-//		}
-//		// --------------------------------------------------------------------
-//		void inc_consecutive_beacons_lost( uint8_t _cb_lost = 1 )
-//		{
-//			//TODO overflow
-//			consecutive_beacons_lost = consecutive_beacons_lost + _cb_lost;
-//		}
-//		// --------------------------------------------------------------------
-//		void set_consecutive_beacons_lost( uint8_t _cb_lost )
-//		{
-//			consecutive_beacons_lost = _cb_lost;
-//		}
-//		// --------------------------------------------------------------------
 		millis_t get_beacon_period()
 		{
 			return beacon_period;
@@ -293,8 +248,6 @@ namespace wiselib
 			avg_LQI_inverse = _n.avg_LQI_inverse;
 			link_stab_ratio = _n.link_stab_ratio;
 			link_stab_ratio_inverse = _n.link_stab_ratio_inverse;
-			//consecutive_beacons = _n.consecutive_beacons;
-			//consecutive_beacons_lost = _n.consecutive_beacons_lost;
 			beacon_period = _n.beacon_period;
 			beacon_period_update_counter = _n.beacon_period_update_counter;
 			last_beacon = _n.last_beacon;
@@ -344,14 +297,12 @@ namespace wiselib
 			debug.debug( "avg_LQI_inverse : %i\n", avg_LQI_inverse );
 			debug.debug( "link_stab_ratio : %i\n", link_stab_ratio );
 			debug.debug( "link_stab_ratio_inverse : %i\n", link_stab_ratio_inverse );
-			//debug.debug( "consecutive_beacons : %d\n", consecutive_beacons );
-			//debug.debug( "consecutive_beacons_lost : %d\n", consecutive_beacons_lost );
 			debug.debug( "beacon_period : %d\n", beacon_period );
 			debug.debug( "beacon_period_update_counter : %d\n", beacon_period_update_counter );
 			debug.debug( "active : %d\n", active );
 			debug.debug( "-------------------------------------------------------\n");
 #else
-			//if ( active == 1 )
+			if ( active == 1 )
 			{
 				debug.debug( "NB_STATS:%x:%x:%d:%d:%d:%d:%d:%d:%d:%d:%d\n",
 					radio.id(),
@@ -362,8 +313,6 @@ namespace wiselib
 					avg_LQI_inverse,
 					link_stab_ratio,
 					link_stab_ratio_inverse,
-					//consecutive_beacons,
-					//consecutive_beacons_lost,
 					beacon_period,
 					beacon_period_update_counter,
 					active );
@@ -379,8 +328,6 @@ namespace wiselib
 		uint8_t avg_LQI_inverse;
 		uint8_t link_stab_ratio;
 		uint8_t link_stab_ratio_inverse;
-		//uint8_t consecutive_beacons;
-		//uint8_t consecutive_beacons_lost;
 		millis_t beacon_period;
 		uint32_t beacon_period_update_counter;
 		uint8_t active;
