@@ -216,7 +216,7 @@ namespace wiselib
 		}
 		inline void print( Debug& debug )
 		{
-			debug.debug("Position (size %i) : ( %i, %i )", get_buffer_size(), x, y );
+			debug.debug("Position (size %i) : ( %i, %i )\n", get_buffer_size(), x, y );
 		}
 	private:
 		CoordinatesNumber x, y;

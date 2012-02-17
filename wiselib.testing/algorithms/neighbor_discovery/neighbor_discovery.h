@@ -47,7 +47,7 @@ namespace wiselib
 		typedef typename ProtocolPayload_vector::iterator ProtocolPayload_vector_iterator;
 		typedef vector_static<Os, Protocol, NB_MAX_REGISTERED_PROTOCOLS> Protocol_vector;
 		typedef typename Protocol_vector::iterator Protocol_vector_iterator;
-		typedef delegate4<void, uint8_t, node_id_t, uint8_t, uint8_t*> event_notifier_delegate_t;
+		typedef delegate4<void, uint8_t, node_id_t, size_t, uint8_t*> event_notifier_delegate_t;
 		// --------------------------------------------------------------------
 		NeighborDiscovery_Type()	:
 			status								( WAITING_STATUS ),
@@ -59,7 +59,7 @@ namespace wiselib
 			protocol_max_payload_size_strategy	( FIXED_PAYLOAD_SIZE ),
 			beacon_period_strategy				( FIXED_TRANSM ),
 			relax_millis						( NB_RELAX_MILLIS ),
-			nb_daemon_period					( NB_DAEMON_PERIOD )
+			nb_daemon_period					( 1000 )
 		{};
 		// --------------------------------------------------------------------
 		~NeighborDiscovery_Type()
@@ -92,7 +92,6 @@ namespace wiselib
 		void disable()
 		{
 			set_status( WAITING_STATUS );
-			protocols.clear();
 			radio().template unreg_recv_callback( recv_callback_id_ );
 		};
 		// --------------------------------------------------------------------
@@ -127,18 +126,6 @@ namespace wiselib
 					{
 #ifdef NB_DEBUG_BEACONS
 						debug().debug( "NeighborDiscovery-beacons %x - Neighbor exists.\n", radio().id() );
-#endif
-#ifdef NB_DEBUG_STATS
-						//if ( n->get_total_beacons() == 100 )
-						//{
-						//	set_status( WAITING_STATUS );
-						//
-						//	debug().debug( "node id %x\n", radio().id() );
-						//	debug().debug( "--------------------------\n" );
-						//	p_ptr->print( debug(), radio() );
-						//	debug().debug( "--------------------------\n" );
-						//	return;
-						//}
 #endif
 						n->inc_beacon_period_update_counter();
 						n->set_beacon_period( bp );
@@ -466,7 +453,7 @@ namespace wiselib
 		}
 		}
 		// --------------------------------------------------------------------
-		template<class T, void(T::*TMethod)(uint8_t, node_id_t, uint8_t, uint8_t*) >
+		template<class T, void(T::*TMethod)(uint8_t, node_id_t, size_t, uint8_t*) >
 		uint8_t register_protocol( uint8_t _pid, ProtocolSettings _psett, T *_obj_pnt )
 		{
 #ifdef NB_DEBUG_REGISTER_PROTOCOL
@@ -547,16 +534,24 @@ namespace wiselib
 							nit->update_link_stab_ratio();
 							nit->set_beacon_period( nit->get_beacon_period() );
 							nit->set_last_beacon( current_time );
+							uint8_t events_flag = 0;
 							if 	( ( nit->get_link_stab_ratio() <= pit->get_protocol_settings_ref()->get_max_link_stab_ratio_threshold() ) &&
 								( nit->get_link_stab_ratio() >= pit->get_protocol_settings_ref()->get_min_link_stab_ratio_threshold() ) &&
 								( nit->get_link_stab_ratio_inverse() <= pit->get_protocol_settings_ref()->get_max_link_stab_ratio_inverse_threshold() ) &&
 								( nit->get_link_stab_ratio_inverse() >= pit->get_protocol_settings_ref()->get_min_link_stab_ratio_inverse_threshold() ) )
 							{
 								nit->set_active();
+								events_flag = events_flag | ProtocolSettings::UPDATE_NB;
 							}
 							else
 							{
 								nit->set_active( 0 );
+								events_flag = events_flag | ProtocolSettings::LOST_NB;
+							}
+							events_flag = pit->get_protocol_settings_ref()->get_events_flag() & events_flag;
+							if ( events_flag != 0 )
+							{
+								pit->get_event_notifier_callback()( events_flag, nit->get_id(), 0, NULL );
 							}
 						}
 					}
@@ -990,7 +985,7 @@ namespace wiselib
         uint8_t channel;
         int8_t transmission_power_dB;
         Protocol_vector protocols;
-        uint8_t protocol_max_payload_size;
+        size_t protocol_max_payload_size;
         uint8_t transmission_power_dB_strategy;
         uint8_t protocol_max_payload_size_strategy;
         uint8_t beacon_period_strategy;

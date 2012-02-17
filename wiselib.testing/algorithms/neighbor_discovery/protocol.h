@@ -31,7 +31,7 @@ namespace wiselib
 		typedef typename Neighbor_vector::iterator Neighbor_vector_iterator;
 		typedef vector_static<Os, ProtocolPayload, NB_MAX_REGISTERED_PROTOCOLS> ProtocolPayload_vector;
 		typedef typename ProtocolPayload_vector::iterator ProtocolPayload_vector_iterator;
-		typedef delegate4<void, uint8_t, node_id_t, uint8_t, uint8_t*> event_notifier_delegate_t;
+		typedef delegate4<void, uint8_t, node_id_t, size_t, uint8_t*> event_notifier_delegate_t;
 		typedef Protocol_Type<Os, Radio, Clock, Timer, Debug> self_type;
 		// --------------------------------------------------------------------
 		Protocol_Type() :
@@ -57,7 +57,7 @@ namespace wiselib
 			return event_notifier_callback;
 		}
 		// --------------------------------------------------------------------
-		template<class T, void(T::*TMethod)(uint8_t, node_id_t, uint8_t, uint8_t*) >
+		template<class T, void(T::*TMethod)(uint8_t, node_id_t, size_t, uint8_t*) >
 		void set_event_notifier_callback( T *_obj_pnt )
 		{
 			event_notifier_callback = event_notifier_delegate_t::template from_method<T, TMethod > ( _obj_pnt );
@@ -140,6 +140,19 @@ namespace wiselib
 			return NULL;
 		}
 		// --------------------------------------------------------------------
+		size_t get_neighborhood_active_size()
+		{
+			size_t active_size = 0;
+			for ( Neighbor_vector_iterator it = neighborhood.begin(); it != neighborhood.end(); ++it )
+			{
+				if ( it->get_active() == 1 )
+				{
+					active_size++;
+				}
+			}
+			return active_size;
+		}
+		// --------------------------------------------------------------------
 		void resolve_overflow_strategy( node_id_t _nid )
 		{
 			Neighbor* n_ref = get_neighbor_ref( _nid );
@@ -188,48 +201,30 @@ namespace wiselib
 		// --------------------------------------------------------------------
 		uint32_t resolve_beacon_weight( node_id_t _nid )
 		{
-			//Neighbor* n_ref = get_neighbor_ref( _nid );
-			//if ( n_ref != NULL )
-			//{
-				ProtocolSettings* p_ref = get_protocol_settings_ref();
-				if ( p_ref->get_ratio_normalization_strategy() == ProtocolSettings::R_NR_NORMAL )
-				{
-					return 1;
-				}
-				else if ( p_ref->get_ratio_normalization_strategy() == ProtocolSettings::R_NR_WEIGHTED )
-				{
-					return p_ref->get_beacon_weight();
-				}
-//				else if( p_ref->get_ratio_normalization_strategy() == ProtocolSettings::R_NR_WEIGHTED_PROPORTIONAL )
-//				{
-//					return p_ref->get_beacon_weight() * n_ref->get_total_beacons_expected();
-//				}
-				//return 1;
-			//}
-			//return 0;
+			ProtocolSettings* p_ref = get_protocol_settings_ref();
+			if ( p_ref->get_ratio_normalization_strategy() == ProtocolSettings::R_NR_NORMAL )
+			{
+				return 1;
+			}
+			else if ( p_ref->get_ratio_normalization_strategy() == ProtocolSettings::R_NR_WEIGHTED )
+			{
+				return p_ref->get_beacon_weight();
+			}
+			return 1;
 		}
 		// --------------------------------------------------------------------
 		uint32_t resolve_lost_beacon_weight( node_id_t _nid )
 		{
-			//Neighbor* n_ref = get_neighbor_ref( _nid );
-			//if ( n_ref != NULL )
-			//{
-				ProtocolSettings* p_ref = get_protocol_settings_ref();
-				if ( p_ref->get_ratio_normalization_strategy() == ProtocolSettings::R_NR_NORMAL )
-				{
-					return 1;
-				}
-				else if ( p_ref->get_ratio_normalization_strategy() == ProtocolSettings::R_NR_WEIGHTED )
-				{
-					return p_ref->get_lost_beacon_weight();
-				}
-//				else if( p_ref->get_ratio_normalization_strategy() == ProtocolSettings::R_NR_WEIGHTED_PROPORTIONAL )
-//				{
-//					return p_ref->get_lost_beacon_weight() * n_ref->get_total_beacons_expected();
-//				}
-				//return 1;
-			//}
-			//return 0;
+			ProtocolSettings* p_ref = get_protocol_settings_ref();
+			if ( p_ref->get_ratio_normalization_strategy() == ProtocolSettings::R_NR_NORMAL )
+			{
+				return 1;
+			}
+			else if ( p_ref->get_ratio_normalization_strategy() == ProtocolSettings::R_NR_WEIGHTED )
+			{
+				return p_ref->get_lost_beacon_weight();
+			}
+			return 1;
 		}
 		// --------------------------------------------------------------------
 		Protocol_Type& operator=( const Protocol_Type& _p )
@@ -262,7 +257,7 @@ namespace wiselib
 		}
 #endif
 		// --------------------------------------------------------------------
-		void null_callback( uint8_t null_event, node_id_t null_node_id, uint8_t null_len, uint8_t* null_data )
+		void null_callback( uint8_t null_event, node_id_t null_node_id, size_t null_len, uint8_t* null_data )
 		{}
 		// --------------------------------------------------------------------
 	private:
@@ -270,7 +265,6 @@ namespace wiselib
 		event_notifier_delegate_t event_notifier_callback;
 		ProtocolSettings settings;
 		Neighbor_vector neighborhood;
-		//ProtocolPayload protocol_payload;
 	};
 }
 #endif

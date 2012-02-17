@@ -56,13 +56,13 @@ namespace wiselib
 		}
 		inline block_data_t* set_buffer_from( block_data_t* buff, size_t offset = 0 )
 		{
-			uint8_t PLTT_NODE_SIZE_POS = 0;
-			uint8_t  NODE_POS = PLTT_NODE_SIZE_POS + sizeof( size_t );
-			uint8_t TARGET_LIST_POS = NODE_POS + node.get_buffer_size();
+			size_t PLTT_NODE_SIZE_POS = 0;
+			size_t  NODE_POS = PLTT_NODE_SIZE_POS + sizeof( size_t );
+			size_t TARGET_LIST_POS = NODE_POS + node.get_buffer_size();
 			size_t len = get_buffer_size();
 			write<Os, block_data_t, size_t>( buff + PLTT_NODE_SIZE_POS + offset, len );
 			node.set_buffer_from( buff, NODE_POS + offset );
-			for ( uint16_t i = 0; i < target_list.size(); i++ )
+			for ( size_t i = 0; i < target_list.size(); i++ )
 			{
 				target_list.at( i ).set_buffer_from( buff, TARGET_LIST_POS + i * target_list.at( i ).get_buffer_size() + offset );
 			}
@@ -70,14 +70,14 @@ namespace wiselib
 		}
 		inline void get_from_buffer( block_data_t* buff, size_t offset = 0 )
 		{
-			uint8_t PLTT_NODE_SIZE_POS = 0;
-			uint8_t NODE_POS = PLTT_NODE_SIZE_POS + sizeof( size_t );
-			uint8_t TARGET_LIST_POS = NODE_POS + node.get_buffer_size();
+			size_t PLTT_NODE_SIZE_POS = 0;
+			size_t NODE_POS = PLTT_NODE_SIZE_POS + sizeof( size_t );
+			size_t TARGET_LIST_POS = NODE_POS + node.get_buffer_size();
 			size_t len = read<Os, block_data_t, size_t>( buff + PLTT_NODE_SIZE_POS + offset );
 			node.get_from_buffer( buff, NODE_POS + offset );
 			PLTT_NodeTarget nt;
 			target_list.clear();
-			for ( uint16_t i = 0; i < ( ( len - node.get_buffer_size() - 1 ) / nt.get_buffer_size() ); i++ )
+			for ( size_t i = 0; i < ( ( len - node.get_buffer_size() - 1 ) / nt.get_buffer_size() ); i++ )
 			{
 				nt.get_from_buffer( buff, TARGET_LIST_POS + nt.get_buffer_size() * i + offset );
 				target_list.push_back( nt );
@@ -85,9 +85,9 @@ namespace wiselib
 		}
 		inline size_t get_buffer_size()
 		{
-			uint8_t PLTT_NODE_SIZE_POS = 0;
-			uint8_t NODE_POS = PLTT_NODE_SIZE_POS + sizeof( size_t );
-			uint8_t TARGET_LIST_POS = NODE_POS + node.get_buffer_size();
+			size_t PLTT_NODE_SIZE_POS = 0;
+			size_t NODE_POS = PLTT_NODE_SIZE_POS + sizeof( size_t );
+			size_t TARGET_LIST_POS = NODE_POS + node.get_buffer_size();
 			PLTT_NodeTarget nt;
 			return TARGET_LIST_POS + target_list.size() * nt.get_buffer_size();
 		}
@@ -148,9 +148,9 @@ namespace wiselib
 		}
 		inline void print( Debug& debug )
 		{
-			debug.debug( " PLTT_Node (size %i) :", get_buffer_size() );
+			debug.debug( " PLTT_Node (size %i) :\n", get_buffer_size() );
 			node.print( debug );
-			debug.debug( " PLTT_TargetList (size %i) :", target_list.size()*sizeof( PLTT_NodeTarget ) );
+			debug.debug( " PLTT_TargetList (size %i) :\n", target_list.size()*sizeof( PLTT_NodeTarget ) );
 			for ( PLTT_NodeTargetListIterator i = target_list.begin(); i != target_list.end(); ++i )
 			{
 				i->print( debug );

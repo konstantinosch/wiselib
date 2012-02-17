@@ -4,7 +4,7 @@
 #define NB_BEACON_PERIOD 5000
 #define NB_CHANNEL 0
 #define NB_TRANSMISSION_POWER_DB 0
-#define NB_RELAX_MILLIS 200 //great care with this one...
+#define NB_RELAX_MILLIS 200 //great care with this one when tinkering with very minute period predictions/calculations. Could be set to a tiny analogous value of the period like 10%.
 #define NB_DAEMON_PERIOD 1000
 
 //default registered protocol settings
@@ -16,9 +16,7 @@
 #define NB_MIN_LINK_STABILITY_RATIO_THRESHOLD 0
 #define NB_MAX_LINK_STAB_RATIO_INVERSE_THRESHOLD 100
 #define NB_MIN_LINK_STAB_RATIO_INVERSE_THRESHOLD 0
-//#define NB_CONSECUTIVE_BEACONS_THRESHOLD 1
-//#define NB_CONSECUTIVE_BEACONS_LOST_THRESHOLD 1
-#define NB_MAX_PROTOCOL_PAYLOAD_SIZE 50
+#define NB_MAX_PROTOCOL_PAYLOAD_SIZE 500
 #define NB_PROPOSED_TRANSMISSION_POWER_DB 0
 #define NB_PROPOSED_TRANSMISSION_POWER_DB_WEIGHT 100
 #define NB_PROPOSED_BEACON_PERIOD 1000

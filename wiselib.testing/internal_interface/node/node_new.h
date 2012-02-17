@@ -102,8 +102,8 @@ namespace wiselib
 		}
 		inline void print( Debug& debug )
 		{
-			debug.debug( "Node (size %i) :", get_buffer_size() );
-			debug.debug( "id (size %i) : %x", sizeof( NodeID ), id );
+			debug.debug( "Node (size %i) :\n", get_buffer_size() );
+			debug.debug( "id (size %i) : %x\n", sizeof( NodeID ), id );
 			position.print( debug );
 		}
 	private:

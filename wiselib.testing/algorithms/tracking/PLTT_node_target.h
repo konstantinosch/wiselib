@@ -100,9 +100,9 @@ namespace wiselib
 		}
 		inline void print( Debug& debug )
 		{
-			debug.debug( "NodeTarget (size %i) : ", get_buffer_size() );
-			debug.debug( "target_id (size %i) : %x", sizeof( NodeID ), target_id );
-			debug.debug( "intensity (size %i) : %i", sizeof( IntensityNumber ), intensity );
+			debug.debug( "NodeTarget (size %i) :\n", get_buffer_size() );
+			debug.debug( "target_id (size %i) : %x\n", sizeof( NodeID ), target_id );
+			debug.debug( "intensity (size %i) : %i\n", sizeof( IntensityNumber ), intensity );
 		}
 	private:
 		NodeID target_id;
