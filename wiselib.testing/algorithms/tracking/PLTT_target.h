@@ -117,7 +117,7 @@ namespace wiselib
 		void radio_receive( node_id_t from, size_t len, block_data_t* data )
 		{
 #ifdef PLTT_TARGET_DEBUG_MISC
-			//debug().debug( "PLTT_Target %x: radio receive from %x \n", self.get_id(), from );
+			debug().debug( "PLTT_Target %x: radio receive from %x \n", self.get_id(), from );
 #endif
 			message_id_t msg_id = *data;
 			if	( msg_id == PRIVACY_ENCRYPTION_REPLY_ID )

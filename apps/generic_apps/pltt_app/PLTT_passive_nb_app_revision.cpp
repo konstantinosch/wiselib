@@ -70,6 +70,7 @@ void application_main( Os::AppMainParameter& value )
 	Rand *wiselib_rand_ = &wiselib::FacetProvider<Os, Rand>::get_facet( value );
 	Clock *wiselib_clock_ = &wiselib::FacetProvider<Os, Clock>::get_facet( value );
 	wiselib_rand_->srand( wiselib_radio_->id() );
+	wiselib_radio_->set_channel(20);
 	neighbor_discovery.init( *wiselib_radio_, *wiselib_timer_, *wiselib_debug_, *wiselib_clock_ );
 	passive.init( *wiselib_radio_, *wiselib_timer_, *wiselib_debug_, *wiselib_rand_, *wiselib_clock_, neighbor_discovery );
 	passive.set_self( PLTT_Node( Node( wiselib_radio_->id(), get_node_info<Position, Radio>( wiselib_radio_ ) ) ) );

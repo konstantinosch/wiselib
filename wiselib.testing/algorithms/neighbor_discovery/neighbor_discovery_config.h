@@ -1,11 +1,17 @@
+//protocol extended support
+#define NB_PRIVACY
+
 //default NB protocol settings
-#define NB_MAX_NEIGHBORS 1000
+#define NB_MAX_NEIGHBORS 25
 #define NB_MAX_REGISTERED_PROTOCOLS 2
 #define NB_BEACON_PERIOD 5000
 #define NB_CHANNEL 0
 #define NB_TRANSMISSION_POWER_DB 0
 #define NB_RELAX_MILLIS 200 //great care with this one when tinkering with very minute period predictions/calculations. Could be set to a tiny analogous value of the period like 10%.
 #define NB_DAEMON_PERIOD 1000
+#ifdef NB_PRIVACY
+#define MAX_PRIVACY_NB_MESSAGES 100
+#endif
 
 //default registered protocol settings
 #define NB_MAX_AVG_LQI_THRESHOLD 255
@@ -16,7 +22,7 @@
 #define NB_MIN_LINK_STABILITY_RATIO_THRESHOLD 0
 #define NB_MAX_LINK_STAB_RATIO_INVERSE_THRESHOLD 100
 #define NB_MIN_LINK_STAB_RATIO_INVERSE_THRESHOLD 0
-#define NB_MAX_PROTOCOL_PAYLOAD_SIZE 500
+#define NB_MAX_PROTOCOL_PAYLOAD_SIZE 10
 #define NB_PROPOSED_TRANSMISSION_POWER_DB 0
 #define NB_PROPOSED_TRANSMISSION_POWER_DB_WEIGHT 100
 #define NB_PROPOSED_BEACON_PERIOD 1000

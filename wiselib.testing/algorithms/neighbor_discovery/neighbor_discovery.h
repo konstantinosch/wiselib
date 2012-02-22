@@ -172,249 +172,265 @@ namespace wiselib
 #ifdef NB_DEBUG_RECEIVE
 			debug().debug( "NeighborDiscovery-receive %x - From %x Entering.\n", radio().id(), _from );
 #endif
-			message_id_t msg_id = *_msg;
-			if ( msg_id == NB_MESSAGE )
-			{
-				Message *message = (Message*) _msg;
-				Beacon beacon;
-				beacon.de_serialize( message->payload() );
-#ifdef NB_DEBUG_RECEIVE
-				debug().debug( "NeighborDiscovery-receive %x - Received beacon message.\n", radio().id() );
-#endif
-				time_t current_time = clock().time();
-				uint8_t beacon_lqi = _ex.link_metric();
-				for ( Protocol_vector_iterator pit = protocols.begin(); pit != protocols.end(); ++pit )
+				message_id_t msg_id = *_msg;
+				if ( msg_id == NB_MESSAGE )
 				{
-					uint8_t found_flag = 0;
-					Neighbor new_neighbor;
-					Neighbor_vector_iterator update_neighbor_it = pit->get_neighborhood_ref()->begin();
-					for ( Neighbor_vector_iterator nit = pit->get_neighborhood_ref()->begin(); nit != pit->get_neighborhood_ref()->end(); ++nit )
+					Message *message = (Message*) _msg;
+					Beacon beacon;
+					beacon.de_serialize( message->payload() );
+#ifdef NB_DEBUG_RECEIVE
+					debug().debug( "NeighborDiscovery-receive %x - Received beacon message.\n", radio().id() );
+#endif
+					time_t current_time = clock().time();
+					uint8_t beacon_lqi = _ex.link_metric();
+					for ( Protocol_vector_iterator pit = protocols.begin(); pit != protocols.end(); ++pit )
 					{
-						if ( _from == nit->get_id() )
+						uint8_t found_flag = 0;
+						Neighbor new_neighbor;
+						Neighbor_vector_iterator update_neighbor_it = pit->get_neighborhood_ref()->begin();
+						for ( Neighbor_vector_iterator nit = pit->get_neighborhood_ref()->begin(); nit != pit->get_neighborhood_ref()->end(); ++nit )
 						{
-#ifdef NB_DEBUG_RECEIVE
-							debug().debug( "NeighborDiscovery-receive %x - Neighbor %x is known for protocol %i.\n", radio().id(), _from, pit->get_protocol_id() );
-#endif
-							update_neighbor_it = nit;
-							found_flag = 1;
-							uint32_t dead_time = ( clock().seconds( current_time ) - clock().seconds( nit->get_last_beacon() ) ) * 1000 + ( clock().milliseconds( current_time ) - clock().milliseconds( nit->get_last_beacon() ) );
-							if ( beacon.get_beacon_period() == nit->get_beacon_period() )
+							if ( _from == nit->get_id() )
 							{
-								if ( dead_time < beacon.get_beacon_period() + NB_RELAX_MILLIS )
-								{
 #ifdef NB_DEBUG_RECEIVE
-									debug().debug( "NeighborDiscovery-receive %x - Neighbor %x is on time same as advertised for protocol %i with dead_time : %d.\n", radio().id(), _from, pit->get_protocol_id(), dead_time );
+								debug().debug( "NeighborDiscovery-receive %x - Neighbor %x is known for protocol %i.\n", radio().id(), _from, pit->get_protocol_id() );
 #endif
-									new_neighbor = *nit;
-									new_neighbor.inc_total_beacons( 1 * pit->resolve_beacon_weight( _from ) );
-									new_neighbor.inc_total_beacons_expected( 1 * pit->resolve_beacon_weight( _from ) );
-									new_neighbor.update_link_stab_ratio();
-									new_neighbor.update_avg_LQI( beacon_lqi, 1 );
-									new_neighbor.set_beacon_period( beacon.get_beacon_period() );
-									new_neighbor.set_beacon_period_update_counter( beacon.get_beacon_period_update_counter() );
-									new_neighbor.set_last_beacon( current_time );
+								update_neighbor_it = nit;
+								found_flag = 1;
+								uint32_t dead_time = ( clock().seconds( current_time ) - clock().seconds( nit->get_last_beacon() ) ) * 1000 + ( clock().milliseconds( current_time ) - clock().milliseconds( nit->get_last_beacon() ) );
+								if ( beacon.get_beacon_period() == nit->get_beacon_period() )
+								{
+									if ( dead_time < beacon.get_beacon_period() + NB_RELAX_MILLIS )
+									{
+#ifdef NB_DEBUG_RECEIVE
+										debug().debug( "NeighborDiscovery-receive %x - Neighbor %x is on time same as advertised for protocol %i with dead_time : %d.\n", radio().id(), _from, pit->get_protocol_id(), dead_time );
+#endif
+										new_neighbor = *nit;
+										new_neighbor.inc_total_beacons( 1 * pit->resolve_beacon_weight( _from ) );
+										new_neighbor.inc_total_beacons_expected( 1 * pit->resolve_beacon_weight( _from ) );
+										new_neighbor.update_link_stab_ratio();
+										new_neighbor.update_avg_LQI( beacon_lqi, 1 );
+										new_neighbor.set_beacon_period( beacon.get_beacon_period() );
+										new_neighbor.set_beacon_period_update_counter( beacon.get_beacon_period_update_counter() );
+										new_neighbor.set_last_beacon( current_time );
+									}
+									else
+									{
+#ifdef NB_DEBUG_RECEIVE
+										debug().debug( "NeighborDiscovery-receive %x - Neighbor %x was late same as advertised for protocol %i with dead_time : %d.\n", radio().id(), _from, pit->get_protocol_id(), dead_time );
+#endif
+										new_neighbor = *nit;
+										new_neighbor.inc_total_beacons( 1 * pit->resolve_beacon_weight( _from ) );
+										new_neighbor.inc_total_beacons_expected( ( dead_time / nit->get_beacon_period() ) * ( pit->resolve_lost_beacon_weight( _from ) ) );
+										new_neighbor.update_link_stab_ratio();
+										new_neighbor.update_avg_LQI( beacon_lqi, 1 );
+										new_neighbor.set_beacon_period( beacon.get_beacon_period() );
+										new_neighbor.set_beacon_period_update_counter( beacon.get_beacon_period_update_counter() );
+										new_neighbor.set_last_beacon( current_time );
+									}
 								}
 								else
 								{
+									if ( dead_time < beacon.get_beacon_period() + NB_RELAX_MILLIS )
+									{
 #ifdef NB_DEBUG_RECEIVE
-									debug().debug( "NeighborDiscovery-receive %x - Neighbor %x was late same as advertised for protocol %i with dead_time : %d.\n", radio().id(), _from, pit->get_protocol_id(), dead_time );
+										debug().debug( "NeighborDiscovery-receive %x - Neighbor %x is on time same as advertised for protocol %i with dead_time : %d.\n", radio().id(), _from, pit->get_protocol_id(), dead_time );
 #endif
-									new_neighbor = *nit;
-									new_neighbor.inc_total_beacons( 1 * pit->resolve_beacon_weight( _from ) );
-									new_neighbor.inc_total_beacons_expected( ( dead_time / nit->get_beacon_period() ) * ( pit->resolve_lost_beacon_weight( _from ) ) );
-									new_neighbor.update_link_stab_ratio();
-									new_neighbor.update_avg_LQI( beacon_lqi, 1 );
-									new_neighbor.set_beacon_period( beacon.get_beacon_period() );
-									new_neighbor.set_beacon_period_update_counter( beacon.get_beacon_period_update_counter() );
-									new_neighbor.set_last_beacon( current_time );
+										new_neighbor = *nit;
+										new_neighbor.inc_total_beacons( 1 * pit->resolve_beacon_weight( _from ) );
+										new_neighbor.inc_total_beacons_expected( 1 * pit->resolve_beacon_weight( _from ) );
+										new_neighbor.update_link_stab_ratio();
+										new_neighbor.update_avg_LQI( beacon_lqi, 1 );
+										new_neighbor.set_beacon_period( beacon.get_beacon_period() );
+										new_neighbor.set_beacon_period_update_counter( beacon.get_beacon_period_update_counter() );
+										new_neighbor.set_last_beacon( current_time );
+									}
+									else
+									{
+#ifdef NB_DEBUG_RECEIVE
+										debug().debug( "NeighborDiscovery-receive %x - Neighbor %x is late and not as advertised for protocol %id with dead_time : %d.\n", radio().id(), _from, pit->get_protocol_id(), dead_time );
+#endif
+										//TODO overflow here.
+										uint32_t last_beacon_period_update = beacon.get_beacon_period_update_counter() * beacon.get_beacon_period();
+										millis_t approximate_beacon_period = 0;
+										if ( pit->get_protocol_settings_ref()->get_dead_time_strategy() == ProtocolSettings::NEW_DEAD_TIME_PERIOD )
+										{
+											approximate_beacon_period = beacon.get_beacon_period();
+										}
+										else if ( pit->get_protocol_settings_ref()->get_dead_time_strategy() == ProtocolSettings::OLD_DEAD_TIME_PERIOD )
+										{
+											approximate_beacon_period = nit->get_beacon_period();
+										}
+										else if ( pit->get_protocol_settings_ref()->get_dead_time_strategy() == ProtocolSettings::MEAN_DEAD_TIME_PERIOD )
+										{
+											approximate_beacon_period = ( beacon.get_beacon_period() + nit->get_beacon_period() ) / 2;
+										}
+										else if ( pit->get_protocol_settings_ref()->get_dead_time_strategy() == ProtocolSettings::WEIGHTED_MEAN_DEAD_TIME_PERIOD )
+										{
+											approximate_beacon_period = ( beacon.get_beacon_period() * pit->get_protocol_settings_ref()->get_new_dead_time_period_weight() + nit->get_beacon_period() * pit->get_protocol_settings_ref()->get_old_dead_time_period_weight() ) / ( pit->get_protocol_settings_ref()->get_old_dead_time_period_weight() + pit->get_protocol_settings_ref()->get_new_dead_time_period_weight() );
+										}
+										uint32_t dead_time_messages_lost = ( dead_time - last_beacon_period_update ) * approximate_beacon_period;
+										new_neighbor = *nit;
+										new_neighbor.inc_total_beacons( 1 * pit->resolve_beacon_weight( _from ) );
+										new_neighbor.inc_total_beacons_expected( ( dead_time_messages_lost + beacon.get_beacon_period_update_counter() ) * ( pit->resolve_lost_beacon_weight( _from ) ) );
+										new_neighbor.update_link_stab_ratio();
+										new_neighbor.update_avg_LQI( beacon_lqi, 1 );
+										new_neighbor.set_beacon_period( beacon.get_beacon_period() );
+										new_neighbor.set_beacon_period_update_counter( beacon.get_beacon_period_update_counter() );
+										new_neighbor.set_last_beacon( current_time );
+									}
 								}
+							}
+						}
+						if ( found_flag == 0 )
+						{
+#ifdef NB_DEBUG_RECEIVE
+							debug().debug( "NeighborDiscovery-receive %x - Neighbor %x is unknown for protocol %i.\n", radio().id(), _from, pit->get_protocol_id() );
+#endif
+							new_neighbor.set_id( _from );
+							new_neighbor.set_total_beacons( 1 );
+							new_neighbor.set_total_beacons_expected( 1 );
+							new_neighbor.set_link_stab_ratio( 100 );
+							new_neighbor.set_link_stab_ratio_inverse( 0 );
+							new_neighbor.set_avg_LQI( beacon_lqi );
+							new_neighbor.set_beacon_period( beacon.get_beacon_period() );
+							new_neighbor.set_beacon_period_update_counter( beacon.get_beacon_period_update_counter() );
+							new_neighbor.set_last_beacon( current_time );
+						}
+						for ( Neighbor_vector_iterator nit = beacon.get_neighborhood_ref()->begin(); nit != beacon.get_neighborhood_ref()->end(); ++nit )
+						{
+							if ( radio().id() == nit->get_id() )
+							{
+#ifdef NB_DEBUG_RECEIVE
+								debug().debug( "NeighborDiscovery-receive %x - Neighbor %x was aware of node for protocol %i.\n", radio().id(), _from, pit->get_protocol_id() );
+#endif
+								new_neighbor.set_avg_LQI_inverse( nit->get_avg_LQI() );
+								new_neighbor.set_link_stab_ratio_inverse( nit->get_link_stab_ratio() );
+								new_neighbor.update_link_stab_ratio_inverse( pit->resolve_beacon_weight( _from ), pit->resolve_lost_beacon_weight( _from ) );
+							}
+						}
+#ifdef NB_DEBUG_RECEIVE
+						debug().debug( "$$$\n" );
+						new_neighbor.print( debug(), radio() );
+						debug().debug("beacon_lqi : %i\n", beacon_lqi );
+						debug().debug( "$$$\n" );
+#endif
+						uint8_t events_flag = 0;
+						if	(	( new_neighbor.get_avg_LQI() <= pit->get_protocol_settings_ref()->get_max_avg_LQI_threshold() ) &&
+								( new_neighbor.get_avg_LQI() >= pit->get_protocol_settings_ref()->get_min_avg_LQI_threshold() ) &&
+								( new_neighbor.get_avg_LQI_inverse() <= pit->get_protocol_settings_ref()->get_max_avg_LQI_inverse_threshold() ) &&
+								( new_neighbor.get_avg_LQI_inverse() >= pit->get_protocol_settings_ref()->get_min_avg_LQI_inverse_threshold() ) &&
+								( new_neighbor.get_link_stab_ratio() <= pit->get_protocol_settings_ref()->get_max_link_stab_ratio_threshold() ) &&
+								( new_neighbor.get_link_stab_ratio() >= pit->get_protocol_settings_ref()->get_min_link_stab_ratio_threshold() ) &&
+								( new_neighbor.get_link_stab_ratio_inverse() <= pit->get_protocol_settings_ref()->get_max_link_stab_ratio_inverse_threshold() ) &&
+								( new_neighbor.get_link_stab_ratio_inverse() >= pit->get_protocol_settings_ref()->get_min_link_stab_ratio_inverse_threshold() ) )
+						{
+							new_neighbor.set_active();
+							if ( found_flag == 1 )
+							{
+								events_flag = events_flag | ProtocolSettings::UPDATE_NB;
+								if ( new_neighbor.get_beacon_period() != update_neighbor_it->get_beacon_period() )
+								{
+									events_flag = events_flag | ProtocolSettings::BEACON_PERIOD_UPDATE;
+								}
+								*update_neighbor_it = new_neighbor;
+								pit->resolve_overflow_strategy( _from );
+#ifdef NB_DEBUG_RECEIVE
+								debug().debug( "NeighborDiscovery-receive %x - Neighbor %x was updated and active for protocol %i.\n", radio().id(), _from, pit->get_protocol_id() );
+#endif
 							}
 							else
 							{
-								if ( dead_time < beacon.get_beacon_period() + NB_RELAX_MILLIS )
+								events_flag = events_flag | ProtocolSettings::NEW_NB;
+								if ( pit->get_neighborhood_ref()->size() == pit->get_neighborhood_ref()->max_size() )
 								{
+									uint8_t rs = remove_worst_neighbor( *pit );
+									if ( rs == 0 )
+									{
+										pit->get_neighborhood_ref()->push_back( new_neighbor );
+										pit->resolve_overflow_strategy( _from );
 #ifdef NB_DEBUG_RECEIVE
-									debug().debug( "NeighborDiscovery-receive %x - Neighbor %x is on time same as advertised for protocol %i with dead_time : %d.\n", radio().id(), _from, pit->get_protocol_id(), dead_time );
+										debug().debug("NeighborDiscovery-receive %x - Neighbor %x was inserted and active for protocol %i.\n", radio().id(), _from, pit->get_protocol_id() );
+										new_neighbor.print( debug(), radio() );
 #endif
-									new_neighbor = *nit;
-									new_neighbor.inc_total_beacons( 1 * pit->resolve_beacon_weight( _from ) );
-									new_neighbor.inc_total_beacons_expected( 1 * pit->resolve_beacon_weight( _from ) );
-									new_neighbor.update_link_stab_ratio();
-									new_neighbor.update_avg_LQI( beacon_lqi, 1 );
-									new_neighbor.set_beacon_period( beacon.get_beacon_period() );
-									new_neighbor.set_beacon_period_update_counter( beacon.get_beacon_period_update_counter() );
-									new_neighbor.set_last_beacon( current_time );
+									}
+#ifdef NB_DEBUG_RECEIVE
+									else
+									{
+										debug().debug("NeighborDiscovery-receive %x - Neighbor %x was could be inserted and would be active for protocol %i.\n", radio().id(), _from, pit->get_protocol_id() );
+										new_neighbor.print( debug(), radio() );
+									}
+#endif
 								}
 								else
-								{
-#ifdef NB_DEBUG_RECEIVE
-									debug().debug( "NeighborDiscovery-receive %x - Neighbor %x is late and not as advertised for protocol %id with dead_time : %d.\n", radio().id(), _from, pit->get_protocol_id(), dead_time );
-#endif
-									//TODO overflow here.
-									uint32_t last_beacon_period_update = beacon.get_beacon_period_update_counter() * beacon.get_beacon_period();
-									millis_t approximate_beacon_period = 0;
-									if ( pit->get_protocol_settings_ref()->get_dead_time_strategy() == ProtocolSettings::NEW_DEAD_TIME_PERIOD )
-									{
-										approximate_beacon_period = beacon.get_beacon_period();
-									}
-									else if ( pit->get_protocol_settings_ref()->get_dead_time_strategy() == ProtocolSettings::OLD_DEAD_TIME_PERIOD )
-									{
-										approximate_beacon_period = nit->get_beacon_period();
-									}
-									else if ( pit->get_protocol_settings_ref()->get_dead_time_strategy() == ProtocolSettings::MEAN_DEAD_TIME_PERIOD )
-									{
-										approximate_beacon_period = ( beacon.get_beacon_period() + nit->get_beacon_period() ) / 2;
-									}
-									else if ( pit->get_protocol_settings_ref()->get_dead_time_strategy() == ProtocolSettings::WEIGHTED_MEAN_DEAD_TIME_PERIOD )
-									{
-										approximate_beacon_period = ( beacon.get_beacon_period() * pit->get_protocol_settings_ref()->get_new_dead_time_period_weight() + nit->get_beacon_period() * pit->get_protocol_settings_ref()->get_old_dead_time_period_weight() ) / ( pit->get_protocol_settings_ref()->get_old_dead_time_period_weight() + pit->get_protocol_settings_ref()->get_new_dead_time_period_weight() );
-									}
-									uint32_t dead_time_messages_lost = ( dead_time - last_beacon_period_update ) * approximate_beacon_period;
-									new_neighbor = *nit;
-									new_neighbor.inc_total_beacons( 1 * pit->resolve_beacon_weight( _from ) );
-									new_neighbor.inc_total_beacons_expected( ( dead_time_messages_lost + beacon.get_beacon_period_update_counter() ) * ( pit->resolve_lost_beacon_weight( _from ) ) );
-									new_neighbor.update_link_stab_ratio();
-									new_neighbor.update_avg_LQI( beacon_lqi, 1 );
-									new_neighbor.set_beacon_period( beacon.get_beacon_period() );
-									new_neighbor.set_beacon_period_update_counter( beacon.get_beacon_period_update_counter() );
-									new_neighbor.set_last_beacon( current_time );
-								}
-							}
-						}
-					}
-					if ( found_flag == 0 )
-					{
-#ifdef NB_DEBUG_RECEIVE
-						debug().debug( "NeighborDiscovery-receive %x - Neighbor %x is unknown for protocol %i.\n", radio().id(), _from, pit->get_protocol_id() );
-#endif
-						new_neighbor.set_id( _from );
-						new_neighbor.set_total_beacons( 1 );
-						new_neighbor.set_total_beacons_expected( 1 );
-						new_neighbor.set_link_stab_ratio( 100 );
-						new_neighbor.set_link_stab_ratio_inverse( 0 );
-						new_neighbor.set_avg_LQI( beacon_lqi );
-						new_neighbor.set_beacon_period( beacon.get_beacon_period() );
-						new_neighbor.set_beacon_period_update_counter( beacon.get_beacon_period_update_counter() );
-						new_neighbor.set_last_beacon( current_time );
-					}
-					for ( Neighbor_vector_iterator nit = beacon.get_neighborhood_ref()->begin(); nit != beacon.get_neighborhood_ref()->end(); ++nit )
-					{
-						if ( radio().id() == nit->get_id() )
-						{
-#ifdef NB_DEBUG_RECEIVE
-							debug().debug( "NeighborDiscovery-receive %x - Neighbor %x was aware of node for protocol %i.\n", radio().id(), _from, pit->get_protocol_id() );
-#endif
-							new_neighbor.set_avg_LQI_inverse( nit->get_avg_LQI() );
-							new_neighbor.set_link_stab_ratio_inverse( nit->get_link_stab_ratio() );
-							new_neighbor.update_link_stab_ratio_inverse( pit->resolve_beacon_weight( _from ), pit->resolve_lost_beacon_weight( _from ) );
-						}
-					}
-#ifdef NB_DEBUG_RECEIVE
-					debug().debug( "$$$\n" );
-					new_neighbor.print( debug(), radio() );
-					debug().debug("beacon_lqi : %i\n", beacon_lqi );
-					debug().debug( "$$$\n" );
-#endif
-					uint8_t events_flag = 0;
-					if	(	( new_neighbor.get_avg_LQI() <= pit->get_protocol_settings_ref()->get_max_avg_LQI_threshold() ) &&
-							( new_neighbor.get_avg_LQI() >= pit->get_protocol_settings_ref()->get_min_avg_LQI_threshold() ) &&
-							( new_neighbor.get_avg_LQI_inverse() <= pit->get_protocol_settings_ref()->get_max_avg_LQI_inverse_threshold() ) &&
-							( new_neighbor.get_avg_LQI_inverse() >= pit->get_protocol_settings_ref()->get_min_avg_LQI_inverse_threshold() ) &&
-							( new_neighbor.get_link_stab_ratio() <= pit->get_protocol_settings_ref()->get_max_link_stab_ratio_threshold() ) &&
-							( new_neighbor.get_link_stab_ratio() >= pit->get_protocol_settings_ref()->get_min_link_stab_ratio_threshold() ) &&
-							( new_neighbor.get_link_stab_ratio_inverse() <= pit->get_protocol_settings_ref()->get_max_link_stab_ratio_inverse_threshold() ) &&
-							( new_neighbor.get_link_stab_ratio_inverse() >= pit->get_protocol_settings_ref()->get_min_link_stab_ratio_inverse_threshold() ) )
-					{
-						new_neighbor.set_active();
-						if ( found_flag == 1 )
-						{
-							events_flag = events_flag | ProtocolSettings::UPDATE_NB;
-							if ( new_neighbor.get_beacon_period() != update_neighbor_it->get_beacon_period() )
-							{
-								events_flag = events_flag | ProtocolSettings::BEACON_PERIOD_UPDATE;
-							}
-							*update_neighbor_it = new_neighbor;
-							pit->resolve_overflow_strategy( _from );
-#ifdef NB_DEBUG_RECEIVE
-							debug().debug( "NeighborDiscovery-receive %x - Neighbor %x was updated and active for protocol %i.\n", radio().id(), _from, pit->get_protocol_id() );
-#endif
-						}
-						else
-						{
-							events_flag = events_flag | ProtocolSettings::NEW_NB;
-							if ( pit->get_neighborhood_ref()->size() == pit->get_neighborhood_ref()->max_size() )
-							{
-								uint8_t rs = remove_worst_neighbor( *pit );
-								if ( rs == 0 )
 								{
 									pit->get_neighborhood_ref()->push_back( new_neighbor );
 									pit->resolve_overflow_strategy( _from );
 #ifdef NB_DEBUG_RECEIVE
-									debug().debug("NeighborDiscovery-receive %x - Neighbor %x was inserted and active for protocol %i.\n", radio().id(), _from, pit->get_protocol_id() );
-									new_neighbor.print( debug(), radio() );
+										debug().debug("NeighborDiscovery-receive %x - Neighbor %x was inserted and active for protocol %i.\n", radio().id(), _from, pit->get_protocol_id() );
+										new_neighbor.print( debug(), radio() );
 #endif
 								}
-#ifdef NB_DEBUG_RECEIVE
-								else
+							}
+							uint8_t payload_found_flag = 0;
+							ProtocolPayload pp;
+							for ( ProtocolPayload_vector_iterator ppit = beacon.get_protocol_payloads_ref()->begin(); ppit != beacon.get_protocol_payloads_ref()->end(); ++ppit )
+							{
+								if ( ppit->get_protocol_id() == pit->get_protocol_id() )
 								{
-									debug().debug("NeighborDiscovery-receive %x - Neighbor %x was could be inserted and would be active for protocol %i.\n", radio().id(), _from, pit->get_protocol_id() );
-									new_neighbor.print( debug(), radio() );
+#ifdef NB_DEBUG_RECEIVE
+									debug().debug("NeighborDiscovery-receive %x - Beacon carried a payload for protocol %i.\n", radio().id(), pit->get_protocol_id() );
+#endif
+									events_flag = events_flag | ProtocolSettings::NEW_PAYLOAD;
+									pp = *ppit;
+									payload_found_flag = 1;
 								}
+							}
+#ifdef NB_DEBUG_RECEIVE
+							if ( payload_found_flag == 0 )
+							{
+								debug().debug("NeighborDiscovery-receive %x - Beacon did not carry a payload for protocol %i.\n", radio().id(), pit->get_protocol_id() );
+							}
+#endif
+							events_flag = pit->get_protocol_settings_ref()->get_events_flag() & events_flag;
+							if ( events_flag != 0 )
+							{
+								pit->get_event_notifier_callback()( events_flag, _from, pp.get_payload_size(), pp.get_payload_data() );
+							}
+						}
+						else
+						{
+							new_neighbor.set_active( 0 );
+							if ( found_flag == 1 )
+							{
+								events_flag = events_flag | ProtocolSettings::LOST_NB;
+								*update_neighbor_it = new_neighbor;
+#ifdef NB_DEBUG_RECEIVE
+								debug().debug("NeighborDiscovery-receive %x - Neighbor %x was updated but inactive for protocol %i.\n", radio().id(), _from, pit->get_protocol_id() );
 #endif
 							}
 							else
 							{
-								pit->get_neighborhood_ref()->push_back( new_neighbor );
-								pit->resolve_overflow_strategy( _from );
+								if (pit->get_neighborhood_ref()->size() == pit->get_neighborhood_ref()->max_size() )
+								{
+									uint8_t rs = remove_worst_neighbor( *pit );
+									if ( rs == 0 )
+									{
+										pit->get_neighborhood_ref()->push_back( new_neighbor );
 #ifdef NB_DEBUG_RECEIVE
-									debug().debug("NeighborDiscovery-receive %x - Neighbor %x was inserted and active for protocol %i.\n", radio().id(), _from, pit->get_protocol_id() );
-									new_neighbor.print( debug(), radio() );
+										debug().debug("NeighborDiscovery-receive %x - Neighbor %x was inserted but inactive for protocol %i.\n", radio().id(), _from, pit->get_protocol_id() );
+										new_neighbor.print( debug(), radio() );
 #endif
-							}
-						}
-						uint8_t payload_found_flag = 0;
-						ProtocolPayload pp;
-						for ( ProtocolPayload_vector_iterator ppit = beacon.get_protocol_payloads_ref()->begin(); ppit != beacon.get_protocol_payloads_ref()->end(); ++ppit )
-						{
-							if ( ppit->get_protocol_id() == pit->get_protocol_id() )
-							{
+									}
 #ifdef NB_DEBUG_RECEIVE
-								debug().debug("NeighborDiscovery-receive %x - Beacon carried a payload for protocol %i.\n", radio().id(), pit->get_protocol_id() );
+									else
+									{
+										debug().debug("NeighborDiscovery-receive %x - Neighbor %x could not be inserted but would be inactive for protocol %i.\n", radio().id(), _from, pit->get_protocol_id() );
+										new_neighbor.print( debug(), radio() );
+									}
 #endif
-								events_flag = events_flag | ProtocolSettings::NEW_PAYLOAD;
-								pp = *ppit;
-								payload_found_flag = 1;
-							}
-						}
-#ifdef NB_DEBUG_RECEIVE
-						if ( payload_found_flag == 0 )
-						{
-							debug().debug("NeighborDiscovery-receive %x - Beacon did not carry a payload for protocol %i.\n", radio().id(), pit->get_protocol_id() );
-						}
-#endif
-						events_flag = pit->get_protocol_settings_ref()->get_events_flag() & events_flag;
-						if ( events_flag != 0 )
-						{
-							pit->get_event_notifier_callback()( events_flag, _from, pp.get_payload_size(), pp.get_payload_data() );
-						}
-					}
-					else
-					{
-						new_neighbor.set_active( 0 );
-						if ( found_flag == 1 )
-						{
-							events_flag = events_flag | ProtocolSettings::LOST_NB;
-							*update_neighbor_it = new_neighbor;
-#ifdef NB_DEBUG_RECEIVE
-							debug().debug("NeighborDiscovery-receive %x - Neighbor %x was updated but inactive for protocol %i.\n", radio().id(), _from, pit->get_protocol_id() );
-#endif
-						}
-						else
-						{
-							if (pit->get_neighborhood_ref()->size() == pit->get_neighborhood_ref()->max_size() )
-							{
-								uint8_t rs = remove_worst_neighbor( *pit );
-								if ( rs == 0 )
+								}
+								else
 								{
 									pit->get_neighborhood_ref()->push_back( new_neighbor );
 #ifdef NB_DEBUG_RECEIVE
@@ -422,35 +438,19 @@ namespace wiselib
 									new_neighbor.print( debug(), radio() );
 #endif
 								}
-#ifdef NB_DEBUG_RECEIVE
-								else
-								{
-									debug().debug("NeighborDiscovery-receive %x - Neighbor %x could not be inserted but would be inactive for protocol %i.\n", radio().id(), _from, pit->get_protocol_id() );
-									new_neighbor.print( debug(), radio() );
-								}
-#endif
 							}
-							else
+							events_flag = pit->get_protocol_settings_ref()->get_events_flag() & events_flag;
+							if ( events_flag != 0 )
 							{
-								pit->get_neighborhood_ref()->push_back( new_neighbor );
-#ifdef NB_DEBUG_RECEIVE
-								debug().debug("NeighborDiscovery-receive %x - Neighbor %x was inserted but inactive for protocol %i.\n", radio().id(), _from, pit->get_protocol_id() );
-								new_neighbor.print( debug(), radio() );
-#endif
+								pit->get_event_notifier_callback()( events_flag, _from, 0, NULL );
 							}
-						}
-						events_flag = pit->get_protocol_settings_ref()->get_events_flag() & events_flag;
-						if ( events_flag != 0 )
-						{
-							pit->get_event_notifier_callback()( events_flag, _from, 0, NULL );
 						}
 					}
 				}
-			}
 #ifdef NB_DEBUG_RECEIVE
-			debug().debug("NeighborDiscovery-receive %x - From %x Exiting.\n", radio().id(), _from );
+				debug().debug("NeighborDiscovery-receive %x - From %x Exiting.\n", radio().id(), _from );
 #endif
-		}
+			}
 		}
 		// --------------------------------------------------------------------
 		template<class T, void(T::*TMethod)(uint8_t, node_id_t, size_t, uint8_t*) >
