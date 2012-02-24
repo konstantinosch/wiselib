@@ -94,7 +94,14 @@ public:
 	typedef typename NeighborDiscovery::ProtocolPayload_vector_iterator ProtocolPayload_vector_iterator;
 	// -----------------------------------------------------------------------
 	PLTT_PassiveType() :
-		radio_callback_id_(0), seconds_counter(1)
+		radio_callback_id_			( 0 ),
+		seconds_counter				( 1 )
+#ifdef PLTT_SECURE
+		,decryption_request_timer	( 1000 ),
+		decryption_request_offset	( 50 ),
+		decryption_max_retries		( 5 )
+
+#endif
 	{
 	}
 	// -----------------------------------------------------------------------
@@ -216,11 +223,6 @@ public:
 				debug().debug( "PLTT_Passive %x: Received encrypted trace from unknown target of size %i - Encrypted trace is valid for propagation and decryption\n", self.get_node().get_id(), message->payload_size() );
 //#endif
 					prepare_spread_secure_trace( secure_trace_ptr, exdata );
-					PrivacyMessage pm;
-					pm.set_request_id( secure_trace.get_request_id() );
-					pm.set_payload( secure_trace.get_target_id_size(), secure_trace.get_target_id() );
-					pm.set_msg_id( PRIVACY_DECRYPTION_REQUEST_ID );
-					radio().send( Radio::BROADCAST_ADDRESS, pm.buffer_size(), pm.buffer() );
 				}
 			}
 			else
@@ -685,6 +687,23 @@ public:
 		debug().debug( "PLTT_Passive %x: Prepare Spread Secure Trace - Scheduled inhibition and spread in %i millis \n", self.get_node().get_id(), r );
 #endif
 			timer().template set_timer<self_type, &self_type::spread_secure_trace> ( r, this, (void*) t );
+			timer().template set_timer<self_type, &self_type::send_decryption_request> ( r + decryption_request_offset, this, (void*) t );
+		}
+	}
+	// -----------------------------------------------------------------------
+	void send_decryption_request( void* userdata = NULL)
+	{
+		if ( userdata != NULL )
+		{
+#ifdef PLTT_PASSIVE_DEBUG_SPREAD
+		debug().debug( "PLTT_Passive %x: Sending decryption request\n", self.get_node().get_id() );
+#endif
+			PLTT_SecureTrace* t = (PLTT_SecureTrace*) userdata;
+			PrivacyMessage pm;
+			pm.set_request_id( t->get_request_id() );
+			pm.set_payload( t->get_target_id_size(), t->get_target_id() );
+			pm.set_msg_id( PRIVACY_DECRYPTION_REQUEST_ID );
+			radio().send( Radio::BROADCAST_ADDRESS, pm.buffer_size(), pm.buffer() );
 		}
 	}
 	// -----------------------------------------------------------------------
@@ -1003,9 +1022,19 @@ public:
 		decryption_request_timer = drt;
 	}
 	// -----------------------------------------------------------------------
-	millis_t get_decryption_request_timer( )
+	millis_t get_decryption_request_timer()
 	{
 		return decryption_request_timer;
+	}
+	// -----------------------------------------------------------------------
+	void set_decryption_request_offset( millis_t dro )
+	{
+		decryption_request_offset = dro;
+	}
+	// -----------------------------------------------------------------------
+	millis_t get_decryption_request_offset()
+	{
+		return decryption_request_offset;
 	}
 	// -----------------------------------------------------------------------
 	void set_decryption_max_retries( uint8_t _dmr )
@@ -1084,6 +1113,7 @@ private:
 #ifdef PLTT_SECURE
 	PLTT_SecureTraceList secure_traces;
 	millis_t decryption_request_timer;
+	millis_t decryption_request_offset;
 	uint8_t decryption_max_retries;
 #endif
 #ifdef CONFIG_PROACTIVE_INHIBITION

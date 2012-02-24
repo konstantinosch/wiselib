@@ -84,6 +84,7 @@ void application_main( Os::AppMainParameter& value )
 	passive.set_random_enable_timer_range( RANDOM_ENABLE_TIMER_RANGE );
 #ifdef PLTT_SECURE
 	passive.set_decryption_request_timer( DECRYPTION_REQUEST_TIMER );
+	passive.set_decryption_request_offset( DECRYPTION_REQUEST_OFFSET );
 	passive.set_decryption_max_retries( DECRYPTION_MAX_RETRIES );
 #endif
 #ifdef CONFIG_PROACTIVE_INHIBITION
