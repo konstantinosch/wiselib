@@ -27,7 +27,9 @@ namespace wiselib
 template<	typename Os_P,
 			typename Radio_P,
 			typename Timer_P,
+#ifndef SHAWN_PRIVACY_PC_APPLICATION
 			typename Uart_P,
+#endif
 			typename PrivacyMessage_P,
 			typename PrivacyMessageList_P,
 			typename Debug_P>
@@ -37,11 +39,17 @@ template<	typename Os_P,
 		typedef Os_P Os;
 		typedef Radio_P Radio;
 		typedef Timer_P Timer;
+#ifndef SHAWN_PRIVACY_PC_APPLICATION
 		typedef Uart_P Uart;
+#endif
 		typedef PrivacyMessage_P PrivacyMessage;
 		typedef PrivacyMessageList_P PrivacyMessageList;
 		typedef Debug_P Debug;
+#ifndef SHAWN_PRIVACY_PC_APPLICATION
 		typedef PrivacyType<Os, Radio, Timer, Uart, PrivacyMessage, PrivacyMessageList, Debug> self_type;
+#else
+		typedef PrivacyType<Os, Radio, Timer, PrivacyMessage, PrivacyMessageList, Debug> self_type;
+#endif
 		typedef typename Radio::node_id_t node_id_t;
 		typedef typename Radio::size_t size_t;
 		typedef typename Radio::block_data_t block_data_t;
@@ -54,17 +62,25 @@ template<	typename Os_P,
 		typedef wiselib::vector_static <Os, callback_element, 20> CallbackContainer;
 		typedef typename CallbackContainer::iterator CallbackContainerIterator;
 		// -----------------------------------------------------------------------
+#ifndef SHAWN_PRIVACY_PC_APPLICATION
 		void init( Radio& radio, Debug& debug, Uart& uart, Timer& timer )
+#else
+		void init( Radio& radio, Debug& debug, Timer& timer )
+#endif
 		{
 			radio_ = &radio;
 			debug_ = &debug;
+#ifndef SHAWN_PRIVACY_PC_APPLICATION
 			uart_= &uart;
+#endif
 			timer_ = &timer;
 		}
 		// -----------------------------------------------------------------------
 		PrivacyType()
 			:radio_callback_id_  	( 0 ),
+#ifndef SHAWN_PRIVACY_PC_APPLICATION
 			 uart_callback_id_		( 0 ),
+#endif
 		 	 uart_read_write		( 0 )
 		{}
 		// -----------------------------------------------------------------------
@@ -73,25 +89,29 @@ template<	typename Os_P,
 		// -----------------------------------------------------------------------
 		void enable( void )
 		{
-#ifdef ISENSE_PRIVACY_DEBUG
+#ifdef PRIVACY_DEBUG
 			debug().debug( "Privacy %x: Boot \n", radio().id() );
 #endif
 			radio().enable_radio();
+#ifndef SHAWN_PRIVACY_PC_APPLICATION
 			uart().enable_serial_comm();
-			radio_callback_id_ = radio().template reg_recv_callback<self_type, &self_type::radio_receive>( this );
 			uart_callback_id_ = uart().template reg_read_callback<self_type, &self_type::uart_receive>( this );
+#endif
+			radio_callback_id_ = radio().template reg_recv_callback<self_type, &self_type::radio_receive>( this );
 			process_request();
 		}
 		// -----------------------------------------------------------------------
 		void disable( void )
 		{
-#ifdef ISENSE_PRIVACY_DEBUG
+#ifdef PRIVACY_DEBUG
 			debug().debug( "Private %x: Disable \n", radio().id() );
 #endif
 			radio().unreg_recv_callback( radio_callback_id_ );
 			radio().disable();
+#ifndef SHAWN_PRIVACY_PC_APPLICATION
 			uart().unreg_read_callback( uart_callback_id_ );
 			uart().disable_serial_comm();
+#endif
 		}
 		// -----------------------------------------------------------------------
 		void radio_receive( node_id_t from, size_t len, block_data_t *data )
@@ -111,7 +131,7 @@ template<	typename Os_P,
 				)
 			{
 				PrivacyMessage *message = ( PrivacyMessage* )data;
-#ifdef ISENSE_PRIVACY_DEBUG
+#ifdef PRIVACY_DEBUG
 				debug().debug( "Privacy %x: Radio received - received request", radio().id() );
 				debug().debug( "Message:\n ");
 				debug().debug( "msg id %i (size %i )\n", msg_id, sizeof( msg_id ));
@@ -136,16 +156,42 @@ template<	typename Os_P,
 		// -----------------------------------------------------------------------
 		void process_request( void* data = NULL )
 		{
-#ifdef ISENSE_PRIVACY_DEBUG
-			//debug().debug( "Privacy %x: Process request - Message list of %i elements", radio().id(), message_list.size() );
+#ifdef PRIVACY_DEBUG
+			debug().debug( "Privacy %x: Process request - Message list of %i elements", radio().id(), message_list.size() );
 #endif
 			if ( ( uart_read_write == 0 ) && ( message_list.size() > 0 ) )
 			{
-#ifdef ISENSE_PRIVACY_DEBUG
+#ifdef PRIVACY_DEBUG
 					debug().debug( "Privacy %x: Process request - Forwarding request to UART", radio().id() );
 #endif
 					PrivacyMessageListIterator i = message_list.begin();
+#ifndef SHAWN_PRIVACY_PC_APPLICATION
 					uart().write( i->buffer_size(), i->buffer() );
+#else
+#ifdef PRIVACY_ENABLE_ENCRYPTION
+					if	( i->msg_id() == PRIVACY_ENCRYPTION_REQUEST_ID )
+					{
+						i->set_msg_id( PRIVACY_ENCRYPTION_REPLY_ID );
+						i->set_payload( PRIVACY_CIPHER_TEXT_MAX_SIZE, i->payload() );
+					}
+#endif
+#ifdef PRIVACY_ENABLE_DECRYPTION
+					if (  i->msg_id() == PRIVACY_DECRYPTION_REQUEST_ID )
+					{
+						i->set_msg_id( PRIVACY_DECRYPTION_REPLY_ID );
+						i->set_payload( sizeof(node_id_t), i->payload() );
+					}
+#endif
+#ifdef PRIVACY_ENABLE_RANDOMIZATION
+					if (  i->msg_id() == PRIVACY_RANDOMIZE_REQUEST_ID )
+					{
+						i->set_msg_id( PRIVACY_RANDOMIZE_REPLY_ID );
+						i->set_payload( PRIVACY_CIPHER_TEXT_MAX_SIZE, i->payload() );
+					}
+#endif
+					size_t len = i->buffer_size();
+					uart_receive( len, i->buffer() );
+#endif
 					uart_read_write = 1;
 			}
 			timer().template set_timer<self_type, &self_type::process_request>( 50, this, ( void* )data );
@@ -172,7 +218,7 @@ template<	typename Os_P,
 				send_privacy( len, buff );
 				for ( PrivacyMessageListIterator i = message_list.begin(); i != message_list.end(); ++i )
 				{
-					#ifdef ISENSE_PRIVACY_DEBUG
+					#ifdef PRIVACY_DEBUG
 					debug().debug("Privacy %x: UART Receive", radio().id() );
 					#endif
 					if ( i->request_id() == message->request_id() )
@@ -241,15 +287,19 @@ template<	typename Os_P,
 			return *timer_;
 		}
 		// -----------------------------------------------------------------------
+#ifndef SHAWN_PRIVACY_PC_APPLICATION
 		Uart& uart()
 		{
 			return *uart_;
 		}
+#endif
 		// -----------------------------------------------------------------------
 	private:
 		Radio * radio_;
 		Debug * debug_;
+#ifndef SHAWN_PRIVACY_PC_APPLICATION
 		Uart *  uart_;
+#endif
 		Timer * timer_;
 		enum MessageIds
 		{
@@ -262,7 +312,9 @@ template<	typename Os_P,
 			PRIVACY_UNREGISTER = 160
 		};
 		uint32_t radio_callback_id_;
+#ifndef SHAWN_PRIVACY_PC_APPLICATION
 		uint32_t uart_callback_id_;
+#endif
 		CallbackContainer privacy_callbacks;
 		PrivacyMessageList message_list;
 		uint8_t uart_read_write;

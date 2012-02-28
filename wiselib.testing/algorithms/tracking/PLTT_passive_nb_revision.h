@@ -111,52 +111,52 @@ public:
 	// -----------------------------------------------------------------------
 	void enable(void)
 	{
-//#ifdef PLTT_PASSIVE_DEBUG_MISC
+#ifdef PLTT_PASSIVE_DEBUG_MISC
 		debug().debug( "PLTT_Passive %x: Boot \n", self.get_node().get_id() );
-//#endif
+#endif
 		radio().enable_radio();
 		TxPower power;
 		power.set_dB( transmission_power_dB);
 		radio().set_power( power );
-		//millis_t r = rand()() % random_enable_timer_range;
+		millis_t r = rand()() % random_enable_timer_range;
 		timer().template set_timer<self_type, &self_type::neighbor_discovery_enable_task> (1, this, 0);
 	}
 	// -----------------------------------------------------------------------
 	void neighbor_discovery_enable_task(void* userdata = NULL)
 	{
-//#ifdef PLTT_PASSIVE_DEBUG_NEIGHBORHOOD_DISCOVERY
+#ifdef PLTT_PASSIVE_DEBUG_NEIGHBORHOOD_DISCOVERY
 		debug().debug( "PLTT_Passive %x: Neighbor discovery enable task \n", self.get_node().get_id() );
-//#endif
-		//block_data_t buff[100];
-		//ProtocolPayload pp( NeighborDiscovery::TRACKING_PROTOCOL_ID, self.get_node().get_position().get_buffer_size(), self.get_node().get_position().set_buffer_from( buff ) );
-		//uint8_t ef = ProtocolSettings::NEW_PAYLOAD|ProtocolSettings::LOST_NB|ProtocolSettings::NEIGHBOR_REMOVED|ProtocolSettings::NEW_PAYLOAD;
-		//ProtocolSettings ps( 255, 0, 255, 0, 100, 75, 100, 75, ef, -6, 100, 3000, 100, ProtocolSettings::RATIO_DIVIDER, 2, ProtocolSettings::MEAN_DEAD_TIME_PERIOD, 100, 100, ProtocolSettings::R_NR_WEIGHTED, 10, 10, pp );
-		//uint8_t result = 0;
-		//result = neighbor_discovery(). template register_protocol<self_type, &self_type::sync_neighbors>( NeighborDiscovery::TRACKING_PROTOCOL_ID, ps, this  );
-		//Protocol* prot_ref = neighbor_discovery().get_protocol_ref( NeighborDiscovery::TRACKING_PROTOCOL_ID );
-		//if ( prot_ref != NULL )
-		//{
-		//	neighbor_discovery().enable();
+#endif
+		block_data_t buff[100];
+		ProtocolPayload pp( NeighborDiscovery::TRACKING_PROTOCOL_ID, self.get_node().get_position().get_buffer_size(), self.get_node().get_position().set_buffer_from( buff ) );
+		uint8_t ef = ProtocolSettings::NEW_PAYLOAD|ProtocolSettings::LOST_NB|ProtocolSettings::NEIGHBOR_REMOVED|ProtocolSettings::NEW_PAYLOAD;
+		ProtocolSettings ps( 255, 0, 255, 0, 100, 75, 100, 75, ef, -6, 100, 3000, 100, ProtocolSettings::RATIO_DIVIDER, 2, ProtocolSettings::MEAN_DEAD_TIME_PERIOD, 100, 100, ProtocolSettings::R_NR_WEIGHTED, 10, 10, pp );
+		uint8_t result = 0;
+		result = neighbor_discovery(). template register_protocol<self_type, &self_type::sync_neighbors>( NeighborDiscovery::TRACKING_PROTOCOL_ID, ps, this  );
+		Protocol* prot_ref = neighbor_discovery().get_protocol_ref( NeighborDiscovery::TRACKING_PROTOCOL_ID );
+		if ( prot_ref != NULL )
+		{
+			neighbor_discovery().enable();
 			nb_convergence_time = 1;
 			timer().template set_timer<self_type, &self_type::neighbor_discovery_unregister_task> ( nb_convergence_time, this, 0 );
-		//}
+		}
 	}
 	// -----------------------------------------------------------------------
 	void neighbor_discovery_unregister_task( void* userdata = NULL )
 	{
-//#ifdef PLTT_PASSIVE_DEBUG_NEIGHBORHOOD_DISCOVERY
+#ifdef PLTT_PASSIVE_DEBUG_NEIGHBORHOOD_DISCOVERY
 		debug().debug( "PLTT_Passive %x: Neighbor discovery unregister task \n", self.get_node().get_id() );
-//#endif
-		//Protocol* prot_ref = NULL;
-		//neighbor_discovery().disable();
-		radio_callback_id_ = radio().template reg_recv_callback<self_type, &self_type::receive> (this);
+#endif
+		Protocol* prot_ref = NULL;
+		neighbor_discovery().disable();
+		//radio_callback_id_ = radio().template reg_recv_callback<self_type, &self_type::receive> (this);
 		//update_traces();
-//#ifdef PLTT_PASSIVE_DEBUG_NEIGHBORHOOD_DISCOVERY
-			//debug().debug( "PLTT_Passive %x (%i, %i): NB READY! - Neighbor discovery unregister - size of neighbor list %i vs nb size %i ", self.get_node().get_id(), self.get_node().get_position().get_x(), self.get_node().get_position().get_y(), neighbors.size(), neighbor_discovery().neighborhood.size() );
-			//print_neighbors();
-//#endif
+#ifdef PLTT_PASSIVE_DEBUG_NEIGHBORHOOD_DISCOVERY
+			debug().debug( "PLTT_Passive %x (%i, %i): NB READY! - Neighbor discovery unregister - size of neighbor list %i vs nb size %i ", self.get_node().get_id(), self.get_node().get_position().get_x(), self.get_node().get_position().get_y(), neighbors.size(), neighbor_discovery().neighborhood.size() );
+			print_neighbors();
+#endif
 #ifdef PLTT_SECURE
-		decryption_request_daemon();
+		//decryption_request_daemon();
 #endif
 #ifdef CONFIG_PROACTIVE_INHIBITION
 		proactive_inhibition_daemon();
@@ -165,9 +165,9 @@ public:
 	// -----------------------------------------------------------------------
 	void disable(void)
 	{
-//#ifdef PLTT_PASSIVE_DEBUG_MISC
+#ifdef PLTT_PASSIVE_DEBUG_MISC
 		debug().debug( "PLTT_Passive %x: Disable \n", self.get_node().id );
-//#endif
+#endif
 		radio().unreg_recv_callback( radio_callback_id_ );
 		radio().disable();
 	}
@@ -213,32 +213,32 @@ public:
 			secure_trace.set_request_id( request_id );
 			if ( ( secure_trace.get_recipient_1_id() == self.get_node().get_id() ) || ( secure_trace.get_recipient_2_id() == self.get_node().get_id() ) || ( secure_trace.get_intensity() == secure_trace.get_max_intensity() ) )
 			{
-//#ifdef PLTT_PASSIVE_DEBUG_SECURE
+#ifdef PLTT_PASSIVE_DEBUG_SECURE
 				debug().debug( "PLTT_Passive %x: Received encrypted trace from unknown target %x of size %i - Encrypted trace is detection or direct spread - inhibition: 0\n", self.get_node().get_id(), from, message->payload_size(), secure_trace.get_intensity() );
-//#endif
+#endif
 				PLTT_SecureTrace* secure_trace_ptr = store_inhibit_secure_trace( secure_trace );
 				if ( secure_trace_ptr != NULL )
 				{
-//#ifdef PLTT_PASSIVE_DEBUG_SECURE
+#ifdef PLTT_PASSIVE_DEBUG_SECURE
 				debug().debug( "PLTT_Passive %x: Received encrypted trace from unknown target of size %i - Encrypted trace is valid for propagation and decryption\n", self.get_node().get_id(), message->payload_size() );
-//#endif
+#endif
 					prepare_spread_secure_trace( secure_trace_ptr, exdata );
 				}
 			}
 			else
 			{
-//#ifdef PLTT_PASSIVE_DEBUG_SECURE
+#ifdef PLTT_PASSIVE_DEBUG_SECURE
 				debug().debug( "PLTT_Passive %x: Received encrypted trace from unknown target of size %i - Encrypted trace is indirect spread - inhibition: 1\n", self.get_node().get_id(), message->payload_size() );
-//#endif
+#endif
 				store_inhibit_secure_trace( secure_trace, 1 );
 			}
 		}
 		else if ( msg_id == PRIVACY_DECRYPTION_REPLY_ID )
 		{
 			PrivacyMessage* pm = ( PrivacyMessage* ) data;
-//#ifdef PLTT_PASSIVE_DEBUG_SECURE
+#ifdef PLTT_PASSIVE_DEBUG_SECURE
 			debug().debug( "PLTT_Passive %x: Received decryption reply from helper %x of size %i\n", self.get_node().get_id(), from, pm->buffer_size() );
-//#endif
+#endif
 			for ( PLTT_SecureTraceListIterator i = secure_traces.begin(); i != secure_traces.end(); ++i )
 			{
 				if ( ( pm->request_id() == i->get_request_id() ) && ( i->get_decryption_retries() < decryption_max_retries ) )
@@ -246,9 +246,9 @@ public:
 					node_id_t id = read<Os, block_data_t, node_id_t>( pm->payload() );
 					PLTT_Trace t;
 					t.set_target_id( id );
-//#ifdef PLTT_PASSIVE_DEBUG_SECURE
+#ifdef PLTT_PASSIVE_DEBUG_SECURE
 					debug().debug( "PLTT_Passive %x: Received decryption reply from helper %x\n", self.get_node().get_id(), from );
-//#endif
+#endif
 					t.set_start_time( i->get_start_time() );
 					t.set_inhibited( i->get_inhibited() );
 					t.set_diminish_seconds( i->get_diminish_seconds() );
@@ -342,17 +342,17 @@ public:
 	// -----------------------------------------------------------------------
 	PLTT_Trace* store_inhibit_trace( PLTT_Trace trace, uint8_t inhibition_flag = 0 )
 	{
-//#ifdef PLTT_PASSIVE_DEBUG_SPREAD
+#ifdef PLTT_PASSIVE_DEBUG_SPREAD
 		debug().debug( "PLTT_Passive %x: Store inhibit trace\n", self.get_node().get_id() );
-//#endif
+#endif
 		PLTT_TraceListIterator traces_iterator = traces.begin();
 		while ( traces_iterator != traces.end())
 		{
 			if ( traces_iterator->get_target_id() == trace.get_target_id() )
 			{
-//#ifdef PLTT_PASSIVE_DEBUG_SPREAD
+#ifdef PLTT_PASSIVE_DEBUG_SPREAD
 				debug().debug( "PLTT_Passive %x: Store inhibit trace - new trace intensity and start time (%i, %i ) vs current (%i, %i, %i) ", self.get_node().get_id(), trace.get_intensity(), trace.get_start_time(), traces_iterator->get_intensity(), traces_iterator->get_start_time(), traces_iterator->get_inhibited() );
-//#endif
+#endif
 				if ( ( (trace.get_start_time() == traces_iterator->get_start_time() ) && (traces_iterator->get_intensity() < trace.get_intensity() ) ) ||
 					 ( trace.get_start_time() > traces_iterator->get_start_time() ) )
 				{
@@ -810,11 +810,11 @@ public:
 				pm.set_request_id( i->get_request_id() );
 				pm.set_payload( i->get_target_id_size(), i->get_target_id() );
 				pm.set_msg_id( PRIVACY_DECRYPTION_REQUEST_ID );
-//#ifdef PLTT_PASSIVE_DEBUG_SECURE
+#ifdef PLTT_PASSIVE_DEBUG_SECURE
 				debug().debug( "PLTT_Passive %x: Encryption request daemon - sending request with id: %x\n", self.get_node().get_id(), i->get_request_id() );
 				i->print( debug() );
 				debug().debug(" PLTT_Passive %x: Encryption request daemon - buffer size of : %i vs %i\n",self.get_node().get_id(), pm.payload_size(), i->get_target_id_size() );
-//#endif
+#endif
 				i->set_decryption_retries();
 				radio().send( Radio::BROADCAST_ADDRESS, pm.buffer_size(), pm.buffer() );
 				++i;

@@ -86,11 +86,11 @@ namespace wiselib
 		// -----------------------------------------------------------------------
 		PLTT_TargetType( PLTT_Trace _t, millis_t _s, int16_t _tp )
 		{
-			target_trace = _t;
-			spread_milis = _s;
-			trans_power.set_dB( _tp );
+			//target_trace = _t;
+			//spread_milis = _s;
+			//trans_power.set_dB( _tp );
 #ifdef PLTT_SECURE
-			has_encrypted_id = 0;
+			//has_encrypted_id = 0;
 #endif
 		}
 		// -----------------------------------------------------------------------
@@ -106,7 +106,7 @@ namespace wiselib
 
 #ifdef PLTT_SECURE
 			radio_callback_id_ = radio().template reg_recv_callback<self_type, &self_type::radio_receive>( this );
-			encryption_request_daemon();
+			//encryption_request_daemon();
 #else
 			target_trace.set_target_id( self.get_id() );
 			send_trace();

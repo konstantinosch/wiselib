@@ -59,9 +59,9 @@ namespace wiselib
 			decryption_retries	(0)
 		{
 			max_intensity = 2;
-			for (uint8_t i = 0; i < ( sizeof( max_intensity )*8 ); ++i )
+			for (size_t i = 0; i < ( sizeof( max_intensity ) * 8 ); ++i )
 			{
-				max_intensity = 2*max_intensity;
+				max_intensity = 2 * max_intensity;
 			}
 			max_intensity = max_intensity - 1;
 		}
@@ -77,7 +77,7 @@ namespace wiselib
 			recipient_1_id = 0;
 			recipient_2_id = 0;
 			request_id = 0;
-			for ( uint8_t i=0; i < PRIVACY_CIPHER_TEXT_MAX_SIZE; ++i )
+			for ( size_t i = 0; i < PRIVACY_CIPHER_TEXT_MAX_SIZE; ++i )
 			{
 				target_id[i] = 0;
 			}
@@ -92,7 +92,7 @@ namespace wiselib
 			get_from_buffer( buff, offset );
 			inhibited = 0;
 			max_intensity = 2;
-			for (uint8_t i = 0; i < ( sizeof( max_intensity )*8 ); ++i )
+			for (size_t i = 0; i < ( sizeof( max_intensity )*8 ); ++i )
 			{
 				max_intensity = 2*max_intensity;
 			}
@@ -102,21 +102,21 @@ namespace wiselib
 		}
 		inline block_data_t* set_buffer_from( block_data_t* buff, size_t offset = 0 )
 		{
-			uint8_t CURRENT_NODE_POS = 0;
-			uint8_t PARENT_NODE_POS = current.get_buffer_size() + CURRENT_NODE_POS;
-			uint8_t GRANDPARENT_NODE_POS = parent.get_buffer_size() + PARENT_NODE_POS;
-			uint8_t TARGET_ID_POS = grandparent.get_buffer_size() + GRANDPARENT_NODE_POS;
-			uint8_t START_TIME_POS = PRIVACY_CIPHER_TEXT_MAX_SIZE + TARGET_ID_POS;
-			uint8_t DIMINISH_SECS_POS = sizeof( TimesNumber ) + START_TIME_POS;
-			uint8_t DIMINISH_AMOUNT_POS = sizeof( SecondsNumber ) + DIMINISH_SECS_POS;
-			uint8_t SPREAD_PENALTY_POS = sizeof( IntensityNumber ) + DIMINISH_AMOUNT_POS;
-			uint8_t INTENSITY_POS = sizeof( IntensityNumber ) + SPREAD_PENALTY_POS;
-			uint8_t RECIPIENT_1_ID_POS = sizeof( IntensityNumber ) + INTENSITY_POS;
-			uint8_t RECIPIENT_2_ID_POS = sizeof( NodeID ) + RECIPIENT_1_ID_POS;
+			size_t CURRENT_NODE_POS = 0;
+			size_t PARENT_NODE_POS = current.get_buffer_size() + CURRENT_NODE_POS;
+			size_t GRANDPARENT_NODE_POS = parent.get_buffer_size() + PARENT_NODE_POS;
+			size_t TARGET_ID_POS = grandparent.get_buffer_size() + GRANDPARENT_NODE_POS;
+			size_t START_TIME_POS = PRIVACY_CIPHER_TEXT_MAX_SIZE + TARGET_ID_POS;
+			size_t DIMINISH_SECS_POS = sizeof( TimesNumber ) + START_TIME_POS;
+			size_t DIMINISH_AMOUNT_POS = sizeof( SecondsNumber ) + DIMINISH_SECS_POS;
+			size_t SPREAD_PENALTY_POS = sizeof( IntensityNumber ) + DIMINISH_AMOUNT_POS;
+			size_t INTENSITY_POS = sizeof( IntensityNumber ) + SPREAD_PENALTY_POS;
+			size_t RECIPIENT_1_ID_POS = sizeof( IntensityNumber ) + INTENSITY_POS;
+			size_t RECIPIENT_2_ID_POS = sizeof( NodeID ) + RECIPIENT_1_ID_POS;
 			current.set_buffer_from( buff, CURRENT_NODE_POS + offset );
 			parent.set_buffer_from( buff, PARENT_NODE_POS + offset);
 			grandparent.set_buffer_from( buff, GRANDPARENT_NODE_POS + offset);
-			for ( uint8_t i=0; i < PRIVACY_CIPHER_TEXT_MAX_SIZE; ++i )
+			for ( size_t i=0; i < PRIVACY_CIPHER_TEXT_MAX_SIZE; ++i )
 			{
 				write<Os, block_data_t, block_data_t>( buff + TARGET_ID_POS + i + offset, target_id[i] );
 			}
@@ -132,21 +132,21 @@ namespace wiselib
 		// --------------------------------------------------------------------
 		inline void get_from_buffer(block_data_t* buff, size_t offset = 0)
 		{
-			uint8_t CURRENT_NODE_POS = 0;
-			uint8_t PARENT_NODE_POS = current.get_buffer_size() + CURRENT_NODE_POS;
-			uint8_t GRANDPARENT_NODE_POS = parent.get_buffer_size() + PARENT_NODE_POS;
-			uint8_t TARGET_ID_POS = grandparent.get_buffer_size() + GRANDPARENT_NODE_POS;
-			uint8_t START_TIME_POS = PRIVACY_CIPHER_TEXT_MAX_SIZE + TARGET_ID_POS;
-			uint8_t DIMINISH_SECS_POS = sizeof( TimesNumber ) + START_TIME_POS;
-			uint8_t DIMINISH_AMOUNT_POS = sizeof( SecondsNumber ) + DIMINISH_SECS_POS;
-			uint8_t SPREAD_PENALTY_POS = sizeof( IntensityNumber ) + DIMINISH_AMOUNT_POS;
-			uint8_t INTENSITY_POS = sizeof( IntensityNumber ) + SPREAD_PENALTY_POS;
-			uint8_t RECIPIENT_1_ID_POS = sizeof( IntensityNumber ) + INTENSITY_POS;
-			uint8_t RECIPIENT_2_ID_POS = sizeof( NodeID ) + RECIPIENT_1_ID_POS;
+			size_t CURRENT_NODE_POS = 0;
+			size_t PARENT_NODE_POS = current.get_buffer_size() + CURRENT_NODE_POS;
+			size_t GRANDPARENT_NODE_POS = parent.get_buffer_size() + PARENT_NODE_POS;
+			size_t TARGET_ID_POS = grandparent.get_buffer_size() + GRANDPARENT_NODE_POS;
+			size_t START_TIME_POS = PRIVACY_CIPHER_TEXT_MAX_SIZE + TARGET_ID_POS;
+			size_t DIMINISH_SECS_POS = sizeof( TimesNumber ) + START_TIME_POS;
+			size_t DIMINISH_AMOUNT_POS = sizeof( SecondsNumber ) + DIMINISH_SECS_POS;
+			size_t SPREAD_PENALTY_POS = sizeof( IntensityNumber ) + DIMINISH_AMOUNT_POS;
+			size_t INTENSITY_POS = sizeof( IntensityNumber ) + SPREAD_PENALTY_POS;
+			size_t RECIPIENT_1_ID_POS = sizeof( IntensityNumber ) + INTENSITY_POS;
+			size_t RECIPIENT_2_ID_POS = sizeof( NodeID ) + RECIPIENT_1_ID_POS;
 			current.get_from_buffer( buff, CURRENT_NODE_POS + offset);
 			parent.get_from_buffer( buff, PARENT_NODE_POS + offset );
 			grandparent.get_from_buffer( buff, GRANDPARENT_NODE_POS + offset );
-			for ( uint8_t i=0; i < PRIVACY_CIPHER_TEXT_MAX_SIZE; ++i )
+			for ( size_t i=0; i < PRIVACY_CIPHER_TEXT_MAX_SIZE; ++i )
 			{
 				target_id[i] = read<Os, block_data_t, block_data_t>( buff + TARGET_ID_POS + i + offset );
 			}
@@ -160,17 +160,17 @@ namespace wiselib
 		}
 		inline size_t get_buffer_size()
 		{
-			uint8_t CURRENT_NODE_POS = 0;
-			uint8_t PARENT_NODE_POS = current.get_buffer_size() + CURRENT_NODE_POS;
-			uint8_t GRANDPARENT_NODE_POS = parent.get_buffer_size() + PARENT_NODE_POS;
-			uint8_t TARGET_ID_POS = grandparent.get_buffer_size() + GRANDPARENT_NODE_POS;
-			uint8_t START_TIME_POS = PRIVACY_CIPHER_TEXT_MAX_SIZE + TARGET_ID_POS;
-			uint8_t DIMINISH_SECS_POS = sizeof( TimesNumber ) + START_TIME_POS;
-			uint8_t DIMINISH_AMOUNT_POS = sizeof( SecondsNumber ) + DIMINISH_SECS_POS;
-			uint8_t SPREAD_PENALTY_POS = sizeof( IntensityNumber ) + DIMINISH_AMOUNT_POS;
-			uint8_t INTENSITY_POS = sizeof( IntensityNumber ) + SPREAD_PENALTY_POS;
-			uint8_t RECIPIENT_1_ID_POS = sizeof( IntensityNumber ) + INTENSITY_POS;
-			uint8_t RECIPIENT_2_ID_POS = sizeof( NodeID ) + RECIPIENT_1_ID_POS;
+			size_t CURRENT_NODE_POS = 0;
+			size_t PARENT_NODE_POS = current.get_buffer_size() + CURRENT_NODE_POS;
+			size_t GRANDPARENT_NODE_POS = parent.get_buffer_size() + PARENT_NODE_POS;
+			size_t TARGET_ID_POS = grandparent.get_buffer_size() + GRANDPARENT_NODE_POS;
+			size_t START_TIME_POS = PRIVACY_CIPHER_TEXT_MAX_SIZE + TARGET_ID_POS;
+			size_t DIMINISH_SECS_POS = sizeof( TimesNumber ) + START_TIME_POS;
+			size_t DIMINISH_AMOUNT_POS = sizeof( SecondsNumber ) + DIMINISH_SECS_POS;
+			size_t SPREAD_PENALTY_POS = sizeof( IntensityNumber ) + DIMINISH_AMOUNT_POS;
+			size_t INTENSITY_POS = sizeof( IntensityNumber ) + SPREAD_PENALTY_POS;
+			size_t RECIPIENT_1_ID_POS = sizeof( IntensityNumber ) + INTENSITY_POS;
+			size_t RECIPIENT_2_ID_POS = sizeof( NodeID ) + RECIPIENT_1_ID_POS;
 			return RECIPIENT_2_ID_POS + sizeof( NodeID );
 		}
 		inline self_type& operator=( const self_type& _t)
@@ -178,7 +178,7 @@ namespace wiselib
 			decryption_retries = _t.decryption_retries;
 			inhibited = _t.inhibited;
 			request_id = _t.request_id;
-			for ( uint8_t i=0; i < PRIVACY_CIPHER_TEXT_MAX_SIZE; ++i )
+			for ( size_t i=0; i < PRIVACY_CIPHER_TEXT_MAX_SIZE; ++i )
 			{
 				target_id[i] = _t.target_id[i];
 			}
@@ -243,7 +243,7 @@ namespace wiselib
 		}
 		inline void set_target_id( block_data_t* buff, size_t offset = 0 )
 		{
-			for ( uint8_t i = 0; i < PRIVACY_CIPHER_TEXT_MAX_SIZE; ++i )
+			for ( size_t i = 0; i < PRIVACY_CIPHER_TEXT_MAX_SIZE; ++i )
 			{
 				target_id[i] = read<Os, block_data_t, block_data_t>( buff + i + offset );
 			}
@@ -265,7 +265,7 @@ namespace wiselib
 		inline void set_decryption_retries() { decryption_retries = decryption_retries + 1; }
 		inline uint8_t compare_target_id( void* node_id )
 		{
-			for ( uint8_t i = 0; i < PRIVACY_CIPHER_TEXT_MAX_SIZE; ++i )
+			for ( size_t i = 0; i < PRIVACY_CIPHER_TEXT_MAX_SIZE; ++i )
 			{
 				if ( target_id[i] != *( (block_data_t*)node_id + i ) )
 				{
