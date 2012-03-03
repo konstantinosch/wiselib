@@ -76,12 +76,15 @@ template<	typename Os_P,
 			timer_ = &timer;
 		}
 		// -----------------------------------------------------------------------
-		PrivacyType()
-			:radio_callback_id_  	( 0 ),
+		PrivacyType() :
+			radio_callback_id_  				( 0 ),
+			privacy_enable_encryption_switch 	( 0 ),
+			privacy_enable_decryption_switch	( 0 ),
+			privacy_enable_randomization_switch ( 0 ),
+		 	uart_read_write						( 0 )
 #ifndef SHAWN_PRIVACY_PC_APPLICATION
-			 uart_callback_id_		( 0 ),
+			,uart_callback_id_					( 0 )
 #endif
-		 	 uart_read_write		( 0 )
 		{}
 		// -----------------------------------------------------------------------
 		~PrivacyType()
@@ -93,6 +96,7 @@ template<	typename Os_P,
 			debug().debug( "Privacy %x: Boot \n", radio().id() );
 #endif
 			radio().enable_radio();
+
 #ifndef SHAWN_PRIVACY_PC_APPLICATION
 			uart().enable_serial_comm();
 			uart_callback_id_ = uart().template reg_read_callback<self_type, &self_type::uart_receive>( this );
@@ -120,33 +124,34 @@ template<	typename Os_P,
 			if	(
 					0
 #ifdef PRIVACY_ENABLE_ENCRYPTION
-					|| ( msg_id == PRIVACY_ENCRYPTION_REQUEST_ID )
+					|| ( ( msg_id == PRIVACY_ENCRYPTION_REQUEST_ID ) && ( privacy_enable_encryption_switch ) )
 #endif
 #ifdef PRIVACY_ENABLE_DECRYPTION
-					|| ( msg_id == PRIVACY_DECRYPTION_REQUEST_ID )
+					|| ( ( msg_id == PRIVACY_DECRYPTION_REQUEST_ID ) && ( privacy_enable_decryption_switch ) )
 #endif
 #ifdef PRIVACY_ENABLE_RANDOMIZATION
-					|| ( msg_id == PRIVACY_RANDOMIZE_REQUEST_ID )
+					|| ( ( msg_id == PRIVACY_RANDOMIZE_REQUEST_ID ) && ( privacy_enable_randomization_switch ) )
 #endif
 				)
 			{
-				PrivacyMessage *message = ( PrivacyMessage* )data;
+				PrivacyMessage* message = (PrivacyMessage*) data;
 #ifdef PRIVACY_DEBUG
-				debug().debug( "Privacy %x: Radio received - received request", radio().id() );
-				debug().debug( "Message:\n ");
+				debug().debug( "Privacy %x: Radio received - received request\n", radio().id() );
+				debug().debug( "Message:\n");
 				debug().debug( "msg id %i (size %i )\n", msg_id, sizeof( msg_id ));
 				debug().debug( "req id %x (size %i)\n", message->request_id(), sizeof( uint16_t) );
 				debug().debug( "pay len %i (size %i)\n", message->payload_size(), sizeof( size_t ) );
-				for ( uint8_t i = 0; i < message->payload_size(); ++i )
+				for ( size_t i = 0; i < message->payload_size(); ++i )
 				{
 					debug().debug( " %i", *(message->payload()+i) );
 				}
+				debug().debug("\n");
 #endif
 				message_list.push_back( *message );
 			}
 			else if ( msg_id == PRIVACY_UNREGISTER )
 			{
-				PrivacyMessage *message = ( PrivacyMessage* )data;
+				PrivacyMessage* message = (PrivacyMessage*) data;
 				for ( CallbackContainerIterator i = privacy_callbacks.begin(); i != privacy_callbacks.end(); ++i )
 				{
 					if ( i->callback_id == message->request_id() ) { privacy_callbacks.erase( i ); }
@@ -157,33 +162,33 @@ template<	typename Os_P,
 		void process_request( void* data = NULL )
 		{
 #ifdef PRIVACY_DEBUG
-			debug().debug( "Privacy %x: Process request - Message list of %i elements", radio().id(), message_list.size() );
+			debug().debug( "Privacy %x: Process request - Message list of %i elements\n", radio().id(), message_list.size() );
 #endif
 			if ( ( uart_read_write == 0 ) && ( message_list.size() > 0 ) )
 			{
 #ifdef PRIVACY_DEBUG
-					debug().debug( "Privacy %x: Process request - Forwarding request to UART", radio().id() );
+					debug().debug( "Privacy %x: Process request - Forwarding request to UART\n", radio().id() );
 #endif
 					PrivacyMessageListIterator i = message_list.begin();
 #ifndef SHAWN_PRIVACY_PC_APPLICATION
 					uart().write( i->buffer_size(), i->buffer() );
 #else
 #ifdef PRIVACY_ENABLE_ENCRYPTION
-					if	( i->msg_id() == PRIVACY_ENCRYPTION_REQUEST_ID )
+					if	( ( i->msg_id() == PRIVACY_ENCRYPTION_REQUEST_ID ) && ( privacy_enable_encryption_switch ) )
 					{
 						i->set_msg_id( PRIVACY_ENCRYPTION_REPLY_ID );
 						i->set_payload( PRIVACY_CIPHER_TEXT_MAX_SIZE, i->payload() );
 					}
 #endif
 #ifdef PRIVACY_ENABLE_DECRYPTION
-					if (  i->msg_id() == PRIVACY_DECRYPTION_REQUEST_ID )
+					if ( (  i->msg_id() == PRIVACY_DECRYPTION_REQUEST_ID ) && ( privacy_enable_decryption_switch ) )
 					{
 						i->set_msg_id( PRIVACY_DECRYPTION_REPLY_ID );
 						i->set_payload( sizeof(node_id_t), i->payload() );
 					}
 #endif
 #ifdef PRIVACY_ENABLE_RANDOMIZATION
-					if (  i->msg_id() == PRIVACY_RANDOMIZE_REQUEST_ID )
+					if ( (  i->msg_id() == PRIVACY_RANDOMIZE_REQUEST_ID ) && ( privacy_enable_randomization_switch ) )
 					{
 						i->set_msg_id( PRIVACY_RANDOMIZE_REPLY_ID );
 						i->set_payload( PRIVACY_CIPHER_TEXT_MAX_SIZE, i->payload() );
@@ -203,13 +208,13 @@ template<	typename Os_P,
 			if	(
 					0
 #ifdef PRIVACY_ENABLE_ENCRYPTION
-					|| ( msg_id == PRIVACY_ENCRYPTION_REPLY_ID )
+					|| ( ( msg_id == PRIVACY_ENCRYPTION_REPLY_ID ) && ( privacy_enable_encryption_switch ) )
 #endif
 #ifdef PRIVACY_ENABLE_DECRYPTION
-					|| ( msg_id == PRIVACY_DECRYPTION_REPLY_ID )
+					|| ( ( msg_id == PRIVACY_DECRYPTION_REPLY_ID ) && ( privacy_enable_decryption_switch ) )
 #endif
 #ifdef PRIVACY_ENABLE_RANDOMIZATION
-					|| ( msg_id == PRIVACY_RANDOMIZE_REPLY_ID )
+					|| ( ( msg_id == PRIVACY_RANDOMIZE_REPLY_ID ) && ( privacy_enable_randomization_switch ) )
 #endif
 				)
 			{
@@ -219,7 +224,7 @@ template<	typename Os_P,
 				for ( PrivacyMessageListIterator i = message_list.begin(); i != message_list.end(); ++i )
 				{
 					#ifdef PRIVACY_DEBUG
-					debug().debug("Privacy %x: UART Receive", radio().id() );
+					debug().debug("Privacy %x: UART Receive\n", radio().id() );
 					#endif
 					if ( i->request_id() == message->request_id() )
 					{
@@ -255,13 +260,13 @@ template<	typename Os_P,
 			if	(
 					0
 #ifdef PRIVACY_ENABLE_ENCRYPTION
-					|| ( msg_id == PRIVACY_ENCRYPTION_REPLY_ID )
+					|| ( ( msg_id == PRIVACY_ENCRYPTION_REPLY_ID ) && ( privacy_enable_encryption_switch ) )
 #endif
 #ifdef PRIVACY_ENABLE_DECRYPTION
-					|| ( msg_id == PRIVACY_DECRYPTION_REPLY_ID )
+					|| ( ( msg_id == PRIVACY_DECRYPTION_REPLY_ID ) && ( privacy_enable_decryption_switch ) )
 #endif
 #ifdef PRIVACY_ENABLE_RANDOMIZATION
-					|| ( msg_id == PRIVACY_RANDOMIZE_REPLY_ID )
+					|| ( ( msg_id == PRIVACY_RANDOMIZE_REPLY_ID )  && ( privacy_enable_randomization_switch ) )
 #endif
 				)
 			{
@@ -294,6 +299,27 @@ template<	typename Os_P,
 		}
 #endif
 		// -----------------------------------------------------------------------
+		void set_encryption()
+		{
+			privacy_enable_encryption_switch = 1;
+			privacy_enable_decryption_switch = 0;
+			privacy_enable_randomization_switch = 0;
+		}
+		// -----------------------------------------------------------------------
+		void set_decryption()
+		{
+			privacy_enable_encryption_switch = 0;
+			privacy_enable_decryption_switch = 1;
+			privacy_enable_randomization_switch = 0;
+		}
+		// -----------------------------------------------------------------------
+		void set_randomization()
+		{
+			privacy_enable_encryption_switch = 0;
+			privacy_enable_decryption_switch = 0;
+			privacy_enable_randomization_switch = 1;
+		}
+		// -----------------------------------------------------------------------
 	private:
 		Radio * radio_;
 		Debug * debug_;
@@ -312,12 +338,15 @@ template<	typename Os_P,
 			PRIVACY_UNREGISTER = 160
 		};
 		uint32_t radio_callback_id_;
-#ifndef SHAWN_PRIVACY_PC_APPLICATION
-		uint32_t uart_callback_id_;
-#endif
 		CallbackContainer privacy_callbacks;
 		PrivacyMessageList message_list;
 		uint8_t uart_read_write;
+		uint8_t privacy_enable_encryption_switch;
+		uint8_t privacy_enable_decryption_switch;
+		uint8_t privacy_enable_randomization_switch;
+#ifndef SHAWN_PRIVACY_PC_APPLICATION
+		uint32_t uart_callback_id_;
+#endif
    	};
 }
 #endif

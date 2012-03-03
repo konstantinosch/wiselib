@@ -86,11 +86,11 @@ namespace wiselib
 		// -----------------------------------------------------------------------
 		PLTT_TargetType( PLTT_Trace _t, millis_t _s, int16_t _tp )
 		{
-			//target_trace = _t;
-			//spread_milis = _s;
-			//trans_power.set_dB( _tp );
+			target_trace = _t;
+			spread_milis = _s;
+			trans_power.set_dB( _tp );
 #ifdef PLTT_SECURE
-			//has_encrypted_id = 0;
+			has_encrypted_id = 0;
 #endif
 		}
 		// -----------------------------------------------------------------------
@@ -106,7 +106,7 @@ namespace wiselib
 
 #ifdef PLTT_SECURE
 			radio_callback_id_ = radio().template reg_recv_callback<self_type, &self_type::radio_receive>( this );
-			//encryption_request_daemon();
+			encryption_request_daemon();
 #else
 			target_trace.set_target_id( self.get_id() );
 			send_trace();
@@ -117,7 +117,7 @@ namespace wiselib
 		void radio_receive( node_id_t from, size_t len, block_data_t* data )
 		{
 #ifdef PLTT_TARGET_DEBUG_MISC
-			debug().debug( "PLTT_Target %x: radio receive from %x \n", self.get_id(), from );
+			//debug().debug( "PLTT_Target %x: radio receive from %x \n", self.get_id(), from );
 #endif
 			message_id_t msg_id = *data;
 			if	( msg_id == PRIVACY_ENCRYPTION_REPLY_ID )
@@ -264,15 +264,15 @@ namespace wiselib
 	private:
 		Radio& radio()
 		{
-			return *radio_; 
+			return *radio_;
 		}
 		Timer& timer()
 		{
-			return *timer_; 
+			return *timer_;
 		}
 		Debug& debug()
 		{
-			return *debug_; 
+			return *debug_;
 		}
 		Clock& clock()
 		{
@@ -285,7 +285,6 @@ namespace wiselib
 		enum MessageIds
 		{
 			PLTT_SPREAD_ID = 11
-
 #ifdef PLTT_SECURE
 			,PLTT_SECURE_SPREAD_ID = 91,
 			PRIVACY_DECRYPTION_REQUEST_ID = 100,
@@ -298,7 +297,7 @@ namespace wiselib
 #endif
 		};
 		uint32_t radio_callback_id_;
-		PLTT_Trace target_trace;
+        PLTT_Trace target_trace;
 		millis_t spread_milis;
 		TxPower trans_power;
 		Node self;

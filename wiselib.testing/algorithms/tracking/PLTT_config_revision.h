@@ -18,7 +18,7 @@
 //debug
 #ifdef PLTT_DEBUG
 	#define PLTT_PASSIVE_DEBUG
-	//#define PLTT_TARGET_DEBUG
+	#define PLTT_TARGET_DEBUG
 	//#define PLTT_TRACKER_DEBUG
 	#define PLTT_SECURE_DEBUG
 #endif

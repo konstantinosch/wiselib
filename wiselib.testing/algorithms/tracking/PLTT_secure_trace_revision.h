@@ -44,9 +44,6 @@ namespace wiselib
 		typedef typename Radio::size_t size_t;
 		typedef PLTT_SecureTraceType<Os, Radio, TimesNumber, SecondsNumber, IntensityNumber, Node, NodeID, Debug> self_type;
 		inline PLTT_SecureTraceType():
-			current				(0),
-			parent				(0),
-			grandparent			(0),
 			start_time			(0),
 			diminish_seconds	(0),
 			diminish_amount		(0),
@@ -59,7 +56,7 @@ namespace wiselib
 			decryption_retries	(0)
 		{
 			max_intensity = 2;
-			for (size_t i = 0; i < ( sizeof( max_intensity ) * 8 ); ++i )
+			for (IntensityNumber i = 0; i < ( sizeof( max_intensity ) * 8 ); ++i )
 			{
 				max_intensity = 2 * max_intensity;
 			}
@@ -92,7 +89,7 @@ namespace wiselib
 			get_from_buffer( buff, offset );
 			inhibited = 0;
 			max_intensity = 2;
-			for (size_t i = 0; i < ( sizeof( max_intensity )*8 ); ++i )
+			for (IntensityNumber i = 0; i < ( sizeof( max_intensity )*8 ); ++i )
 			{
 				max_intensity = 2*max_intensity;
 			}
@@ -288,10 +285,10 @@ namespace wiselib
 			debug.debug( "max_intensity (size %i) : %i", sizeof( max_intensity ), max_intensity );
 			debug.debug( "start_time (size %i) : %i", sizeof( start_time ), start_time  );
 			debug.debug( "target id (size %i) : ", PRIVACY_CIPHER_TEXT_MAX_SIZE );
-			//for ( uint8_t i = 0; i < PRIVACY_CIPHER_TEXT_MAX_SIZE; i++ )
-			//{
-			//	debug.debug( " %i", target_id[i]);
-			//}
+			for ( size_t i = 0; i < PRIVACY_CIPHER_TEXT_MAX_SIZE; i++ )
+			{
+				debug.debug( " %i", target_id[i]);
+			}
 			debug.debug( "recipient 1 id (size %i) : %i", sizeof( recipient_1_id), recipient_1_id );
 			debug.debug( "recipient 2 id (size %i) : %i", sizeof( recipient_2_id), recipient_2_id );
 			debug.debug( "request_id (size %i ) : %x", sizeof( request_id ), request_id );
