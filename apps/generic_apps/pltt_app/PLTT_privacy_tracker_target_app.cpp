@@ -92,6 +92,7 @@ void application_main( Os::AppMainParameter& value )
 #ifdef PLTT_SECURE
 	target.set_request_id( TARGET_SECURE_REQUEST_ID_1 );
 	Os::Uart *wiselib_uart_ = &wiselib::FacetProvider<Os, Os::Uart>::get_facet( value );
+	privacy.set_randomization();
 	privacy.init( *wiselib_radio_, *wiselib_debug_, *wiselib_uart_, *wiselib_timer_ );
 	target.reg_privacy_radio_callback<Privacy, &Privacy::radio_receive>( &privacy );
 	privacy.reg_privacy_callback<PLTT_Target, &PLTT_Target::randomize_callback>( 999, &target );

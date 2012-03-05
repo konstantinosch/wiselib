@@ -169,14 +169,15 @@ namespace wiselib
 #ifdef PLTT_TARGET_DEBUG_SECURE
 				debug().debug( "PLTT_Target %x: Randomize callback - ID randomized.\n", self.get_id() );
 #endif
-				PrivacyMessage *randomize_privacy_message = ( PrivacyMessage* )data;
-				if ( randomize_privacy_message->request_id() == target_request_id )
+				randomize_privacy_message = (* ( PrivacyMessage* )data );
+				PrivacyMessage *randomize_privacy_message_ptr = &randomize_privacy_message;
+				if ( randomize_privacy_message_ptr->request_id() == target_request_id )
 				{
 #ifdef PLTT_TARGET_MINI_RUN
 					if ( target_trace.get_start_time() < target_mini_run_times )
 					{
 #endif
-						target_trace.set_target_id( randomize_privacy_message->payload() );
+						target_trace.set_target_id( randomize_privacy_message_ptr->payload() );
 						radio().set_power( trans_power );
 						Message message;
 						message.set_msg_id( PLTT_SECURE_SPREAD_ID );
@@ -188,8 +189,8 @@ namespace wiselib
 						debug().debug( "PLTT_Target %x: Randomize callback - Randomized message of size : %i send.\n", self.get_id(), message.buffer_size() );
 #endif
 						target_trace.update_start_time();
-						randomize_privacy_message->set_msg_id( PRIVACY_RANDOMIZE_REQUEST_ID );
-						timer().template set_timer<self_type, &self_type::timed_privacy_callback>( spread_milis, this, ( void* ) randomize_privacy_message );
+						randomize_privacy_message_ptr->set_msg_id( PRIVACY_RANDOMIZE_REQUEST_ID );
+						timer().template set_timer<self_type, &self_type::timed_privacy_callback>( spread_milis, this, ( void* ) randomize_privacy_message_ptr );
 #ifdef PLTT_TARGET_MINI_RUN
 					}
 #endif
@@ -199,8 +200,20 @@ namespace wiselib
 		//------------------------------------------------------------------------
 		void timed_privacy_callback( void* userdata = NULL )
 		{
-			PrivacyMessage* randomize_privacy_message = ( PrivacyMessage* ) userdata;
-			privacy_radio_callback( self.get_id(), randomize_privacy_message->buffer_size(), randomize_privacy_message->buffer()  );
+			PrivacyMessage* randomize_privacy_message_ptr = ( PrivacyMessage* ) userdata;
+#ifdef PLTT_TARGET_DEBUG_SECURE
+			debug().debug( "PLTT_Target %x: Timed privacy callback - Entering with :\n", self.get_id() );
+			debug().debug( "Message:\n");
+			debug().debug( "msg id %i\n", randomize_privacy_message_ptr->msg_id() );
+			debug().debug( "req id %x\n", randomize_privacy_message_ptr->request_id() );
+			debug().debug( "pay len %i\n", randomize_privacy_message_ptr->payload_size() );
+			for ( size_t i = 0; i < randomize_privacy_message_ptr->payload_size(); ++i )
+			{
+				debug().debug( " %i", *(randomize_privacy_message_ptr->payload()+i) );
+			}
+			debug().debug("\n");
+#endif
+			privacy_radio_callback( self.get_id(), randomize_privacy_message_ptr->buffer_size(), randomize_privacy_message_ptr->buffer()  );
 		}
 		//------------------------------------------------------------------------
 		template<class T, void (T::*TMethod)(node_id_t, size_t, block_data_t*)>
@@ -305,6 +318,7 @@ namespace wiselib
 		uint8_t has_encrypted_id;
 		event_notifier_delegate_t privacy_radio_callback;
 		uint16_t target_request_id;
+		PrivacyMessage randomize_privacy_message;
 #endif
 #ifdef PLTT_TARGET_MINI_RUN
 		uint8_t target_mini_run_times;

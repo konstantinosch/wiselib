@@ -3,6 +3,9 @@
 #include "algorithms/privacy/privacy_message.h"
 #include "algorithms/privacy/privacy.h"
 
+//#define CA
+#define HELPER
+
 typedef wiselib::OSMODEL Os;
 typedef Os::Radio Radio;
 typedef Os::Debug Debug;
@@ -22,6 +25,12 @@ void application_main( Os::AppMainParameter& value )
 	Os::Uart *wiselib_uart_ = &wiselib::FacetProvider<Os, Os::Uart>::get_facet( value );
 	Os::Timer *wiselib_timer_ = &(wiselib::FacetProvider<Os, Os::Timer>::get_facet(value));
 	wiselib_radio_->set_channel(20);
+#ifdef CA
+	privacy.set_encryption();
+#endif
+#ifdef HELPER
+	privacy.set_randomization();
+#endif
 	privacy.init( *wiselib_radio_, *wiselib_debug_, *wiselib_uart_, *wiselib_timer_ );
 	privacy.enable();
 }
