@@ -54,23 +54,23 @@ namespace wiselib
 		}
 		inline block_data_t* set_buffer_from( block_data_t* buff, size_t offset = 0 )
 		{
-			uint8_t ID_POS = 0;
-			uint8_t POSITION_POS = ID_POS + sizeof( NodeID );
+			size_t ID_POS = 0;
+			size_t POSITION_POS = ID_POS + sizeof( NodeID );
 			write<Os, block_data_t, NodeID>( buff + ID_POS + offset, id );
 			position.set_buffer_from( buff, POSITION_POS + offset );
 			return buff;
 		}
 		inline void get_from_buffer(block_data_t* buff, size_t offset = 0)
 		{
-			uint8_t ID_POS = 0;
-			uint8_t POSITION_POS = ID_POS + sizeof( NodeID );
+			size_t ID_POS = 0;
+			size_t POSITION_POS = ID_POS + sizeof( NodeID );
 			id = read<Os, block_data_t, NodeID>( buff + ID_POS + offset );
 			position.get_from_buffer( buff, POSITION_POS + offset );
 		}
 		inline size_t get_buffer_size()
 		{
-			uint8_t ID_POS = 0;
-			uint8_t POSITION_POS = ID_POS + sizeof( NodeID );
+			size_t ID_POS = 0;
+			size_t POSITION_POS = ID_POS + sizeof( NodeID );
 			return POSITION_POS + position.get_buffer_size();
 		}
 		inline self_type& operator=( const self_type& _n )

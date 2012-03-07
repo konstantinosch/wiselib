@@ -49,9 +49,9 @@ namespace wiselib
 		}
 		inline block_data_t* set_buffer_from( block_data_t* buff, size_t offset = 0 )
 		{
-			uint8_t X_POS = 0;
-			uint8_t Y_POS = X_POS + sizeof( CoordinatesNumber );
-			uint8_t Z_POS = Y_POS + sizeof( CoordinatesNumber );
+			size_t X_POS = 0;
+			size_t Y_POS = X_POS + sizeof( CoordinatesNumber );
+			size_t Z_POS = Y_POS + sizeof( CoordinatesNumber );
 			write<Os, block_data_t, CoordinatesNumber>( buff + X_POS + offset, x );
 			write<Os, block_data_t, CoordinatesNumber>( buff + Y_POS + offset, y );
 			write<Os, block_data_t, CoordinatesNumber>( buff + Z_POS + offset, z );
@@ -59,18 +59,18 @@ namespace wiselib
 		}
 		inline void get_from_buffer( block_data_t* buff, size_t offset = 0 )
 		{
-			uint8_t X_POS = 0;
-			uint8_t Y_POS = X_POS + sizeof( CoordinatesNumber );
-			uint8_t Z_POS = Y_POS + sizeof( CoordinatesNumber );
+			size_t X_POS = 0;
+			size_t Y_POS = X_POS + sizeof( CoordinatesNumber );
+			size_t Z_POS = Y_POS + sizeof( CoordinatesNumber );
 			x = read<Os, block_data_t, CoordinatesNumber>( buff + X_POS + offset );
 			y = read<Os, block_data_t, CoordinatesNumber>( buff + Y_POS + offset );
 			z = read<Os, block_data_t, CoordinatesNumber>( buff + Z_POS + offset );
 		}
 		inline size_t get_buffer_size()
 		{
-			uint8_t X_POS = 0;
-			uint8_t Y_POS = X_POS + sizeof( CoordinatesNumber );
-			uint8_t Z_POS = Y_POS + sizeof( CoordinatesNumber );
+			size_t X_POS = 0;
+			size_t Y_POS = X_POS + sizeof( CoordinatesNumber );
+			size_t Z_POS = Y_POS + sizeof( CoordinatesNumber );
 			return Z_POS + sizeof( CoordinatesNumber );
 		}
 		inline self_type& operator=( const self_type& _p )

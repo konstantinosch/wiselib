@@ -100,7 +100,6 @@ public:
 		,decryption_request_timer	( 1000 ),
 		decryption_request_offset	( 50 ),
 		decryption_max_retries		( 5 )
-
 #endif
 	{
 	}
@@ -134,10 +133,15 @@ public:
 		uint8_t result = 0;
 		result = neighbor_discovery(). template register_protocol<self_type, &self_type::sync_neighbors>( NeighborDiscovery::TRACKING_PROTOCOL_ID, ps, this  );
 		Protocol* prot_ref = neighbor_discovery().get_protocol_ref( NeighborDiscovery::TRACKING_PROTOCOL_ID );
+#ifdef PLTT_PASSIVE_DEBUG_NEIGHBORHOOD_DISCOVERY
+			debug().debug( "PLTT_Passive %x: Neighbor discovery enable task - All good with protocol Pre-step %d \n", self.get_node().get_id(), result );
+#endif
 		if ( prot_ref != NULL )
 		{
+#ifdef PLTT_PASSIVE_DEBUG_NEIGHBORHOOD_DISCOVERY
+			debug().debug( "PLTT_Passive %x: Neighbor discovery enable task - All good with protocol inside \n", self.get_node().get_id() );
+#endif
 			neighbor_discovery().enable();
-			nb_convergence_time = 1;
 			timer().template set_timer<self_type, &self_type::neighbor_discovery_unregister_task> ( nb_convergence_time, this, 0 );
 		}
 	}
@@ -149,14 +153,13 @@ public:
 #endif
 		Protocol* prot_ref = NULL;
 		neighbor_discovery().disable();
-		//radio_callback_id_ = radio().template reg_recv_callback<self_type, &self_type::receive> (this);
-		//update_traces();
+		radio_callback_id_ = radio().template reg_recv_callback<self_type, &self_type::receive> (this);
+		update_traces();
 #ifdef PLTT_PASSIVE_DEBUG_NEIGHBORHOOD_DISCOVERY
-			debug().debug( "PLTT_Passive %x (%i, %i): NB READY! - Neighbor discovery unregister - size of neighbor list %i vs nb size %i ", self.get_node().get_id(), self.get_node().get_position().get_x(), self.get_node().get_position().get_y(), neighbors.size(), neighbor_discovery().neighborhood.size() );
-			print_neighbors();
+		print_neighbors();
 #endif
 #ifdef PLTT_SECURE
-		//decryption_request_daemon();
+		decryption_request_daemon();
 #endif
 #ifdef CONFIG_PROACTIVE_INHIBITION
 		proactive_inhibition_daemon();
@@ -182,8 +185,6 @@ public:
 	// -----------------------------------------------------------------------
 	void receive( node_id_t from, size_t len, block_data_t *data, const ExtendedData& exdata )
 	{
-		debug().debug("Reception! %d\n", len);
-
 		message_id_t msg_id = *data;
 		Message *message = (Message*) data;
 #ifndef PLTT_SECURE
@@ -579,9 +580,9 @@ public:
 #ifdef PLTT_SECURE
 	PLTT_SecureTrace* store_inhibit_secure_trace( PLTT_SecureTrace secure_trace, uint8_t inhibition_flag = 0 )
 	{
-//#ifdef PLTT_PASSIVE_DEBUG_SPREAD
+#ifdef PLTT_PASSIVE_DEBUG_SPREAD
 		debug().debug( "PLTT_Passive %x: Store inhibit secure trace\n", self.get_node().get_id() );
-//#endif
+#endif
 		PLTT_SecureTraceListIterator secure_traces_iterator = secure_traces.begin();
 		while ( secure_traces_iterator != secure_traces.end() )
 		{
@@ -595,16 +596,16 @@ public:
 					{
 						secure_traces_iterator->set_inhibited();
 					}
-//#ifdef PLTT_PASSIVE_DEBUG_SPREAD
+#ifdef PLTT_PASSIVE_DEBUG_SPREAD
 					debug().debug( "PLTT_Passive %x: Store inhibit secure trace - Secure Trace updated\n", self.get_node().get_id() );
-//#endif
+#endif
 					return &(*secure_traces_iterator);
 				}
 				else
 				{
-//#ifdef PLTT_PASSIVE_DEBUG_SPREAD
+#ifdef PLTT_PASSIVE_DEBUG_SPREAD
 					debug().debug( "PLTT_Passive %x: Store inhibit secure trace - Secure Trace not updated\n", self.get_node().get_id() );
-//#endif
+#endif
 					return NULL;
 
 				}
@@ -615,9 +616,9 @@ public:
 		secure_trace.update_path( self.get_node() );
 		secure_traces.push_back( secure_trace );
 		secure_traces_iterator = secure_traces.end() - 1;
-//#ifdef PLTT_PASSIVE_DEBUG_SPREAD
+#ifdef PLTT_PASSIVE_DEBUG_SPREAD
 		debug().debug( "PLTT_Passive %x: Store inhibit secure trace - Secure Trace stored with secure traces list size %d\n", self.get_node().get_id(), secure_traces.size() );
-//#endif
+#endif
 		if (inhibition_flag)
 		{
 			secure_traces_iterator->set_inhibited();
@@ -877,7 +878,7 @@ public:
 		self.set_node_target_list( traces );
 		if ( self.get_node_target_list()->size() > 0 )
 		{
-			block_data_t buff[Radio::MAX_MESSAGE_LENGTH];
+			block_data_t buff[Radio::MA    X_MESSAGE_LENGTH];
 			self.set_buffer_from( buff );
 			radio().send( Radio::BROADCAST_ADDRESS, self.get_buffer_size(), buff );
 		}
@@ -887,7 +888,7 @@ public:
 	// -----------------------------------------------------------------------
 	void print_neighbors( void* userdata = NULL )
 	{
-		//debug().debug( "PLTT_Passive %x: Begin neighbors printout\n", self.get_node().get_id() );
+		debug().debug( "PLTT_Passive %x: Begin neighbors printout of list size %d \n", self.get_node().get_id(), neighbors.size() );
 		//self.print( debug() );
 		for ( PLTT_NodeListIterator i = neighbors.begin(); i != neighbors.end(); ++i )
 		{

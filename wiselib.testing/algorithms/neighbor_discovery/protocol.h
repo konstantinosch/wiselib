@@ -247,10 +247,11 @@ namespace wiselib
 			settings.print( debug, radio );
 			debug.debug( "neighborhood :\n");
 #endif
-			for ( Neighbor_vector_iterator it = neighborhood.begin(); it != neighborhood.end(); ++it )
-			{
-				it->print( debug, radio );
-			}
+			debug.debug( "connectivity : %d\n", neighborhood.size() );
+			//for ( Neighbor_vector_iterator it = neighborhood.begin(); it != neighborhood.end(); ++it )
+			//{
+			//	it->print( debug, radio );
+			//}
 #ifndef NB_DEBUG_STATS
 			debug.debug( "-------------------------------------------------------\n");
 #endif
