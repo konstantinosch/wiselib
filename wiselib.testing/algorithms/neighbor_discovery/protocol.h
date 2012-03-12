@@ -247,7 +247,7 @@ namespace wiselib
 			settings.print( debug, radio );
 			debug.debug( "neighborhood :\n");
 #endif
-			debug.debug( "connectivity : %d\n", neighborhood.size() );
+			debug.debug( "connectivity %d: %d\n", radio.id(), neighborhood.size() );
 			//for ( Neighbor_vector_iterator it = neighborhood.begin(); it != neighborhood.end(); ++it )
 			//{
 			//	it->print( debug, radio );
