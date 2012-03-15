@@ -129,7 +129,7 @@ public:
 		block_data_t buff[100];
 		ProtocolPayload pp( NeighborDiscovery::TRACKING_PROTOCOL_ID, self.get_node().get_position().get_buffer_size(), self.get_node().get_position().set_buffer_from( buff ) );
 		uint8_t ef = ProtocolSettings::NEW_PAYLOAD|ProtocolSettings::LOST_NB|ProtocolSettings::NEIGHBOR_REMOVED|ProtocolSettings::NEW_PAYLOAD;
-		ProtocolSettings ps( 255, 0, 255, 0, 100, 75, 100, 75, ef, -6, 100, 3000, 100, ProtocolSettings::RATIO_DIVIDER, 2, ProtocolSettings::MEAN_DEAD_TIME_PERIOD, 100, 100, ProtocolSettings::R_NR_WEIGHTED, 10, 10, pp );
+		ProtocolSettings ps( 255, 0, 255, 0, 100, 75, 100, 75, ef, -16, 100, 3000, 100, ProtocolSettings::RATIO_DIVIDER, 2, ProtocolSettings::MEAN_DEAD_TIME_PERIOD, 100, 100, ProtocolSettings::R_NR_WEIGHTED, 10, 10, pp );
 		uint8_t result = 0;
 		result = neighbor_discovery(). template register_protocol<self_type, &self_type::sync_neighbors>( NeighborDiscovery::TRACKING_PROTOCOL_ID, ps, this  );
 		Protocol* prot_ref = neighbor_discovery().get_protocol_ref( NeighborDiscovery::TRACKING_PROTOCOL_ID );
@@ -206,31 +206,31 @@ public:
 #else
 		if ( msg_id == PLTT_SECURE_SPREAD_ID )
 		{
-#ifdef PLTT_PASSIVE_DEBUG_SECURE
+//#ifdef PLTT_PASSIVE_DEBUG_SECURE
 			debug().debug( "PLTT_Passive %x: Received encrypted trace from unknown target of size %i \n", self.get_node().get_id(), message->payload_size() );
-#endif
+//#endif
 			PLTT_SecureTrace secure_trace = PLTT_SecureTrace( message->payload() );
 			uint16_t request_id = rand()() % 0xffff;
 			secure_trace.set_request_id( request_id );
 			if ( ( secure_trace.get_recipient_1_id() == self.get_node().get_id() ) || ( secure_trace.get_recipient_2_id() == self.get_node().get_id() ) || ( secure_trace.get_intensity() == secure_trace.get_max_intensity() ) )
 			{
-#ifdef PLTT_PASSIVE_DEBUG_SECURE
-				debug().debug( "PLTT_Passive %x: Received encrypted trace from unknown target %x of size %i - Encrypted trace is detection or direct spread - inhibition: 0\n", self.get_node().get_id(), from, message->payload_size(), secure_trace.get_intensity() );
-#endif
+//#ifdef PLTT_PASSIVE_DEBUG_SECURE
+				debug().debug( "PLTT_Passive %x: Received encrypted trace from unknown target %x of size %i and intensity %i vs %i - Encrypted trace is detection or direct spread - inhibition: 0\n", self.get_node().get_id(), from, message->payload_size(), secure_trace.get_intensity(), secure_trace.get_max_intensity() );
+//#endif
 				PLTT_SecureTrace* secure_trace_ptr = store_inhibit_secure_trace( secure_trace );
 				if ( secure_trace_ptr != NULL )
 				{
-#ifdef PLTT_PASSIVE_DEBUG_SECURE
+//#ifdef PLTT_PASSIVE_DEBUG_SECURE
 				debug().debug( "PLTT_Passive %x: Received encrypted trace from unknown target of size %i - Encrypted trace is valid for propagation and decryption\n", self.get_node().get_id(), message->payload_size() );
-#endif
+//#endif
 					prepare_spread_secure_trace( secure_trace_ptr, exdata );
 				}
 			}
 			else
 			{
-#ifdef PLTT_PASSIVE_DEBUG_SECURE
-				debug().debug( "PLTT_Passive %x: Received encrypted trace from unknown target of size %i - Encrypted trace is indirect spread - inhibition: 1\n", self.get_node().get_id(), message->payload_size() );
-#endif
+//#ifdef PLTT_PASSIVE_DEBUG_SECURE
+				debug().debug( "PLTT_Passive %x: Received encrypted trace from unknown target of size %i and intensity %i vs %i- Encrypted trace is indirect spread - inhibition: 1\n", self.get_node().get_id(), message->payload_size(), secure_trace.get_intensity(), secure_trace.get_max_intensity() );
+//#endif
 				store_inhibit_secure_trace( secure_trace, 1 );
 			}
 		}

@@ -55,12 +55,12 @@ namespace wiselib
 			request_id			(0),
 			decryption_retries	(0)
 		{
-			max_intensity = 2;
-			for (IntensityNumber i = 0; i < ( sizeof( max_intensity ) * 8 ); ++i )
+			max_intensity = 1;
+			for (IntensityNumber i = 0; i < ( sizeof( max_intensity ) * 8 ) - 2; ++i )
 			{
 				max_intensity = 2 * max_intensity;
 			}
-			max_intensity = max_intensity - 1;
+			max_intensity = max_intensity - 1 + max_intensity;
 		}
 		inline PLTT_SecureTraceType(const SecondsNumber& _ds, const IntensityNumber& _da, const IntensityNumber& _sp,	const IntensityNumber& _si, const TimesNumber& _st )
 		{
@@ -88,12 +88,12 @@ namespace wiselib
 		{
 			get_from_buffer( buff, offset );
 			inhibited = 0;
-			max_intensity = 2;
-			for (IntensityNumber i = 0; i < ( sizeof( max_intensity )*8 ); ++i )
+			max_intensity = 1;
+			for (IntensityNumber i = 0; i < ( sizeof( max_intensity )*8 ) - 2; ++i )
 			{
-				max_intensity = 2*max_intensity;
+				max_intensity = 2 * max_intensity;
 			}
-			max_intensity = max_intensity - 1;
+			max_intensity = max_intensity - 1 + max_intensity;
 			decryption_retries	= 0;
 			request_id = 0;
 		}
