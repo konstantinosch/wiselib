@@ -81,7 +81,8 @@ template<	typename Os_P,
 			privacy_enable_encryption_switch 	( 0 ),
 			privacy_enable_decryption_switch	( 0 ),
 			privacy_enable_randomization_switch ( 0 ),
-		 	uart_read_write						( 0 )
+		 	uart_read_write						( 0 ),
+		 	privacy_power_db					( PRIVACY_POWER_DB )
 #ifndef SHAWN_PRIVACY_PC_APPLICATION
 			,uart_callback_id_					( 0 )
 #endif
@@ -140,6 +141,9 @@ template<	typename Os_P,
 #endif
 				)
 			{
+//#ifdef PRIVACY_DEBUG
+			debug().debug( "Privacy %x: Radio received - Entering with len %i, msg_id %i \n", radio().id(), len, msg_id );
+//#endif
 				PrivacyMessage* message = (PrivacyMessage*) data;
 #ifdef PRIVACY_DEBUG
 				debug().debug( "Privacy %x: Radio received - received request\n", radio().id() );
@@ -193,9 +197,9 @@ template<	typename Os_P,
 #ifdef PRIVACY_ENABLE_DECRYPTION
 					if ( (  i->msg_id() == PRIVACY_DECRYPTION_REQUEST_ID ) && ( privacy_enable_decryption_switch ) )
 					{
-#ifdef PRIVACY_DEBUG
+//#ifdef PRIVACY_DEBUG
 					debug().debug( "Privacy %x: Process request - Forwarding request %d with service %d to UART\n", radio().id(), i->request_id(), i->msg_id() );
-#endif
+//#endif
 						uart_read_write = 1;
 						i->set_msg_id( PRIVACY_DECRYPTION_REPLY_ID );
 						i->set_payload( sizeof(node_id_t), i->payload() );
@@ -244,12 +248,21 @@ template<	typename Os_P,
 				PrivacyMessage* message = ( PrivacyMessage* )buff;
 				notify_privacy_callbacks( len, buff );
 				send_privacy( len, buff );
+//#ifdef PRIVACY_DEBUG
+			debug().debug("Privacy %x: UART Receive - sending with req id %x \n", radio().id(), message->request_id() );
+//#endif
 				for ( PrivacyMessageListIterator i = message_list.begin(); i != message_list.end(); ++i )
 				{
 					if ( i->request_id() == message->request_id() )
 					{
+//#ifdef PRIVACY_DEBUG
+			debug().debug("Privacy %x: UART Receive - Before erase with req id %x \n", radio().id(), message->request_id() );
+//#endif
 						message_list.erase( i );
 						uart_read_write = 0;
+//#ifdef PRIVACY_DEBUG
+			debug().debug("Privacy %x: UART Receive - After erase with req id %x \n", radio().id(), message->request_id() );
+//#endif
 						return;
 					}
 				}
@@ -294,7 +307,7 @@ template<	typename Os_P,
 				)
 			{
 				TxPower power;
-				power.set_dB( 0 );
+				power.set_dB( privacy_power_db );
 				radio().set_power( power );
 				radio().send( Radio::BROADCAST_ADDRESS, len, buff );
 			}
@@ -343,6 +356,16 @@ template<	typename Os_P,
 			privacy_enable_randomization_switch = 1;
 		}
 		// -----------------------------------------------------------------------
+		void set_privacy_power_db( int8_t _ppdb )
+		{
+			privacy_power_db = _ppdb;
+		}
+		// -----------------------------------------------------------------------
+		int8_t get_privacy_power_db()
+		{
+			return privacy_power_db;
+		}
+		// -----------------------------------------------------------------------
 	private:
 		Radio * radio_;
 		Debug * debug_;
@@ -367,6 +390,7 @@ template<	typename Os_P,
 		uint8_t privacy_enable_decryption_switch;
 		uint8_t privacy_enable_randomization_switch;
 		uint8_t uart_read_write;
+		int8_t privacy_power_db;
 #ifndef SHAWN_PRIVACY_PC_APPLICATION
 		uint32_t uart_callback_id_;
 #endif

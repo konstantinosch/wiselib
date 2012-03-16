@@ -247,9 +247,9 @@ public:
 					node_id_t id = read<Os, block_data_t, node_id_t>( pm->payload() );
 					PLTT_Trace t;
 					t.set_target_id( id );
-#ifdef PLTT_PASSIVE_DEBUG_SECURE
-					debug().debug( "PLTT_Passive %x: Received decryption reply from helper %x\n", self.get_node().get_id(), from );
-#endif
+//#ifdef PLTT_PASSIVE_DEBUG_SECURE
+					debug().debug( "PLTT_Passive %x: Received decryption reply from helper %x with trace id : %x \n", self.get_node().get_id(), from, id );
+//#endif
 					t.set_start_time( i->get_start_time() );
 					t.set_inhibited( i->get_inhibited() );
 					t.set_diminish_seconds( i->get_diminish_seconds() );
@@ -803,7 +803,13 @@ public:
 		{
 			if ( ( i->get_decryption_retries() >= decryption_max_retries ) && ( i->get_inhibited() !=0 ) )
 			{
+//#ifdef PLTT_PASSIVE_DEBUG_SECURE
+				debug().debug( "PLTT_Passive %x: Decryption request daemon - before erase with id: %x and size : %d \n", self.get_node().get_id(), i->get_request_id(), secure_traces.size() );
+//#endif
 				secure_traces.erase( i );
+//#ifdef PLTT_PASSIVE_DEBUG_SECURE
+				debug().debug( "PLTT_Passive %x: Decryption request daemon - after erase with id: %x and size : %d \n", self.get_node().get_id(), i->get_request_id(), secure_traces.size() );
+//#endif
 			}
 			else if ( i->get_decryption_retries() < decryption_max_retries )
 			{
@@ -811,15 +817,15 @@ public:
 				pm.set_request_id( i->get_request_id() );
 				pm.set_payload( i->get_target_id_size(), i->get_target_id() );
 				pm.set_msg_id( PRIVACY_DECRYPTION_REQUEST_ID );
-#ifdef PLTT_PASSIVE_DEBUG_SECURE
-				debug().debug( "PLTT_Passive %x: Encryption request daemon - sending request with id: %x\n", self.get_node().get_id(), i->get_request_id() );
-				i->print( debug() );
-				debug().debug(" PLTT_Passive %x: Encryption request daemon - buffer size of : %i vs %i\n",self.get_node().get_id(), pm.payload_size(), i->get_target_id_size() );
-#endif
+//#ifdef PLTT_PASSIVE_DEBUG_SECURE
+				debug().debug( "PLTT_Passive %x: Decryption request daemon - sending request with id: %x\n", self.get_node().get_id(), i->get_request_id() );
+				//i->print( debug() );
+				debug().debug(" PLTT_Passive %x: Denryption request daemon - buffer size of : %i vs %i\n",self.get_node().get_id(), pm.payload_size(), i->get_target_id_size() );
+//#endif
 				i->set_decryption_retries();
 				radio().send( Radio::BROADCAST_ADDRESS, pm.buffer_size(), pm.buffer() );
-				++i;
 			}
+			++i;
 		}
 		timer().template set_timer<self_type, &self_type::decryption_request_daemon>( decryption_request_timer, this, 0 );
 	}
