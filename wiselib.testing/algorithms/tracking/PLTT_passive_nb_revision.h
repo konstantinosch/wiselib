@@ -265,6 +265,9 @@ public:
 					i->set_decryption_retries( decryption_max_retries );
 					if ( ( i->get_decryption_retries() >= decryption_max_retries ) && ( i->get_inhibited() !=0 ) )
 					{
+//#ifdef PLTT_PASSIVE_DEBUG_SECURE
+					debug().debug( "PLTT_Passive %x: Received decryption reply from helper %x with trace id : %x - erased secure trace instance with retries %d and inhibited %d\n", self.get_node().get_id(), from, id, i->get_decryption_retries(), i->get_inhibited() );
+//#endif
 						secure_traces.erase( i );
 					}
 					return;
@@ -607,12 +610,10 @@ public:
 					debug().debug( "PLTT_Passive %x: Store inhibit secure trace - Secure Trace not updated\n", self.get_node().get_id() );
 #endif
 					return NULL;
-
 				}
 			}
 			++secure_traces_iterator;
 		}
-
 		secure_trace.update_path( self.get_node() );
 		secure_traces.push_back( secure_trace );
 		secure_traces_iterator = secure_traces.end() - 1;
@@ -630,9 +631,9 @@ public:
 	{
 		if ( ( t != NULL ) && ( (*t).get_inhibited() == 0 ) )
 		{
-#ifdef PLTT_PASSIVE_DEBUG_SPREAD
+//#ifdef PLTT_PASSIVE_DEBUG_SPREAD
 		debug().debug( "PLTT_Passive %x: Prepare Spread Secure Trace\n", self.get_node().get_id() );
-#endif
+//#endif
 			NodeList recipient_candidates;
 			Node rep_point = (*t).get_repulsion_point();
 			for ( PLTT_NodeListIterator neighbors_iterator = neighbors.begin(); neighbors_iterator != neighbors.end(); ++neighbors_iterator )
@@ -684,9 +685,9 @@ public:
 				r = r + backoff_candidate_list_weight;
 			}
 #endif
-#ifdef PLTT_PASSIVE_DEBUG_SPREAD
+//#ifdef PLTT_PASSIVE_DEBUG_SPREAD
 		debug().debug( "PLTT_Passive %x: Prepare Spread Secure Trace - Scheduled inhibition and spread in %i millis \n", self.get_node().get_id(), r );
-#endif
+//#endif
 			timer().template set_timer<self_type, &self_type::spread_secure_trace> ( r, this, (void*) t );
 			timer().template set_timer<self_type, &self_type::send_decryption_request> ( r + decryption_request_offset, this, (void*) t );
 		}
@@ -710,9 +711,9 @@ public:
 	// -----------------------------------------------------------------------
 	void spread_secure_trace( void* userdata )
 	{
-#ifdef PLTT_PASSIVE_DEBUG_SPREAD
-		debug().debug( "PLTT_Passive %x: Spread Trace\n", self.get_node().get_id() );
-#endif
+//#ifdef PLTT_PASSIVE_DEBUG_SPREAD
+	debug().debug( "PLTT_Passive %x: Spread Trace\n", self.get_node().get_id() );
+//#endif
 		PLTT_SecureTrace* t = (PLTT_SecureTrace*) userdata;
 		if ( (*t).get_inhibited() == 0 )
 		{
@@ -724,9 +725,9 @@ public:
 			uint8_t found = 0;
 #endif
 			Node rep_point = (*t).get_repulsion_point();
-#ifdef PLTT_PASSIVE_DEBUG_SPREAD
+//#ifdef PLTT_PASSIVE_DEBUG_SPREAD
 			debug().debug( "PLTT_Passive %x: Spread Trace - Neighbor list of size %i \n", self.get_node().get_id(), neighbors.size() );
-#endif
+//#endif
 			for (PLTT_NodeListIterator neighbors_iterator = neighbors.begin(); neighbors_iterator != neighbors.end(); ++neighbors_iterator)
 			{
 				if (rep_point.get_id() != 0)
@@ -734,9 +735,13 @@ public:
 					if (rep_point.get_position().distsq( self.get_node().get_position() ) <= rep_point.get_position().distsq( neighbors_iterator->get_node().get_position() ) )
 					{
 						recipient_candidates.push_back(	neighbors_iterator->get_node() );
+
 					}
 				}
 			}
+//#ifdef PLTT_PASSIVE_DEBUG_SPREAD
+			debug().debug( "PLTT_Passive %x: Spread Trace - Candidate list of size %i \n", self.get_node().get_id(), recipient_candidates.size() );
+//#endif
 			uint8_t send_flag = 0;
 #ifdef CONFIG_SPREAD_RANDOM_RECEIVERS
 			if (recipient_candidates.size() != 0)
@@ -778,18 +783,19 @@ public:
 				block_data_t buf[Radio::MAX_MESSAGE_LENGTH];
 				block_data_t* buff = buf;
 				buff = (*t).set_buffer_from(buff);
-#ifdef PLTT_PASSIVE_DEBUG_SPREAD
+//#ifdef PLTT_PASSIVE_DEBUG_SPREAD
 				debug().debug( "PLTT_Passive %x: Spread Trace - Trace was spread\n", self.get_node().get_id() );
-#endif
+//#endif
 				send( Radio::BROADCAST_ADDRESS, len, (uint8_t*) buff, PLTT_SPREAD_ID );
+				t->print( debug() );
 			}
 			erase_secure_trace( *t );
 		}
 		else
 		{
-#ifdef PLTT_PASSIVE_DEBUG_SPREAD
+//#ifdef PLTT_PASSIVE_DEBUG_SPREAD
 			debug().debug( "PLTT_Passive %x: Spread Trace - Exited due to inhibition\n", self.get_node().get_id() );
-#endif
+//#endif
 		}
 	}
 	// -----------------------------------------------------------------------

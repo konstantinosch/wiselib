@@ -277,24 +277,25 @@ namespace wiselib
 		}
 		inline void print( Debug& debug )
 		{
-			debug.debug( "Trace (size %i) :", get_buffer_size() );
-			debug.debug( "diminish_seconds (size %i) : %i", sizeof( diminish_seconds ), diminish_seconds );
-			debug.debug( "diminish_amount (size %i) : %i", sizeof( diminish_amount ), diminish_amount );
-			debug.debug( "spread_penalty (size %i) : %i", sizeof( spread_penalty ), spread_penalty );
-			debug.debug( "intensity (size %i) : %i", sizeof( intensity ), intensity );
-			debug.debug( "max_intensity (size %i) : %i", sizeof( max_intensity ), max_intensity );
-			debug.debug( "start_time (size %i) : %i", sizeof( start_time ), start_time  );
+			debug.debug( "Trace (size %i) :\n", get_buffer_size() );
+			debug.debug( "diminish_seconds (size %i) : %i\n", sizeof( diminish_seconds ), diminish_seconds );
+			debug.debug( "diminish_amount (size %i) : %i\n", sizeof( diminish_amount ), diminish_amount );
+			debug.debug( "spread_penalty (size %i) : %i\n", sizeof( spread_penalty ), spread_penalty );
+			debug.debug( "intensity (size %i) : %i\n", sizeof( intensity ), intensity );
+			debug.debug( "max_intensity (size %i) : %i\n", sizeof( max_intensity ), max_intensity );
+			debug.debug( "start_time (size %i) : %i\n", sizeof( start_time ), start_time  );
 			debug.debug( "target id (size %i) : ", PRIVACY_CIPHER_TEXT_MAX_SIZE );
 			for ( size_t i = 0; i < PRIVACY_CIPHER_TEXT_MAX_SIZE; i++ )
 			{
 				debug.debug( " %i", target_id[i]);
 			}
-			debug.debug( "recipient 1 id (size %i) : %i", sizeof( recipient_1_id), recipient_1_id );
-			debug.debug( "recipient 2 id (size %i) : %i", sizeof( recipient_2_id), recipient_2_id );
-			debug.debug( "request_id (size %i ) : %x", sizeof( request_id ), request_id );
-			debug.debug( "inhibited (size %i) : %i", sizeof( inhibited ), inhibited );
-			debug.debug( "decryption_retries (size %i) : %i", sizeof( decryption_retries ), decryption_retries );
-			debug.debug( "current, parent, grandparent :" );
+			debug.debug( "\n");
+			debug.debug( "recipient 1 id (size %i) : %x\n", sizeof( recipient_1_id), recipient_1_id );
+			debug.debug( "recipient 2 id (size %i) : %x\n", sizeof( recipient_2_id), recipient_2_id );
+			debug.debug( "request_id (size %i ) : %x\n", sizeof( request_id ), request_id );
+			debug.debug( "inhibited (size %i) : %i\n", sizeof( inhibited ), inhibited );
+			debug.debug( "decryption_retries (size %i) : %i\n", sizeof( decryption_retries ), decryption_retries );
+			debug.debug( "current, parent, grandparent :\n" );
 			current.print( debug );
 			parent.print( debug );
 			grandparent.print( debug );
