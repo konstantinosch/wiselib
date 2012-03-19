@@ -95,7 +95,8 @@ public:
 	// -----------------------------------------------------------------------
 	PLTT_PassiveType() :
 		radio_callback_id_			( 0 ),
-		seconds_counter				( 1 )
+		seconds_counter				( 1 ),
+		transmission_power_dB		( -16 )
 #ifdef PLTT_SECURE
 		,decryption_request_timer	( 1000 ),
 		decryption_request_offset	( 50 ),
@@ -114,9 +115,6 @@ public:
 		debug().debug( "PLTT_Passive %x: Boot \n", self.get_node().get_id() );
 #endif
 		radio().enable_radio();
-		TxPower power;
-		power.set_dB( transmission_power_dB);
-		radio().set_power( power );
 		millis_t r = rand()() % random_enable_timer_range;
 		timer().template set_timer<self_type, &self_type::neighbor_discovery_enable_task> (1, this, 0);
 	}
@@ -180,6 +178,9 @@ public:
 		Message message;
 		message.set_msg_id(msg_id);
 		message.set_payload(len, data);
+		TxPower power;
+		power.set_dB( transmission_power_dB);
+		radio().set_power( power );
 		radio().send( destination, message.buffer_size(), (uint8_t*) &message );
 	}
 	// -----------------------------------------------------------------------
@@ -266,7 +267,7 @@ public:
 					if ( ( i->get_decryption_retries() >= decryption_max_retries ) && ( i->get_inhibited() !=0 ) )
 					{
 //#ifdef PLTT_PASSIVE_DEBUG_SECURE
-					debug().debug( "PLTT_Passive %x: Received decryption reply from helper %x with trace id : %x - erased secure trace instance with retries %d and inhibited %d\n", self.get_node().get_id(), from, id, i->get_decryption_retries(), i->get_inhibited() );
+						debug().debug( "PLTT_Passive %x: Received decryption reply from helper %x with trace id : %x - erased secure trace instance with retries %d and inhibited %d\n", self.get_node().get_id(), from, id, i->get_decryption_retries(), i->get_inhibited() );
 //#endif
 						secure_traces.erase( i );
 					}
@@ -705,6 +706,9 @@ public:
 			pm.set_request_id( t->get_request_id() );
 			pm.set_payload( t->get_target_id_size(), t->get_target_id() );
 			pm.set_msg_id( PRIVACY_DECRYPTION_REQUEST_ID );
+			TxPower power;
+			power.set_dB( transmission_power_dB);
+			radio().set_power( power );
 			radio().send( Radio::BROADCAST_ADDRESS, pm.buffer_size(), pm.buffer() );
 		}
 	}
@@ -712,7 +716,7 @@ public:
 	void spread_secure_trace( void* userdata )
 	{
 //#ifdef PLTT_PASSIVE_DEBUG_SPREAD
-	debug().debug( "PLTT_Passive %x: Spread Trace\n", self.get_node().get_id() );
+		debug().debug( "PLTT_Passive %x: Spread Trace\n", self.get_node().get_id() );
 //#endif
 		PLTT_SecureTrace* t = (PLTT_SecureTrace*) userdata;
 		if ( (*t).get_inhibited() == 0 )
@@ -732,6 +736,9 @@ public:
 			{
 				if (rep_point.get_id() != 0)
 				{
+//#ifdef PLTT_PASSIVE_DEBUG_SPREAD
+					debug().debug( "PLTT_Passive %x: Spread Trace - Rep point sqr dist %f vs sqr dist from %x : %f \n", self.get_node().get_id(), rep_point.get_position().distsq( self.get_node().get_position() ), neighbors_iterator->get_node().get_id(), rep_point.get_position().distsq( neighbors_iterator->get_node().get_position() ) );
+//#endif
 					if (rep_point.get_position().distsq( self.get_node().get_position() ) <= rep_point.get_position().distsq( neighbors_iterator->get_node().get_position() ) )
 					{
 						recipient_candidates.push_back(	neighbors_iterator->get_node() );
@@ -786,7 +793,7 @@ public:
 //#ifdef PLTT_PASSIVE_DEBUG_SPREAD
 				debug().debug( "PLTT_Passive %x: Spread Trace - Trace was spread\n", self.get_node().get_id() );
 //#endif
-				send( Radio::BROADCAST_ADDRESS, len, (uint8_t*) buff, PLTT_SPREAD_ID );
+				send( Radio::BROADCAST_ADDRESS, len, (uint8_t*) buff, PLTT_SECURE_SPREAD_ID );
 				t->print( debug() );
 			}
 			erase_secure_trace( *t );
@@ -824,11 +831,14 @@ public:
 				pm.set_payload( i->get_target_id_size(), i->get_target_id() );
 				pm.set_msg_id( PRIVACY_DECRYPTION_REQUEST_ID );
 //#ifdef PLTT_PASSIVE_DEBUG_SECURE
-				debug().debug( "PLTT_Passive %x: Decryption request daemon - sending request with id: %x\n", self.get_node().get_id(), i->get_request_id() );
+				debug().debug( "PLTT_Passive %x: Decryption request daemon - sending request with id: %x with dB : %d\n", self.get_node().get_id(), i->get_request_id(), transmission_power_dB );
 				//i->print( debug() );
 				debug().debug(" PLTT_Passive %x: Denryption request daemon - buffer size of : %i vs %i\n",self.get_node().get_id(), pm.payload_size(), i->get_target_id_size() );
 //#endif
 				i->set_decryption_retries();
+				TxPower power;
+				power.set_dB( transmission_power_dB);
+				radio().set_power( power );
 				radio().send( Radio::BROADCAST_ADDRESS, pm.buffer_size(), pm.buffer() );
 			}
 			++i;
@@ -892,6 +902,9 @@ public:
 		{
 			block_data_t buff[Radio::MA    X_MESSAGE_LENGTH];
 			self.set_buffer_from( buff );
+			TxPower power;
+			power.set_dB( transmission_power_dB);
+			radio().set_power( power );
 			radio().send( Radio::BROADCAST_ADDRESS, self.get_buffer_size(), buff );
 		}
 		timer().template set_timer<self_type, &self_type::proactive_inhibition_daemon>( proactive_inhibition_timer, this, 0 );
@@ -1117,7 +1130,7 @@ private:
 	PLTT_NodeList neighbors;
 	PLTT_TraceList traces;
 	millis_t nb_convergence_time;
-	uint8_t transmission_power_dB;
+	int8_t transmission_power_dB;
 	uint32_t backoff_connectivity_weight;
 	uint32_t backoff_random_weight;
 	uint32_t backoff_lqi_weight;
