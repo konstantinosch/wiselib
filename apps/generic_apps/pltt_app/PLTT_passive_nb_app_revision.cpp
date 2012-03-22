@@ -86,6 +86,7 @@ void application_main( Os::AppMainParameter& value )
 	passive.set_decryption_request_timer( DECRYPTION_REQUEST_TIMER );
 	passive.set_decryption_request_offset( DECRYPTION_REQUEST_OFFSET );
 	passive.set_decryption_max_retries( DECRYPTION_MAX_RETRIES );
+	passive.set_erase_daemon_timer( ERASE_DAEMON_TIMER );
 #endif
 #ifdef CONFIG_PROACTIVE_INHIBITION
 	passive.set_proactive_inhibition_timer( PROACTIVE_INHIBITION_TIMER );

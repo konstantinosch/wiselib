@@ -100,7 +100,8 @@ public:
 #ifdef PLTT_SECURE
 		,decryption_request_timer	( 1000 ),
 		decryption_request_offset	( 50 ),
-		decryption_max_retries		( 5 )
+		decryption_max_retries		( 5 ),
+		erase_daemon_timer			( 100 )
 #endif
 	{
 	}
@@ -191,9 +192,9 @@ public:
 #ifndef PLTT_SECURE
 		if ( msg_id == PLTT_SPREAD_ID )
 		{
-#ifdef PLTT_PASSIVE_DEBUG_SPREAD
+//#ifdef PLTT_PASSIVE_DEBUG_SPREAD
 			debug().debug( "PLTT_Passive %x: Received spread message from %x of link metric %i and size %i \n", self.get_node().get_id(), from, exdata.link_metric(), len );
-#endif
+//#endif
 			PLTT_Trace trace = PLTT_Trace( message->payload() );
 			if ( ( trace.get_recipient_1_id() == self.get_node().get_id() ) || ( trace.get_recipient_2_id() == self.get_node().get_id() ) || (  ( trace.get_recipient_1_id() == 0 ) && (  trace.get_recipient_2_id() == 0 ) ) )
 			{
@@ -218,7 +219,9 @@ public:
 //#ifdef PLTT_PASSIVE_DEBUG_SECURE
 				debug().debug( "PLTT_Passive %x: Received encrypted trace from unknown target %x of size %i and intensity %i vs %i - Encrypted trace is detection or direct spread - inhibition: 0\n", self.get_node().get_id(), from, message->payload_size(), secure_trace.get_intensity(), secure_trace.get_max_intensity() );
 //#endif
+//this here... chance of weighting the inhibition + sniffing without need of inhibition... should inhibited and sniffers request decrypts? what is the cost?
 				PLTT_SecureTrace* secure_trace_ptr = store_inhibit_secure_trace( secure_trace );
+//great care XXXXXXXXXXXXXXXX
 				if ( secure_trace_ptr != NULL )
 				{
 //#ifdef PLTT_PASSIVE_DEBUG_SECURE
@@ -347,17 +350,17 @@ public:
 	// -----------------------------------------------------------------------
 	PLTT_Trace* store_inhibit_trace( PLTT_Trace trace, uint8_t inhibition_flag = 0 )
 	{
-#ifdef PLTT_PASSIVE_DEBUG_SPREAD
+//#ifdef PLTT_PASSIVE_DEBUG_SPREAD
 		debug().debug( "PLTT_Passive %x: Store inhibit trace\n", self.get_node().get_id() );
-#endif
+//#endif
 		PLTT_TraceListIterator traces_iterator = traces.begin();
 		while ( traces_iterator != traces.end())
 		{
 			if ( traces_iterator->get_target_id() == trace.get_target_id() )
 			{
-#ifdef PLTT_PASSIVE_DEBUG_SPREAD
+//#ifdef PLTT_PASSIVE_DEBUG_SPREAD
 				debug().debug( "PLTT_Passive %x: Store inhibit trace - new trace intensity and start time (%i, %i ) vs current (%i, %i, %i) ", self.get_node().get_id(), trace.get_intensity(), trace.get_start_time(), traces_iterator->get_intensity(), traces_iterator->get_start_time(), traces_iterator->get_inhibited() );
-#endif
+//#endif
 				if ( ( (trace.get_start_time() == traces_iterator->get_start_time() ) && (traces_iterator->get_intensity() < trace.get_intensity() ) ) ||
 					 ( trace.get_start_time() > traces_iterator->get_start_time() ) )
 				{
@@ -421,9 +424,9 @@ public:
 #ifndef PLTT_SECURE
 	void prepare_spread_trace( PLTT_Trace* t, const ExtendedData& exdata )
 	{
-#ifdef PLTT_PASSIVE_DEBUG_SPREAD
+//#ifdef PLTT_PASSIVE_DEBUG_SPREAD
 		debug().debug( "PLTT_Passive %x: Prepare Spread Trace\n", self.get_node().get_id() );
-#endif
+//#endif
 		if ( ( t != NULL ) && ( (*t).get_inhibited() == 0 ) )
 		{
 			NodeList recipient_candidates;
@@ -441,18 +444,18 @@ public:
 			millis_t r = 0;
 			if ( !recipient_candidates.size() )
 			{
-#ifdef PLTT_PASSIVE_DEBUG_SPREAD
+//#ifdef PLTT_PASSIVE_DEBUG_SPREAD
 				debug().debug( "PLTT_Passive %x: Prepare Spread Secure Trace - Exited due to 0 element candidate list\n", self.get_node().get_id() );
-#endif
+//#endif
 				t->set_inhibited();
 				return;
 			}
 #ifdef CONFIG_BACKOFF_CANDIDATE_LIST_WEIGHT
 			else if ( recipient_candidates.size() == 1 )
 			{
-#ifdef PLTT_PASSIVE_DEBUG_SPREAD
+//#ifdef PLTT_PASSIVE_DEBUG_SPREAD
 				debug().debug( "PLTT_Passive %x: Prepare Spread Secure Trace - Candidate list of size 1 - Imposing 1000ms delay\n", self.get_node().get_id() );
-#endif
+//#endif
 				r = r + backoff_candidate_list_weight;
 			}
 #endif
@@ -477,9 +480,9 @@ public:
 				r = backoff_connectivity_weight / neighbors.size() + r;
 			}
 #endif
-#ifdef PLTT_PASSIVE_DEBUG_SPREAD
+//#ifdef PLTT_PASSIVE_DEBUG_SPREAD
 			debug().debug( "PLTT_Passive %x: Prepare Spread - Scheduled inhibition and spread in %i millis \n", self.get_node().get_id(), r );
-#endif
+//#endif
 
 #ifdef PLTT_PROACTIVE_INHIBITION
 			timer().template set_timer<self_type, &self_type::send_inhibition> ( r, this, ( void* )t );
@@ -819,9 +822,11 @@ public:
 //#ifdef PLTT_PASSIVE_DEBUG_SECURE
 				debug().debug( "PLTT_Passive %x: Decryption request daemon - before erase with id: %x and size : %d \n", self.get_node().get_id(), i->get_request_id(), secure_traces.size() );
 //#endif
-				secure_traces.erase( i );
+				secure_traces.erase( i ); //poop happening...
 //#ifdef PLTT_PASSIVE_DEBUG_SECURE
 				debug().debug( "PLTT_Passive %x: Decryption request daemon - after erase with id: %x and size : %d \n", self.get_node().get_id(), i->get_request_id(), secure_traces.size() );
+				timer().template set_timer<self_type, &self_type::decryption_request_daemon>( erase_daemon_timer, this, 0 );
+				return;
 //#endif
 			}
 			else if ( i->get_decryption_retries() < decryption_max_retries )
@@ -1073,7 +1078,16 @@ public:
 		return decryption_max_retries;
 	}
 	// -----------------------------------------------------------------------
-
+	millis_t set_erase_daemon_timer( millis_t _edt )
+	{
+		erase_daemon_timer = _edt;
+	}
+	// -----------------------------------------------------------------------
+	void get_erase_daemon_timer()
+	{
+		return erase_daemon_timer;
+	}
+	// -----------------------------------------------------------------------
 #endif
 private:
 	Radio& radio()
@@ -1141,6 +1155,7 @@ private:
 	millis_t decryption_request_timer;
 	millis_t decryption_request_offset;
 	uint8_t decryption_max_retries;
+	millis_t erase_daemon_timer;
 #endif
 #ifdef CONFIG_PROACTIVE_INHIBITION
 	uint32_t proactive_inhibition_timer;
