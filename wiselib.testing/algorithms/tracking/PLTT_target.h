@@ -22,6 +22,7 @@
 
 #include "PLTT_config_revision.h"
 #include "PLTT_message.h"
+#undef PLTT_SECURE
 #ifdef PLTT_SECURE
 	#include "util/delegates/delegate.hpp"
 #endif
@@ -153,6 +154,7 @@ namespace wiselib
 #ifdef PLTT_TARGET_DEBUG_SECURE
 				debug().debug( "PLTT_Target %x: encryption request daemon - Sending request of size : %i \n", self.get_id(), encryption_privacy_message.buffer_size() );
 #endif
+				radio().set_power( trans_power );
 				radio().send( Radio::BROADCAST_ADDRESS, encryption_privacy_message.buffer_size(), encryption_privacy_message.buffer() );
 				timer().template set_timer<self_type, &self_type::encryption_request_daemon>( 1000, this, 0 );
 			}
@@ -238,12 +240,12 @@ namespace wiselib
 			if ( target_trace.get_start_time() < target_mini_run_times )
 			{
 #endif
-				radio().set_power( trans_power );
 				Message message;
 				message.set_msg_id( PLTT_SPREAD_ID );
 				block_data_t buffer[Radio::MAX_MESSAGE_LENGTH];
 				block_data_t* buff = buffer;
 				message.set_payload( target_trace.get_buffer_size(), target_trace.set_buffer_from( buff ) );
+				//radio().set_power( trans_power );
 				radio().send( Radio::BROADCAST_ADDRESS, message.buffer_size(), (block_data_t*)&message );
 				target_trace.update_start_time();
 				timer().template set_timer<self_type, &self_type::send_trace>( spread_milis, this, 0 );

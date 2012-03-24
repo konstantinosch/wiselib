@@ -361,7 +361,7 @@ public:
 //#ifdef PLTT_PASSIVE_DEBUG_SPREAD
 				debug().debug( "PLTT_Passive %x: Store inhibit trace - new trace intensity and start time (%i, %i ) vs current (%i, %i, %i) ", self.get_node().get_id(), trace.get_intensity(), trace.get_start_time(), traces_iterator->get_intensity(), traces_iterator->get_start_time(), traces_iterator->get_inhibited() );
 //#endif
-				if ( ( (trace.get_start_time() == traces_iterator->get_start_time() ) && (traces_iterator->get_intensity() < trace.get_intensity() ) ) ||
+				if ( ( (trace.get_start_time() == traces_iterator->get_start_time() ) && (traces_iterator->get_intensity() - trace.get_intensity() <= traces_iterator->get_spread_penalty() ) ) ||
 					 ( trace.get_start_time() > traces_iterator->get_start_time() ) )
 				{
 					*traces_iterator = trace;
@@ -369,6 +369,9 @@ public:
 					if ( inhibition_flag )
 					{
 						traces_iterator->set_inhibited();
+//#ifdef PLTT_PASSIVE_DEBUG_SPREAD
+						debug().debug( "PLTT_Passive %x: Store inhibit trace - INHIBITED ", self.get_node().get_id() );
+//#endif
 					}
 					return &(*traces_iterator);
 				}
@@ -384,6 +387,9 @@ public:
 		if ( inhibition_flag )
 		{
 			traces_iterator->set_inhibited();
+//#ifdef PLTT_PASSIVE_DEBUG_SPREAD
+			debug().debug( "PLTT_Passive %x: Store inhibit trace - INHIBITED ", self.get_node().get_id() );
+//#endif
 		}
 		traces_iterator = traces.end() - 1;
 		return &(*traces_iterator);
@@ -468,9 +474,9 @@ public:
 #ifdef CONFIG_BACKOFF_LQI_WEIGHT
 			if ( exdata.link_metric() )
 			{
-#ifdef PLTT_PASSIVE_DEBUG_SPREAD
+//#ifdef PLTT_PASSIVE_DEBUG_SPREAD
 				debug().debug( "PLTT_Passive %x: Prepare Spread Secure Trace - Has lqi of %i\n", self.get_node().get_id(), exdata.link_metric() );
-#endif
+//#endif
 				r = backoff_lqi_weight * exdata.link_metric() + r;
 			}
 #endif
@@ -481,7 +487,7 @@ public:
 			}
 #endif
 //#ifdef PLTT_PASSIVE_DEBUG_SPREAD
-			debug().debug( "PLTT_Passive %x: Prepare Spread - Scheduled inhibition and spread in %i millis \n", self.get_node().get_id(), r );
+			debug().debug( "PLTT_Passive %x: Prepare Spread - Scheduled inhibition and spread in %d millis \n", self.get_node().get_id(), r );
 //#endif
 
 #ifdef PLTT_PROACTIVE_INHIBITION
