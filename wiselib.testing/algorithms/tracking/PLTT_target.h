@@ -85,11 +85,11 @@ namespace wiselib
 		PLTT_TargetType()
 		{}
 		// -----------------------------------------------------------------------
-		PLTT_TargetType( PLTT_Trace _t, millis_t _s, int16_t _tp )
+		PLTT_TargetType( PLTT_Trace _t, millis_t _s, int8_t _tp )
 		{
 			target_trace = _t;
 			spread_milis = _s;
-			trans_power.set_dB( _tp );
+			transmission_power_dB = _tp;
 #ifdef PLTT_SECURE
 			has_encrypted_id = 0;
 #endif
@@ -154,6 +154,7 @@ namespace wiselib
 #ifdef PLTT_TARGET_DEBUG_SECURE
 				debug().debug( "PLTT_Target %x: encryption request daemon - Sending request of size : %i \n", self.get_id(), encryption_privacy_message.buffer_size() );
 #endif
+				trans_power.set_dB( transmission_power_dB );
 				radio().set_power( trans_power );
 				radio().send( Radio::BROADCAST_ADDRESS, encryption_privacy_message.buffer_size(), encryption_privacy_message.buffer() );
 				timer().template set_timer<self_type, &self_type::encryption_request_daemon>( 1000, this, 0 );
@@ -180,12 +181,13 @@ namespace wiselib
 					{
 #endif
 						target_trace.set_target_id( randomize_privacy_message_ptr->payload() );
-						radio().set_power( trans_power );
 						Message message;
 						message.set_msg_id( PLTT_SECURE_SPREAD_ID );
 						block_data_t buffer[Radio::MAX_MESSAGE_LENGTH];
 						block_data_t* buff = buffer;
 						message.set_payload( target_trace.get_buffer_size(), target_trace.set_buffer_from( buff ) );
+						trans_power.set_dB( transmission_power_dB );
+						radio().set_power( trans_power );
 						radio().send( Radio::BROADCAST_ADDRESS, message.buffer_size(), (block_data_t*)&message );
 #ifdef PLTT_TARGET_DEBUG_SECURE
 						debug().debug( "PLTT_Target %x: Randomize callback - Randomized message of size : %i send.\n", self.get_id(), message.buffer_size() );
@@ -245,7 +247,8 @@ namespace wiselib
 				block_data_t buffer[Radio::MAX_MESSAGE_LENGTH];
 				block_data_t* buff = buffer;
 				message.set_payload( target_trace.get_buffer_size(), target_trace.set_buffer_from( buff ) );
-				//radio().set_power( trans_power );
+				trans_power.set_dB( transmission_power_dB);
+				radio().set_power( trans_power );
 				radio().send( Radio::BROADCAST_ADDRESS, message.buffer_size(), (block_data_t*)&message );
 				target_trace.update_start_time();
 				timer().template set_timer<self_type, &self_type::send_trace>( spread_milis, this, 0 );
@@ -316,6 +319,7 @@ namespace wiselib
 		millis_t spread_milis;
 		TxPower trans_power;
 		Node self;
+		int8_t transmission_power_dB;
 #ifdef PLTT_SECURE
 		uint8_t has_encrypted_id;
 		event_notifier_delegate_t privacy_radio_callback;
