@@ -96,7 +96,7 @@ public:
 	PLTT_PassiveType() :
 		radio_callback_id_			( 0 ),
 		seconds_counter				( 1 ),
-		transmission_power_dB		( -16 )
+		transmission_power_dB		( -18 )
 #ifdef PLTT_SECURE
 		,decryption_request_timer	( 1000 ),
 		decryption_request_offset	( 50 ),
@@ -128,7 +128,8 @@ public:
 		block_data_t buff[100];
 		ProtocolPayload pp( NeighborDiscovery::TRACKING_PROTOCOL_ID, self.get_node().get_position().get_buffer_size(), self.get_node().get_position().set_buffer_from( buff ) );
 		uint8_t ef = ProtocolSettings::NEW_PAYLOAD|ProtocolSettings::LOST_NB|ProtocolSettings::NEIGHBOR_REMOVED|ProtocolSettings::NEW_PAYLOAD;
-		ProtocolSettings ps( 255, 0, 255, 0, 100, 75, 100, 75, ef, -16, 100, 3000, 100, ProtocolSettings::RATIO_DIVIDER, 2, ProtocolSettings::MEAN_DEAD_TIME_PERIOD, 100, 100, ProtocolSettings::R_NR_WEIGHTED, 10, 10, pp );
+		ProtocolSettings ps( 255, 0, 255, 0, 100, 75, 100, 75, ef, -18, 100, 3000, 100, ProtocolSettings::RATIO_DIVIDER, 2, ProtocolSettings::MEAN_DEAD_TIME_PERIOD, 100, 100, ProtocolSettings::R_NR_WEIGHTED, 10, 10, pp );
+		neighbor_discovery().set_transmission_power_dB( transmission_power_dB );
 		uint8_t result = 0;
 		result = neighbor_discovery(). template register_protocol<self_type, &self_type::sync_neighbors>( NeighborDiscovery::TRACKING_PROTOCOL_ID, ps, this  );
 		Protocol* prot_ref = neighbor_discovery().get_protocol_ref( NeighborDiscovery::TRACKING_PROTOCOL_ID );

@@ -258,7 +258,7 @@ namespace wiselib
    template<typename OsModel_P>
    void ShawnTxRadioModel<OsModel_P>::TxPower::set_dB(int db){
       if(db<=0)
-         value=std::pow(10.0,db/10.0);
+         value=std::pow(10.0,db/30.0);
    }
    //------------------------------------------------------------------------
    template<typename OsModel_P>

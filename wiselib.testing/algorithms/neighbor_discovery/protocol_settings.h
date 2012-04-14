@@ -1,7 +1,7 @@
 #ifndef PROTOCOL_SETTINGS_H
 #define	PROTOCOL_SETTINGS_H
 
-#include "neighbor_discovery_config.h"
+#include "neighbor_discovery_source_config.h"
 #include "protocol_payload.h"
 
 namespace wiselib

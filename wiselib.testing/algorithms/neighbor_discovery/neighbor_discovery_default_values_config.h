@@ -7,9 +7,6 @@
 #define NB_RELAX_MILLIS 200 //great care with this one when tinkering with very minute period predictions/calculations. Could be set to a tiny analogous value of the period like 10%.
 #define NB_DAEMON_PERIOD 1000
 
-//default privacy protocol settings
-#define MAX_PRIVACY_NB_MESSAGES 100
-
 //default registered protocol settings
 #define NB_MAX_AVG_LQI_THRESHOLD 255
 #define NB_MIN_AVG_LQI_THRESHOLD 0
@@ -30,3 +27,4 @@
 #define NB_NEW_DEAD_TIME_PERIOD_WEIGHT 100
 #define NB_BEACON_WEIGHT 1
 #define NB_LOST_BEACON_WEIGHT 1
+

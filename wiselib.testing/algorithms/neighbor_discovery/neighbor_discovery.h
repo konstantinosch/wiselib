@@ -3,7 +3,8 @@
 
 #include "util/pstl/vector_static.h"
 #include "util/delegates/delegate.hpp"
-#include "neighbor_discovery_config.h"
+#include "neighbor_discovery_source_config.h"
+#include "neighbor_discovery_default_values_config.h"
 #include "neighbor_discovery_message.h"
 #include "neighbor.h"
 #include "protocol_settings.h"
@@ -59,7 +60,7 @@ namespace wiselib
 			protocol_max_payload_size_strategy	( FIXED_PAYLOAD_SIZE ),
 			beacon_period_strategy				( FIXED_TRANSM ),
 			relax_millis						( NB_RELAX_MILLIS ),
-			nb_daemon_period					( 1000 )
+			nb_daemon_period					( NB_DAEMON_PERIOD )
 		{};
 		// --------------------------------------------------------------------
 		~NeighborDiscovery_Type()
@@ -77,7 +78,30 @@ namespace wiselib
 			pp.set_protocol_id( NB_PROTOCOL_ID );
 			pp.set_payload_size( 0 );
 			uint8_t ef = ProtocolSettings::NEW_NB|ProtocolSettings::UPDATE_NB|ProtocolSettings::NEW_PAYLOAD|ProtocolSettings::LOST_NB|ProtocolSettings::TRANS_DB_UPDATE|ProtocolSettings::BEACON_PERIOD_UPDATE|ProtocolSettings::NEIGHBOR_REMOVED;
-			ProtocolSettings ps( 255, 0, 255, 0, 100, 0, 100, 0, ef, -6, 100, 3000, 100, ProtocolSettings::RATIO_DIVIDER, 2, ProtocolSettings::MEAN_DEAD_TIME_PERIOD, 100, 100, ProtocolSettings::R_NR_NORMAL, 1, 1, pp );
+			ProtocolSettings ps(
+									NB_MAX_AVG_LQI_THRESHOLD,
+									NB_MIN_AVG_LQI_THRESHOLD,
+									NB_MAX_AVG_LQI_INVERSE_THRESHOLD,
+									NB_MIN_AVG_LQI_INVERSE_THRESHOLD,
+									NB_MAX_LINK_STAB_RATIO_THRESHOLD,
+									NB_MIN_LINK_STABILITY_RATIO_THRESHOLD,
+									NB_MAX_LINK_STAB_RATIO_INVERSE_THRESHOLD,
+									NB_MIN_LINK_STAB_RATIO_INVERSE_THRESHOLD,
+									ef,
+									transmission_power_dB,
+									NB_PROPOSED_TRANSMISSION_POWER_DB_WEIGHT,
+									beacon_period,
+									NB_PROPOSED_BEACON_PERIOD_WEIGHT,
+									ProtocolSettings::RATIO_DIVIDER,
+									NB_RATIO_DIVIDER,
+									ProtocolSettings::MEAN_DEAD_TIME_PERIOD,
+									NB_OLD_DEAD_TIME_PERIOD_WEIGHT,
+									NB_NEW_DEAD_TIME_PERIOD_WEIGHT,
+									ProtocolSettings::R_NR_NORMAL,
+									NB_BEACON_WEIGHT,
+									NB_LOST_BEACON_WEIGHT,
+									pp
+								);
 			p.set_protocol_id( NB_PROTOCOL_ID );
 			p.set_neighborhood( neighbors );
 			p.set_protocol_settings( ps );

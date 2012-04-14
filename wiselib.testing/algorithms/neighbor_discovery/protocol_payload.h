@@ -1,7 +1,7 @@
 #ifndef PROTOCOL_PAYLOAD_H
 #define	PROTOCOL_PAYLOAD_H
 
-#include "neighbor_discovery_config.h"
+#include "neighbor_discovery_default_values_config.h"
 
 namespace wiselib
 {
