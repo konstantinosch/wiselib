@@ -7,6 +7,9 @@ namespace wiselib
 				typename Radio_P,
 				typename Clock_P,
 				typename Timer_P,
+#ifdef NB_COORD_SUPPORT
+				typename Position_P,
+#endif
 				typename Debug_P>
 	class Neighbor_Type
 	{
@@ -21,7 +24,12 @@ namespace wiselib
 		typedef typename Radio::block_data_t block_data_t;
 		typedef typename Timer::millis_t millis_t;
 		typedef typename Clock::time_t time_t;
+#ifdef NB_COORD_SUPPORT
+		typedef Position_P Position;
+		typedef Neighbor_Type<Os, Radio, Clock, Timer, Position, Debug> self_type;
+#else
 		typedef Neighbor_Type<Os, Radio, Clock, Timer, Debug> self_type;
+#endif
 		// --------------------------------------------------------------------
 		Neighbor_Type()	:
 			id								( 0 ),
@@ -283,8 +291,19 @@ namespace wiselib
 			size_t LINK_STAB_RATIO_POS = AVG_LQI_POS + sizeof(uint8_t);
 			return LINK_STAB_RATIO_POS + sizeof( uint8_t );
 		}
+#ifdef NB_COORD_SUPPORT
 		// --------------------------------------------------------------------
-
+		Position get_position()
+		{
+			return position;
+		}
+		// --------------------------------------------------------------------
+		void set_position( Position _p )
+		{
+			position = _p;
+		}
+#endif
+		// --------------------------------------------------------------------
 		void print( Debug& debug, Radio& radio )
 		{
 #ifndef NB_DEBUG_STATS
@@ -304,18 +323,23 @@ namespace wiselib
 #else
 			if ( active == 1 )
 			{
-				debug.debug( "NB_STATS:%x:%x:%d:%d:%d:%d:%d:%d:%d:%d:%d\n",
-					radio.id(),
-					id,
-					total_beacons,
-					total_beacons_expected,
-					avg_LQI,
-					avg_LQI_inverse,
-					link_stab_ratio,
-					link_stab_ratio_inverse,
-					beacon_period,
-					beacon_period_update_counter,
-					active );
+				debug.debug( "NB:%x:%x:%d:%d:%d:%d:%d:%d:%d:%d:%d",
+							radio.id(),
+							id,
+							total_beacons,
+							total_beacons_expected,
+							avg_LQI,
+							avg_LQI_inverse,
+							link_stab_ratio,
+							link_stab_ratio_inverse,
+							beacon_period,
+							beacon_period_update_counter,
+							active );
+
+#ifdef NB_COORD_SUPPORT
+				debug.debug( ":%d:%d", position.get_x(), position.get_y(), position.get_z() );
+#endif
+				debug.debug( "\n");
 			}
 #endif
 		}
@@ -332,6 +356,9 @@ namespace wiselib
 		uint32_t beacon_period_update_counter;
 		uint8_t active;
 		time_t last_beacon;
+#ifdef NB_COORD_SUPPORT
+		Position position;
+#endif
 	};
 }
 #endif

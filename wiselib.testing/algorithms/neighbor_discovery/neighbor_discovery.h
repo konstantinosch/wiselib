@@ -18,6 +18,9 @@ namespace wiselib
 				typename Radio_P,
 				typename Clock_P,
 				typename Timer_P,
+#ifdef NB_COORD_SUPPORT
+				typename Position_P,
+#endif
 				typename Debug_P>
 	class NeighborDiscovery_Type
 	{
@@ -35,7 +38,12 @@ namespace wiselib
 		typedef typename Radio::ExtendedData ExData;
 		typedef typename Radio::TxPower TxPower;
 		typedef typename Timer::millis_t millis_t;
-		typedef NeighborDiscovery_Type<Os, Radio, Clock, Timer, Debug> self_t;
+#ifdef NB_COORD_SUPPORT
+		typedef Position_P Position;
+		typedef NeighborDiscovery_Type	<Os, Radio,	Clock, Timer, Position, Debug> self_t;
+#else
+		typedef NeighborDiscovery_Type	<Os, Radio,	Clock, Timer, Debug> self_t;
+#endif
 		typedef NeighborDiscoveryMessage_Type<Os, Radio> Message;
 		typedef Neighbor_Type<Os, Radio, Clock, Timer, Debug> Neighbor;
 		typedef ProtocolPayload_Type< Os, Radio, Debug> ProtocolPayload;
@@ -61,6 +69,16 @@ namespace wiselib
 			beacon_period_strategy				( FIXED_TRANSM ),
 			relax_millis						( NB_RELAX_MILLIS ),
 			nb_daemon_period					( NB_DAEMON_PERIOD )
+#ifdef NB_DEBUG_STATS
+			,messages_received					( 0 ),
+			bytes_received						( 0 ),
+			avg_bytes_size_received				( 0 ),
+			square_stdv_bytes_size_received		( 0 ),
+			messages_send						( 0 ),
+			bytes_send							( 0 ),
+			avg_bytes_size_send					( 0 ),
+			square_stdv_bytes_size_send			( 0 )
+#endif
 		{};
 		// --------------------------------------------------------------------
 		~NeighborDiscovery_Type()
@@ -74,10 +92,21 @@ namespace wiselib
 			n.set_active();
 			Neighbor_vector neighbors;
 			neighbors.push_back( n );
+			block_data_t buff[100];
+#ifdef NB_COORD_SUPPORT
+			ProtocolPayload pp( NB_PROTOCOL_ID, position.get_buffer_size(), position.set_buffer_from( buff ) );
+#else
 			ProtocolPayload pp;
 			pp.set_protocol_id( NB_PROTOCOL_ID );
 			pp.set_payload_size( 0 );
-			uint8_t ef = ProtocolSettings::NEW_NB|ProtocolSettings::UPDATE_NB|ProtocolSettings::NEW_PAYLOAD|ProtocolSettings::LOST_NB|ProtocolSettings::TRANS_DB_UPDATE|ProtocolSettings::BEACON_PERIOD_UPDATE|ProtocolSettings::NEIGHBOR_REMOVED;
+#endif
+			uint8_t events_flag = 	ProtocolSettings::NEW_NB|
+									ProtocolSettings::UPDATE_NB|
+									ProtocolSettings::NEW_PAYLOAD|
+									ProtocolSettings::LOST_NB|
+									ProtocolSettings::TRANS_DB_UPDATE|
+									ProtocolSettings::BEACON_PERIOD_UPDATE|
+									ProtocolSettings::NEIGHBOR_REMOVED;
 			ProtocolSettings ps(
 									NB_MAX_AVG_LQI_THRESHOLD,
 									NB_MIN_AVG_LQI_THRESHOLD,
@@ -87,7 +116,7 @@ namespace wiselib
 									NB_MIN_LINK_STABILITY_RATIO_THRESHOLD,
 									NB_MAX_LINK_STAB_RATIO_INVERSE_THRESHOLD,
 									NB_MIN_LINK_STAB_RATIO_INVERSE_THRESHOLD,
-									ef,
+									events_flag,
 									transmission_power_dB,
 									NB_PROPOSED_TRANSMISSION_POWER_DB_WEIGHT,
 									beacon_period,
@@ -111,6 +140,9 @@ namespace wiselib
 			recv_callback_id_ = radio().template reg_recv_callback<self_t, &self_t::receive>( this );
 			beacons();
 			nb_daemon();
+#ifdef NB_DEBUG_STATS
+			nb_metrics_daemon();
+#endif
 		};
 		// --------------------------------------------------------------------
 		void disable()
@@ -129,6 +161,13 @@ namespace wiselib
 			radio().set_channel( get_channel() );
 			radio().set_power( power );
 			radio().send( _dest, message.buffer_size(), (uint8_t*) &message );
+#ifdef NB_DEBUG_STATS
+			messages_send = messages_send + 1;
+			bytes_send = bytes_send + message.buffer_size() + sizeof( size_t ) + sizeof( node_id_t );
+			avg_bytes_size_send = bytes_send / messages_send;
+			uint32_t square_dv = ( bytes_send - avg_bytes_size_send ) * ( bytes_send - avg_bytes_size_send );
+			square_stdv_bytes_size_send = square_dv / messages_send;
+#endif
 		}
 		// --------------------------------------------------------------------
 		void beacons( void* _data = NULL )
@@ -473,6 +512,14 @@ namespace wiselib
 				}
 #ifdef NB_DEBUG_RECEIVE
 				debug().debug("NeighborDiscovery-receive %x - From %x Exiting.\n", radio().id(), _from );
+#endif
+#ifdef NB_DEBUG_STATS
+				messages_received = messages_received + 1;
+				bytes_received = bytes_received + _len;
+				avg_bytes_size_received = bytes_received / messages_received;
+				square_stdv_bytes_size_received;
+				uint32_t square_dv = ( _len - avg_bytes_size_received ) * ( _len - avg_bytes_size_received ) + square_dv;
+				square_stdv_bytes_size_received = square_dv / messages_received ;
 #endif
 			}
 		}
@@ -927,6 +974,37 @@ namespace wiselib
 			relax_millis = _nbdp;
 		}
 		// --------------------------------------------------------------------
+#ifdef NB_DEBUG_STATS
+		void nb_metrics_daemon( void* user_data = NULL )
+		{
+#ifdef NB_DEBUG_NB_METRICS_DAEMON
+			debug().debug("NeighborDiscovery-nb_metrics_daemon %x - Entering.\n", radio().id() );
+#endif
+			Protocol* p;
+			p = get_protocol_ref( NB_PROTOCOL_ID );
+			if ( p != NULL )
+			{
+				p->print( debug(), radio() );
+			}
+			debug().debug( "AGGR:%x:%d:%d:%d:%d:%d:%d:%d:%d:%d:%d\n",
+										radio().id(),
+										p->get_neighborhood_ref()->size(),
+										p->get_neighborhood_active_size(),
+										messages_received,
+									    bytes_received,
+									    avg_bytes_size_received,
+									    square_stdv_bytes_size_received,
+									    messages_send,
+									    bytes_send,
+									    avg_bytes_size_send,
+									    square_stdv_bytes_size_send );
+			timer().template set_timer<self_t, &self_t::nb_metrics_daemon> ( NB_DEBUG_STATS_PERIOD, this, 0 );
+#ifdef NB_DEBUG_NB_METRICS_DAEMON
+			debug().debug("NeighborDiscovery-nb_metrics_daemon %x - Exiting.\n", radio().id() );
+#endif
+		}
+#endif
+		// --------------------------------------------------------------------
 		void init( Radio& _radio, Timer& _timer, Debug& _debug, Clock& _clock )
 		{
 			radio_ = &_radio;
@@ -1015,6 +1093,19 @@ namespace wiselib
         uint8_t beacon_period_strategy;
         millis_t relax_millis;
         millis_t nb_daemon_period;
+#ifdef NB_COORD_SUPPORT
+       Position position;
+#endif
+#ifdef NB_DEBUG_STATS
+       uint32_t messages_received;
+       uint32_t bytes_received;
+       uint32_t avg_bytes_size_received;
+       uint32_t square_stdv_bytes_size_received;
+       uint32_t messages_send;
+       uint32_t bytes_send;
+       uint32_t avg_bytes_size_send;
+       uint32_t square_stdv_bytes_size_send;
+#endif
         Radio * radio_;
         Clock * clock_;
         Timer * timer_;
