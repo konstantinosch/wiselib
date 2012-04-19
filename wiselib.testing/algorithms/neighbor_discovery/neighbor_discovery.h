@@ -18,9 +18,6 @@ namespace wiselib
 				typename Radio_P,
 				typename Clock_P,
 				typename Timer_P,
-#ifdef NB_COORD_SUPPORT
-				typename Position_P,
-#endif
 				typename Debug_P>
 	class NeighborDiscovery_Type
 	{
@@ -38,14 +35,12 @@ namespace wiselib
 		typedef typename Radio::ExtendedData ExData;
 		typedef typename Radio::TxPower TxPower;
 		typedef typename Timer::millis_t millis_t;
-#ifdef NB_COORD_SUPPORT
-		typedef Position_P Position;
-		typedef NeighborDiscovery_Type	<Os, Radio,	Clock, Timer, Position, Debug> self_t;
-#else
 		typedef NeighborDiscovery_Type	<Os, Radio,	Clock, Timer, Debug> self_t;
-#endif
 		typedef NeighborDiscoveryMessage_Type<Os, Radio> Message;
 		typedef Neighbor_Type<Os, Radio, Clock, Timer, Debug> Neighbor;
+#ifdef NB_COORD_SUPPORT
+		typedef typename Neighbor::Position Position;
+#endif
 		typedef ProtocolPayload_Type< Os, Radio, Debug> ProtocolPayload;
 		typedef ProtocolSettings_Type<Os, Radio, Timer, Debug> ProtocolSettings;
 		typedef Protocol_Type<Os, Radio, Clock, Timer, Debug> Protocol;
@@ -92,8 +87,8 @@ namespace wiselib
 			n.set_active();
 			Neighbor_vector neighbors;
 			neighbors.push_back( n );
-			block_data_t buff[100];
 #ifdef NB_COORD_SUPPORT
+			block_data_t buff[100];
 			ProtocolPayload pp( NB_PROTOCOL_ID, position.get_buffer_size(), position.set_buffer_from( buff ) );
 #else
 			ProtocolPayload pp;
@@ -131,9 +126,15 @@ namespace wiselib
 									NB_LOST_BEACON_WEIGHT,
 									pp
 								);
+
+
+
+
+
 			p.set_protocol_id( NB_PROTOCOL_ID );
 			p.set_neighborhood( neighbors );
 			p.set_protocol_settings( ps );
+			p.set_event_notifier_callback( event_notifier_delegate_t::template from_method<NeighborDiscovery_Type, &NeighborDiscovery_Type::events_callback > ( this ) );
 			protocols.push_back( p );
 			set_status( ACTIVE_STATUS );
 			radio().enable_radio();
@@ -150,6 +151,28 @@ namespace wiselib
 			set_status( WAITING_STATUS );
 			radio().template unreg_recv_callback( recv_callback_id_ );
 		};
+		// --------------------------------------------------------------------
+		void events_callback( uint8_t _event, node_id_t _node_id, size_t _len, uint8_t* _data )
+		{
+#ifdef NB_COORD_SUPPORT
+			if ( _event & ProtocolSettings::NEW_PAYLOAD )
+			{
+
+				Neighbor_vector_iterator i = get_protocol_ref( NB_PROTOCOL_ID )->get_neighborhood_ref()->begin();
+				while ( i != get_protocol_ref( NB_PROTOCOL_ID )->get_neighborhood_ref()->end() )
+				{
+					if ( i->get_id() == _node_id )
+					{
+						Position p;
+						p.get_from_buffer( _data );
+						i->set_position( p );
+						return;
+					}
+					++i;
+				}
+			}
+#endif
+		}
 		// --------------------------------------------------------------------
 		void send( node_id_t _dest, size_t _len, block_data_t* _data, message_id_t _msg_id )
 		{
@@ -1005,6 +1028,13 @@ namespace wiselib
 		}
 #endif
 		// --------------------------------------------------------------------
+#ifdef NB_COORD_SUPPORT
+		void set_coords( PositionNumber _x, PositionNumber _y, PositionNumber _z )
+		{
+			position = Position( _x, _y, _z);
+		}
+#endif
+		// --------------------------------------------------------------------
 		void init( Radio& _radio, Timer& _timer, Debug& _debug, Clock& _clock )
 		{
 			radio_ = &_radio;
@@ -1093,9 +1123,6 @@ namespace wiselib
         uint8_t beacon_period_strategy;
         millis_t relax_millis;
         millis_t nb_daemon_period;
-#ifdef NB_COORD_SUPPORT
-       Position position;
-#endif
 #ifdef NB_DEBUG_STATS
        uint32_t messages_received;
        uint32_t bytes_received;
@@ -1105,6 +1132,9 @@ namespace wiselib
        uint32_t bytes_send;
        uint32_t avg_bytes_size_send;
        uint32_t square_stdv_bytes_size_send;
+#endif
+#ifdef NB_COORD_SUPPORT
+		Position position;
 #endif
         Radio * radio_;
         Clock * clock_;
