@@ -333,7 +333,16 @@ namespace wiselib
 #else
 			if ( active == 1 )
 			{
-				debug.debug( "NB:%x:%x:%d:%d:%d:%d:%d:%d:%d:%d:%d",
+#ifdef NB_COORD_SUPPORT
+#ifdef NB_COORD_SUPPORT_SHAWN
+				debug.debug( "NB:%x:%x:%d:%d:%d:%d:%d:%d:%d:%d:%d:%f:%f:%f\n",
+#endif
+#ifdef NB_COORD_SUPPORT_ISENSE
+				debug.debug( "NB:%x:%x:%d:%d:%d:%d:%d:%d:%d:%d:%d:%d:%d:%d\n",
+#endif
+#else
+				debug.debug( "NB:%x:%x:%d:%d:%d:%d:%d:%d:%d:%d:%d\n",
+#endif
 							radio.id(),
 							id,
 							total_beacons,
@@ -344,16 +353,11 @@ namespace wiselib
 							link_stab_ratio_inverse,
 							beacon_period,
 							beacon_period_update_counter,
-							active );
+							active
 #ifdef NB_COORD_SUPPORT
-#ifdef NB_COORD_SUPPORT_SHAWN
-				debug.debug(":%f:%f:%f", position.get_x(), position.get_y(), position.get_z() );
+							,position.get_x(), position.get_y(), position.get_z()
 #endif
-#ifdef NB_COORD_SUPPORT_ISENSE
-				debug.debug(":%d:%d:%d", position.get_x(), position.get_y(), position.get_z() );
-#endif
-#endif
-				debug.debug( "\n");
+				 );
 			}
 #endif
 		}

@@ -59,9 +59,9 @@ namespace wiselib
 			channel								( NB_CHANNEL ),
 			transmission_power_dB				( NB_TRANSMISSION_POWER_DB ),
 			protocol_max_payload_size			( NB_MAX_PROTOCOL_PAYLOAD_SIZE ),
-			transmission_power_dB_strategy		( FIXED_PERIOD ),
+			transmission_power_dB_strategy		( FIXED_TRANSM ),
 			protocol_max_payload_size_strategy	( FIXED_PAYLOAD_SIZE ),
-			beacon_period_strategy				( FIXED_TRANSM ),
+			beacon_period_strategy				( FIXED_PERIOD ),
 			relax_millis						( NB_RELAX_MILLIS ),
 			nb_daemon_period					( NB_DAEMON_PERIOD )
 #ifdef NB_DEBUG_STATS
@@ -81,6 +81,11 @@ namespace wiselib
 		// --------------------------------------------------------------------
 		void enable()
 		{
+#ifdef NB_DEBUG_STATS
+			//set_transmission_power_dB( NB_TRANSMISSION_POWER_DB_MIN );
+			//set_beacon_period( NB_BEACON_PERIOD_MIN );
+			timer().template set_timer<self_t, &self_t::nb_metrics_daemon> ( NB_STATS_DURATION, this, 0 );
+#endif
 			Protocol p;
 			Neighbor n;
 			n.set_id( radio().id() );
@@ -112,9 +117,9 @@ namespace wiselib
 									NB_MAX_LINK_STAB_RATIO_INVERSE_THRESHOLD,
 									NB_MIN_LINK_STAB_RATIO_INVERSE_THRESHOLD,
 									events_flag,
-									transmission_power_dB,
+									get_transmission_power_dB(),
 									NB_PROPOSED_TRANSMISSION_POWER_DB_WEIGHT,
-									beacon_period,
+									get_beacon_period(),
 									NB_PROPOSED_BEACON_PERIOD_WEIGHT,
 									ProtocolSettings::RATIO_DIVIDER,
 									NB_RATIO_DIVIDER,
@@ -126,11 +131,6 @@ namespace wiselib
 									NB_LOST_BEACON_WEIGHT,
 									pp
 								);
-
-
-
-
-
 			p.set_protocol_id( NB_PROTOCOL_ID );
 			p.set_neighborhood( neighbors );
 			p.set_protocol_settings( ps );
@@ -141,9 +141,6 @@ namespace wiselib
 			recv_callback_id_ = radio().template reg_recv_callback<self_t, &self_t::receive>( this );
 			beacons();
 			nb_daemon();
-#ifdef NB_DEBUG_STATS
-			nb_metrics_daemon();
-#endif
 		};
 		// --------------------------------------------------------------------
 		void disable()
@@ -188,8 +185,7 @@ namespace wiselib
 			messages_send = messages_send + 1;
 			bytes_send = bytes_send + message.buffer_size() + sizeof( size_t ) + sizeof( node_id_t );
 			avg_bytes_size_send = bytes_send / messages_send;
-			uint32_t square_dv = ( bytes_send - avg_bytes_size_send ) * ( bytes_send - avg_bytes_size_send );
-			square_stdv_bytes_size_send = square_dv / messages_send;
+			square_stdv_bytes_size_send = ( bytes_send - avg_bytes_size_send ) * ( bytes_send - avg_bytes_size_send ) + square_stdv_bytes_size_send;
 #endif
 		}
 		// --------------------------------------------------------------------
@@ -395,12 +391,6 @@ namespace wiselib
 								new_neighbor.update_link_stab_ratio_inverse( pit->resolve_beacon_weight( _from ), pit->resolve_lost_beacon_weight( _from ) );
 							}
 						}
-#ifdef NB_DEBUG_RECEIVE
-						debug().debug( "$$$\n" );
-						new_neighbor.print( debug(), radio() );
-						debug().debug("beacon_lqi : %i\n", beacon_lqi );
-						debug().debug( "$$$\n" );
-#endif
 						uint8_t events_flag = 0;
 						if	(	( new_neighbor.get_avg_LQI() <= pit->get_protocol_settings_ref()->get_max_avg_LQI_threshold() ) &&
 								( new_neighbor.get_avg_LQI() >= pit->get_protocol_settings_ref()->get_min_avg_LQI_threshold() ) &&
@@ -540,9 +530,7 @@ namespace wiselib
 				messages_received = messages_received + 1;
 				bytes_received = bytes_received + _len;
 				avg_bytes_size_received = bytes_received / messages_received;
-				square_stdv_bytes_size_received;
-				uint32_t square_dv = ( _len - avg_bytes_size_received ) * ( _len - avg_bytes_size_received ) + square_dv;
-				square_stdv_bytes_size_received = square_dv / messages_received ;
+				square_stdv_bytes_size_received = ( _len - avg_bytes_size_received ) * ( _len - avg_bytes_size_received ) + square_stdv_bytes_size_received;
 #endif
 			}
 		}
@@ -1003,6 +991,7 @@ namespace wiselib
 #ifdef NB_DEBUG_NB_METRICS_DAEMON
 			debug().debug("NeighborDiscovery-nb_metrics_daemon %x - Entering.\n", radio().id() );
 #endif
+			radio().disable_radio();
 			Protocol* p;
 			p = get_protocol_ref( NB_PROTOCOL_ID );
 			if ( p != NULL )
@@ -1014,18 +1003,73 @@ namespace wiselib
 										p->get_neighborhood_ref()->size(),
 										p->get_neighborhood_active_size(),
 										messages_received,
-									    bytes_received,
-									    avg_bytes_size_received,
-									    square_stdv_bytes_size_received,
-									    messages_send,
-									    bytes_send,
-									    avg_bytes_size_send,
-									    square_stdv_bytes_size_send );
-			timer().template set_timer<self_t, &self_t::nb_metrics_daemon> ( NB_DEBUG_STATS_PERIOD, this, 0 );
+										bytes_received,
+										avg_bytes_size_received,
+										square_stdv_bytes_size_received / messages_received,
+										messages_send,
+										bytes_send,
+										avg_bytes_size_send,
+										square_stdv_bytes_size_send / messages_send );
+			messages_received = 0;
+			bytes_received = 0;
+			avg_bytes_size_received = 0;
+			square_stdv_bytes_size_received = 0;
+			messages_send = 0;
+			bytes_send = 0;
+			avg_bytes_size_send = 0;
+			square_stdv_bytes_size_send = 0;
+
+//			p->get_neighborhood_ref()->clear();
+//			Neighbor n;
+//			n.set_id( radio().id() );
+//			n.set_active();
+//			p->get_neighborhood_ref()->push_back( n );
+//			if ( get_beacon_period() == NB_BEACON_PERIOD_MAX )
+//			{
+//				if ( get_transmission_power_dB() == NB_TRANSMISSION_POWER_DB_MAX )
+//				{
+//					debug().debug( "END:%x", radio().id() );
+//					return;
+//				}
+//				else
+//				{
+//					int tp_dB = get_transmission_power_dB() + NB_TRANSMISSION_POWER_DB_INT;
+//					set_transmission_power_dB( tp_dB );
+//				}
+//			}
+//			else
+//			{
+//				if ( get_transmission_power_dB() == NB_TRANSMISSION_POWER_DB_MAX )
+//				{
+//					int tp_dB = NB_TRANSMISSION_POWER_DB_MIN;
+//					set_transmission_power_dB( tp_dB );
+//					set_beacon_period( get_beacon_period() + NB_BEACON_PERIOD_INT );
+//				}
+//				else
+//				{
+//					int tp_dB = get_transmission_power_dB() + NB_TRANSMISSION_POWER_DB_INT;
+//					set_transmission_power_dB( tp_dB );
+//				}
+//			}
+			//timer().template set_timer<self_t, &self_t::nb_metrics_timeout> ( NB_STATS_TIMEOUT, this, 0 );
 #ifdef NB_DEBUG_NB_METRICS_DAEMON
 			debug().debug("NeighborDiscovery-nb_metrics_daemon %x - Exiting.\n", radio().id() );
 #endif
 		}
+//		// --------------------------------------------------------------------
+//		void nb_metrics_timeout( void* user_data = NULL )
+//		{
+//#ifdef NB_DEBUG_NB_METRICS_DAEMON
+//			debug().debug("NeighborDiscovery-nb_metrics_timeout %x - Entering.\n", radio().id() );
+//#endif
+//			radio().enable_radio();
+//			debug().debug( "SETTINGS:%x:%i:%d\n", radio().id(), get_transmission_power_dB(), get_beacon_period() );
+//			timer().template set_timer<self_t, &self_t::nb_metrics_daemon> ( NB_STATS_DURATION, this, 0 );
+//#ifdef NB_DEBUG_NB_METRICS_DAEMON
+//			debug().debug("NeighborDiscovery-nb_metrics_timeout %x - Exiting.\n", radio().id() );
+//#endif
+//		}
+//		// --------------------------------------------------------------------
 #endif
 		// --------------------------------------------------------------------
 #ifdef NB_COORD_SUPPORT

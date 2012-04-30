@@ -11,15 +11,15 @@
 #define NB_COORD_SUPPORT
 
 #ifdef NB_COORD_SUPPORT
-//#define NB_COORD_SUPPORT_2D
-#define NB_COORD_SUPPORT_3D
-#define NB_COORD_SUPPORT_SHAWN
-//#define NB_COORD_SUPPORT_ISENSE
+#define NB_COORD_SUPPORT_2D
+//#define NB_COORD_SUPPORT_3D
+//#define NB_COORD_SUPPORT_SHAWN
+#define NB_COORD_SUPPORT_ISENSE
 
 #ifdef NB_COORD_SUPPORT_SHAWN
 typedef double PositionNumber;
 #endif
 #ifdef NB_COORD_SUPPORT_ISENSE
-typedef uint32_t PositionNumber;
+typedef uint8_t PositionNumber;
 #endif
 #endif

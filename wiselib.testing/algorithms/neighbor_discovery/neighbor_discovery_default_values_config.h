@@ -1,11 +1,22 @@
 //default NB protocol settings
-#define NB_MAX_NEIGHBORS 400
+#define NB_MAX_NEIGHBORS 24
 #define NB_MAX_REGISTERED_PROTOCOLS 2
 #define NB_BEACON_PERIOD 5000
 #define NB_CHANNEL 0
-#define NB_TRANSMISSION_POWER_DB -18
-#define NB_RELAX_MILLIS 200 //great care with this one when tinkering with very minute period predictions/calculations. Could be set to a tiny analogous value of the period like 10%.
-#define NB_DAEMON_PERIOD 1000
+#define NB_TRANSMISSION_POWER_DB -30
+#define NB_RELAX_MILLIS 100 //great care with this one when tinkering with very minute period predictions/calculations. Could be set to a tiny analogous value of the period like 10%.
+#define NB_DAEMON_PERIOD 200
+
+
+//benchmark settings
+#define NB_STATS_DURATION 30000
+//#define NB_STATS_TIMEOUT 5000
+#define NB_BEACON_PERIOD_MAX 5000
+#define NB_BEACON_PERIOD_MIN 200
+#define NB_BEACON_PERIOD_INT 200
+#define NB_TRANSMISSION_POWER_DB_MAX 0
+#define NB_TRANSMISSION_POWER_DB_MIN -30
+#define NB_TRANSMISSION_POWER_DB_INT 6
 
 //default registered protocol settings
 #define NB_MAX_AVG_LQI_THRESHOLD 255
@@ -27,5 +38,3 @@
 #define NB_NEW_DEAD_TIME_PERIOD_WEIGHT 100
 #define NB_BEACON_WEIGHT 1
 #define NB_LOST_BEACON_WEIGHT 1
-#define NB_DEBUG_STATS_PERIOD 1000
-
