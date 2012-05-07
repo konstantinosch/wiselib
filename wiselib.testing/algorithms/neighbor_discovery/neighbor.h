@@ -314,7 +314,11 @@ namespace wiselib
 			return LINK_STAB_RATIO_POS + sizeof( uint8_t );
 		}
 		// --------------------------------------------------------------------
-		void print( Debug& debug, Radio& radio )
+		void print( Debug& debug, Radio& radio
+#ifdef NB_COORD_SUPPORT
+				,Position& pos = Position( 0, 0, 0 )
+#endif
+				)
 		{
 #ifndef NB_DEBUG_STATS
 			debug.debug( "-------------------------------------------------------\n");
@@ -335,10 +339,10 @@ namespace wiselib
 			{
 #ifdef NB_COORD_SUPPORT
 #ifdef NB_COORD_SUPPORT_SHAWN
-				debug.debug( "NB:%x:%x:%d:%d:%d:%d:%d:%d:%d:%d:%d:%f:%f:%f\n",
+				debug.debug( "NB:%x:%x:%d:%d:%d:%d:%d:%d:%d:%d:%d:%f:%f:%f:%f\n",
 #endif
 #ifdef NB_COORD_SUPPORT_ISENSE
-				debug.debug( "NB:%x:%x:%d:%d:%d:%d:%d:%d:%d:%d:%d:%d:%d:%d\n",
+				debug.debug( "NB:%x:%x:%d:%d:%d:%d:%d:%d:%d:%d:%d:%d:%d:%d:%d\n",
 #endif
 #else
 				debug.debug( "NB:%x:%x:%d:%d:%d:%d:%d:%d:%d:%d:%d\n",
@@ -355,7 +359,10 @@ namespace wiselib
 							beacon_period_update_counter,
 							active
 #ifdef NB_COORD_SUPPORT
-							,position.get_x(), position.get_y(), position.get_z()
+							,position.get_x(), position.get_y(), position.get_z(),
+							( ( position.get_x() - pos.get_x() ) * ( position.get_x() - pos.get_x() ) +
+							( position.get_y() - pos.get_y() ) * ( position.get_y() - pos.get_y() ) +
+							( position.get_z() - pos.get_z() ) * ( position.get_z() - pos.get_z() ) )
 #endif
 				 );
 			}

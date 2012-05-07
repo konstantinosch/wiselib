@@ -7,6 +7,7 @@
 #include "util/pstl/vector_static.h"
 #include "util/delegates/delegate.hpp"
 
+
 namespace wiselib
 {
 	template< 	typename Os_P,
@@ -33,6 +34,9 @@ namespace wiselib
 		typedef typename ProtocolPayload_vector::iterator ProtocolPayload_vector_iterator;
 		typedef delegate4<void, uint8_t, node_id_t, size_t, uint8_t*> event_notifier_delegate_t;
 		typedef Protocol_Type<Os, Radio, Clock, Timer, Debug> self_type;
+#ifdef NB_COORD_SUPPORT
+		typedef typename Neighbor::Position Position;
+#endif
 		// --------------------------------------------------------------------
 		Protocol_Type() :
 			protocol_id					( 0 ),
@@ -237,7 +241,11 @@ namespace wiselib
 		}
 		// --------------------------------------------------------------------
 #ifdef NB_DEBUG
-		void print( Debug& debug, Radio& radio )
+		void print( Debug& debug, Radio& radio
+#ifdef NB_COORD_SUPPORT
+				,Position& pos = Position( 0, 0, 0 )
+#endif
+				)
 		{
 #ifndef NB_DEBUG_STATS
 			debug.debug( "-------------------------------------------------------\n");
@@ -249,7 +257,11 @@ namespace wiselib
 #endif
 			for ( Neighbor_vector_iterator it = neighborhood.begin(); it != neighborhood.end(); ++it )
 			{
+#ifdef NB_COORD_SUPPORT
+				it->print( debug, radio, pos );
+#else
 				it->print( debug, radio );
+#endif
 			}
 #ifndef NB_DEBUG_STATS
 			debug.debug( "-------------------------------------------------------\n");

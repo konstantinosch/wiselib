@@ -37,6 +37,9 @@ namespace wiselib
 		typedef vector_static<Os, Protocol, NB_MAX_REGISTERED_PROTOCOLS> Protocol_vector;
 		typedef typename Protocol_vector::iterator Protocol_vector_iterator;
 		typedef Beacon_Type<Os, Radio, Clock, Timer, Debug> self_type;
+#ifdef NB_COORD_SUPPORT
+		typedef typename Neighbor::Position Position;
+#endif
 		// --------------------------------------------------------------------
 		Beacon_Type() :
 			beacon_period					( 0 ),
@@ -124,7 +127,11 @@ namespace wiselib
 		}
 		// --------------------------------------------------------------------
 #ifdef NB_DEBUG
-		void print( Debug& debug, Radio& radio )
+		void print( Debug& debug, Radio& radio
+#ifdef NB_COORD_SUPPORT
+				,Position& pos = Position( 0, 0, 0 )
+#endif
+				)
 		{
 			debug.debug( "-------------------------------------------------------\n");
 			debug.debug( "beacon :\n");
@@ -134,7 +141,11 @@ namespace wiselib
 			}
 			for ( Neighbor_vector_iterator it = neighborhood.begin(); it != neighborhood.end(); ++it )
 			{
+#ifdef NB_COORD_SUPPORT
+				it->print( debug, radio, pos );
+#else
 				it->print( debug, radio );
+#endif
 			}
 			debug.debug( "beacon_period : %d\n", beacon_period );
 			debug.debug( "beacon_period_update_counter : %d\n", beacon_period_update_counter );

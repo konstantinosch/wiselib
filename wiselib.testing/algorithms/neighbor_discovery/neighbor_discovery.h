@@ -18,6 +18,7 @@ namespace wiselib
 				typename Radio_P,
 				typename Clock_P,
 				typename Timer_P,
+				typename Rand_P,
 				typename Debug_P>
 	class NeighborDiscovery_Type
 	{
@@ -27,6 +28,7 @@ namespace wiselib
 		typedef Timer_P Timer;
 		typedef Debug_P Debug;
 		typedef Clock_P Clock;
+		typedef Rand_P Rand;
 		typedef typename Radio::node_id_t node_id_t;
 		typedef typename Radio::size_t size_t;
 		typedef typename Radio::block_data_t block_data_t;
@@ -35,7 +37,7 @@ namespace wiselib
 		typedef typename Radio::ExtendedData ExData;
 		typedef typename Radio::TxPower TxPower;
 		typedef typename Timer::millis_t millis_t;
-		typedef NeighborDiscovery_Type	<Os, Radio,	Clock, Timer, Debug> self_t;
+		typedef NeighborDiscovery_Type	<Os, Radio,	Clock, Timer, Rand, Debug> self_t;
 		typedef NeighborDiscoveryMessage_Type<Os, Radio> Message;
 		typedef Neighbor_Type<Os, Radio, Clock, Timer, Debug> Neighbor;
 #ifdef NB_COORD_SUPPORT
@@ -139,7 +141,7 @@ namespace wiselib
 			set_status( ACTIVE_STATUS );
 			radio().enable_radio();
 			recv_callback_id_ = radio().template reg_recv_callback<self_t, &self_t::receive>( this );
-			beacons();
+			timer().template set_timer<self_t, &self_t::beacons> ( rand()() % get_beacon_period(), this, 0 );
 			nb_daemon();
 		};
 		// --------------------------------------------------------------------
@@ -224,7 +226,7 @@ namespace wiselib
 						send( Radio::BROADCAST_ADDRESS, beacon_size, buff, NB_MESSAGE );
 #ifdef NB_DEBUG_BEACONS
 						debug().debug( "NeighborDiscovery-beacons %x - Sending beacon.\n", radio().id() );
-						beacon.print( debug(), radio() );
+						beacon.print( debug(), radio(), position );
 #endif
 						timer().template set_timer<self_t, &self_t::beacons> ( bp, this, 0 );
 					}
@@ -996,7 +998,11 @@ namespace wiselib
 			p = get_protocol_ref( NB_PROTOCOL_ID );
 			if ( p != NULL )
 			{
+#ifdef NB_COORD_SUPPORT
+				p->print( debug(), radio(), position );
+#else
 				p->print( debug(), radio() );
+#endif
 			}
 			debug().debug( "AGGR:%x:%d:%d:%d:%d:%d:%d:%d:%d:%d:%d\n",
 										radio().id(),
@@ -1079,12 +1085,13 @@ namespace wiselib
 		}
 #endif
 		// --------------------------------------------------------------------
-		void init( Radio& _radio, Timer& _timer, Debug& _debug, Clock& _clock )
+		void init( Radio& _radio, Timer& _timer, Debug& _debug, Clock& _clock, Rand& _rand )
 		{
 			radio_ = &_radio;
 			timer_ = &_timer;
 			debug_ = &_debug;
 			clock_ = &_clock;
+			rand_ = &_rand;
 		}
 		// --------------------------------------------------------------------
 		Radio& radio()
@@ -1107,6 +1114,10 @@ namespace wiselib
 			return *debug_;
 		}
 		// --------------------------------------------------------------------
+		Rand& rand()
+		{
+			return *rand_;
+		}
 		enum error_codes
 		{
 			SUCCESS,
@@ -1184,6 +1195,7 @@ namespace wiselib
         Clock * clock_;
         Timer * timer_;
         Debug * debug_;
+        Rand * rand_;
     };
 }
 
