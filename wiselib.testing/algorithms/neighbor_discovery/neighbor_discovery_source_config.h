@@ -9,6 +9,7 @@
 #endif
 #define NB_DEBUG_STATS
 #define NB_COORD_SUPPORT
+#define NB_RAND_STARTUP
 
 #ifdef NB_COORD_SUPPORT
 #define NB_COORD_SUPPORT_2D

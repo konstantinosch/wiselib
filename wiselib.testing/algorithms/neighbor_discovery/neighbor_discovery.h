@@ -3,9 +3,9 @@
 
 #include "util/pstl/vector_static.h"
 #include "util/delegates/delegate.hpp"
+#include "../../internal_interface/message/message.h"
 #include "neighbor_discovery_source_config.h"
 #include "neighbor_discovery_default_values_config.h"
-#include "neighbor_discovery_message.h"
 #include "neighbor.h"
 #include "protocol_settings.h"
 #include "protocol_payload.h"
@@ -38,7 +38,7 @@ namespace wiselib
 		typedef typename Radio::TxPower TxPower;
 		typedef typename Timer::millis_t millis_t;
 		typedef NeighborDiscovery_Type	<Os, Radio,	Clock, Timer, Rand, Debug> self_t;
-		typedef NeighborDiscoveryMessage_Type<Os, Radio> Message;
+		typedef Message_Type<Os, Radio> Message;
 		typedef Neighbor_Type<Os, Radio, Clock, Timer, Debug> Neighbor;
 #ifdef NB_COORD_SUPPORT
 		typedef typename Neighbor::Position Position;
@@ -84,8 +84,6 @@ namespace wiselib
 		void enable()
 		{
 #ifdef NB_DEBUG_STATS
-			//set_transmission_power_dB( NB_TRANSMISSION_POWER_DB_MIN );
-			//set_beacon_period( NB_BEACON_PERIOD_MIN );
 			timer().template set_timer<self_t, &self_t::nb_metrics_daemon> ( NB_STATS_DURATION, this, 0 );
 #endif
 			Protocol p;
@@ -141,7 +139,11 @@ namespace wiselib
 			set_status( ACTIVE_STATUS );
 			radio().enable_radio();
 			recv_callback_id_ = radio().template reg_recv_callback<self_t, &self_t::receive>( this );
+#ifdef NB_RAND_STARTUP
 			timer().template set_timer<self_t, &self_t::beacons> ( rand()() % get_beacon_period(), this, 0 );
+#else
+			beacons();
+#endif
 			nb_daemon();
 		};
 		// --------------------------------------------------------------------
