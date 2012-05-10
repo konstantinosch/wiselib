@@ -1026,58 +1026,10 @@ namespace wiselib
 			bytes_send = 0;
 			avg_bytes_size_send = 0;
 			square_stdv_bytes_size_send = 0;
-
-//			p->get_neighborhood_ref()->clear();
-//			Neighbor n;
-//			n.set_id( radio().id() );
-//			n.set_active();
-//			p->get_neighborhood_ref()->push_back( n );
-//			if ( get_beacon_period() == NB_BEACON_PERIOD_MAX )
-//			{
-//				if ( get_transmission_power_dB() == NB_TRANSMISSION_POWER_DB_MAX )
-//				{
-//					debug().debug( "END:%x", radio().id() );
-//					return;
-//				}
-//				else
-//				{
-//					int tp_dB = get_transmission_power_dB() + NB_TRANSMISSION_POWER_DB_INT;
-//					set_transmission_power_dB( tp_dB );
-//				}
-//			}
-//			else
-//			{
-//				if ( get_transmission_power_dB() == NB_TRANSMISSION_POWER_DB_MAX )
-//				{
-//					int tp_dB = NB_TRANSMISSION_POWER_DB_MIN;
-//					set_transmission_power_dB( tp_dB );
-//					set_beacon_period( get_beacon_period() + NB_BEACON_PERIOD_INT );
-//				}
-//				else
-//				{
-//					int tp_dB = get_transmission_power_dB() + NB_TRANSMISSION_POWER_DB_INT;
-//					set_transmission_power_dB( tp_dB );
-//				}
-//			}
-			//timer().template set_timer<self_t, &self_t::nb_metrics_timeout> ( NB_STATS_TIMEOUT, this, 0 );
 #ifdef NB_DEBUG_NB_METRICS_DAEMON
 			debug().debug("NeighborDiscovery-nb_metrics_daemon %x - Exiting.\n", radio().id() );
 #endif
 		}
-//		// --------------------------------------------------------------------
-//		void nb_metrics_timeout( void* user_data = NULL )
-//		{
-//#ifdef NB_DEBUG_NB_METRICS_DAEMON
-//			debug().debug("NeighborDiscovery-nb_metrics_timeout %x - Entering.\n", radio().id() );
-//#endif
-//			radio().enable_radio();
-//			debug().debug( "SETTINGS:%x:%i:%d\n", radio().id(), get_transmission_power_dB(), get_beacon_period() );
-//			timer().template set_timer<self_t, &self_t::nb_metrics_daemon> ( NB_STATS_DURATION, this, 0 );
-//#ifdef NB_DEBUG_NB_METRICS_DAEMON
-//			debug().debug("NeighborDiscovery-nb_metrics_timeout %x - Exiting.\n", radio().id() );
-//#endif
-//		}
-//		// --------------------------------------------------------------------
 #endif
 		// --------------------------------------------------------------------
 #ifdef NB_COORD_SUPPORT
