@@ -75,58 +75,52 @@ namespace wiselib
 			}
 		}
 		// --------------------------------------------------------------------
-		template<class T, void(T::*TMethod)(uint8_t, node_id_t, size_t, uint8_t*) >
-		uint8_t register_protocol( uint8_t _pid, ProtocolSettings _psett, T *_obj_pnt )
-		{
-			if ( protocols.max_size() == protocols.size() )
-			{
-				return PROT_LIST_FULL;
-			}
-			if ( ( _psett.get_protocol_payload_ref()->get_payload_size() > protocol_max_payload_size ) && ( protocol_max_payload_size_strategy == FIXED_PAYLOAD_SIZE ) )
-			{
-				return PAYLOAD_SIZE_OUT_OF_BOUNDS;
-			}
-
-			size_t protocol_total_payload_size = 0;
-			for ( Protocol_vector_iterator it = protocols.begin(); it != protocols.end(); ++it )
-			{
-				protocol_total_payload_size = it->get_protocol_settings_ref()->get_protocol_payload_ref()->serial_size() + protocol_total_payload_size;
-			}
-			size_t neighbors_total_payload_size = 0;
-			Protocol* prot_ref = get_protocol_ref( NB_PROTOCOL_ID );
-			if ( prot_ref != NULL )
-			{
-				Neighbor_vector* n_ref = prot_ref->get_neighborhood_ref();
-
-				for ( Neighbor_vector_iterator it = n_ref->begin(); it != n_ref->end(); ++it )
-				{
-					neighbors_total_payload_size = it->serial_size() + neighbors_total_payload_size;
-				}
-			}
-			Beacon b;
-			if ( protocol_total_payload_size + neighbors_total_payload_size + b.serial_size() + sizeof(message_id_t) + sizeof(size_t) + _psett.get_protocol_payload_ref()->serial_size() > Radio::MAX_MESSAGE_LENGTH )
-			{
-				return NO_PAYLOAD_SPACE;
-			}
-			for ( Protocol_vector_iterator it = protocols.begin(); it != protocols.end(); ++it )
-			{
-				if ( ( it->get_protocol_id() == _pid ) || ( it->get_protocol_settings_ref()->get_protocol_payload_ref()->get_protocol_id() == _pid ) )
-				{
-					return PROT_NUM_IN_USE;
-				}
-			}
-			//Protocol p;
-			//p.set_protocol_id( _pid );
-			//p.set_protocol_settings( _psett );
-			//p.set_event_notifier_callback( event_notifier_delegate_t::template from_method<T, TMethod > ( _obj_pnt ) );
-			//protocols.push_back( p );
-
-#ifdef NB_DEBUG_REGISTER_PROTOCOL
-			debug().debug("NeighborDiscovery-register_protocols %x - Exiting for protocol_id = %i.\n", radio().id(), _pid );
-#endif
-			return SUCCESS;
-		}
-		// --------------------------------------------------------------------
+//		uint8_t register_protocol(  )
+//		{
+//			if ( protocols.max_size() == protocols.size() )
+//			{
+//				return PROT_LIST_FULL;
+//			}
+//			if ( ( _psett.get_protocol_payload_ref()->get_payload_size() > protocol_max_payload_size ) && ( protocol_max_payload_size_strategy == FIXED_PAYLOAD_SIZE ) )
+//			{
+//				return PAYLOAD_SIZE_OUT_OF_BOUNDS;
+//			}
+//
+//			size_t protocol_total_payload_size = 0;
+//			for ( Protocol_vector_iterator it = protocols.begin(); it != protocols.end(); ++it )
+//			{
+//				protocol_total_payload_size = it->get_protocol_settings_ref()->get_protocol_payload_ref()->serial_size() + protocol_total_payload_size;
+//			}
+//			size_t neighbors_total_payload_size = 0;
+//			Protocol* prot_ref = get_protocol_ref( NB_PROTOCOL_ID );
+//			if ( prot_ref != NULL )
+//			{
+//				Neighbor_vector* n_ref = prot_ref->get_neighborhood_ref();
+//
+//				for ( Neighbor_vector_iterator it = n_ref->begin(); it != n_ref->end(); ++it )
+//				{
+//					neighbors_total_payload_size = it->serial_size() + neighbors_total_payload_size;
+//				}
+//			}
+//			Beacon b;
+//			if ( protocol_total_payload_size + neighbors_total_payload_size + b.serial_size() + sizeof(message_id_t) + sizeof(size_t) + _psett.get_protocol_payload_ref()->serial_size() > Radio::MAX_MESSAGE_LENGTH )
+//			{
+//				return NO_PAYLOAD_SPACE;
+//			}
+//			for ( Protocol_vector_iterator it = protocols.begin(); it != protocols.end(); ++it )
+//			{
+//				if ( ( it->get_protocol_id() == _pid ) || ( it->get_protocol_settings_ref()->get_protocol_payload_ref()->get_protocol_id() == _pid ) )
+//				{
+//					return PROT_NUM_IN_USE;
+//				}
+//			}
+//			//Protocol p;
+//			//p.set_protocol_id( _pid );
+//			//p.set_protocol_settings( _psett );
+//			//p.set_event_notifier_callback( event_notifier_delegate_t::template from_method<T, TMethod > ( _obj_pnt ) );
+//			//protocols.push_back( p );
+//			return SUCCESS;
+//		}
 		// --------------------------------------------------------------------
 		int get_status()
 		{

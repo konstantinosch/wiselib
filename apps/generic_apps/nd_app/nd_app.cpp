@@ -3,6 +3,8 @@
 #include "internal_interface/position/position_new.h"
 #include "algorithms/neighbor_discovery/neighbor_discovery.h"
 
+#include "radio/reliable/reliable_radio_protocol.h"
+
 #define UNIGE_TESTBED
 #ifdef UNIGE_TESTBED
 #include "PLTT_UNIGE_topology.h"
