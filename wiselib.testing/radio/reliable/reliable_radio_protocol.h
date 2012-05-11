@@ -2,8 +2,10 @@
 #define	RELIABLE_RADIO_PROTOCOL_H
 
 #include "util/pstl/vector_static.h"
+#include "reliable_radio_source_config.h"
 #include "reliable_radio_protocol_setting.h"
 #include "reliable_radio_default_values_config.h"
+
 
 namespace wiselib
 {

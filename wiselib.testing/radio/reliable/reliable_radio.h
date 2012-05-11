@@ -4,6 +4,7 @@
 #include "util/pstl/vector_static.h"
 #include "util/delegates/delegate.hpp"
 #include "../../internal_interface/message/message.h"
+#include "reliable_radio_source_config.h"
 #include "reliable_radio_default_values_config.h"
 
 namespace wiselib

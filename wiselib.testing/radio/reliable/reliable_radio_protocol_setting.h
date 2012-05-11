@@ -1,6 +1,8 @@
 #ifndef RELIABLE_RADIO_PROTOCOL_SETTING_H
 #define	RELIABLE_RADIO_PROTOCOL_SETTING_H
 
+#include "reliable_radio_source_config.h"
+
 namespace wiselib
 {
 	template<	typename Os_P,
@@ -18,8 +20,16 @@ namespace wiselib
 		typedef typename Timer::millis_t millis_t;
 		typedef ReliableRadioProtocolSetting_Type<Os, Radio, Timer, Debug> self_t;
 		// --------------------------------------------------------------------
-		ReliableRadioProtocolSetting_Type()
+		ReliableRadioProtocolSetting_Type() :
+			message_id		( 0 ),
+			period			( 0 )
 		{};
+		// --------------------------------------------------------------------
+		ReliableRadioProtocolSetting_Type( message_id_t _msg_id, millis_t _p )
+		{
+			message_id = _msg_id;
+			period = _p;
+		}
 		// --------------------------------------------------------------------
 		~ReliableRadioProtocolSetting_Type()
 		{};
@@ -27,7 +37,7 @@ namespace wiselib
 		ReliableRadioProtocolSetting_Type& operator=( const ReliableRadioProtocolSetting_Type& _rrps )
 		{
 			message_id = _rrps.message_id;
-			period = _rrps.period.id;
+			period = _rrps.period;
 			return *this;
 		}
 		// --------------------------------------------------------------------
@@ -51,6 +61,13 @@ namespace wiselib
 			period = _p;
 		}
 		// --------------------------------------------------------------------
+#ifdef RR_DEBUG
+		void print( Debug& debug, Radio& radio )
+		{
+			debug.debug( "message_id : %d\n", message_id);
+			debug.debug( "period : %d\n", period);
+		}
+#endif
 	private:
 		message_id_t message_id;
 		millis_t period;
