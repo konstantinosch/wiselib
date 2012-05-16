@@ -1,9 +1,11 @@
-#ifndef NEIGHBOR_DISCOVERY_H
-#define	NEIGHBOR_DISCOVERY_H
+#ifndef RELIABLE_RADIO_H
+#define	RELIABLE_RADIO_H
 
 #include "util/pstl/vector_static.h"
 #include "util/delegates/delegate.hpp"
 #include "../../internal_interface/message/message.h"
+#include "reliable_radio_protocol.h"
+#include "reliable_radio_protocol_setting.h"
 #include "reliable_radio_source_config.h"
 #include "reliable_radio_default_values_config.h"
 
@@ -32,9 +34,13 @@ namespace wiselib
 		typedef typename Radio::ExtendedData ExData;
 		typedef typename Radio::TxPower TxPower;
 		typedef typename Timer::millis_t millis_t;
+		typedef ReliableRadioProtocol_Type<Os, Radio, Timer, Debug> ReliableRadioProtocol;
+		typedef vector_static<Os, ReliableRadioProtocol, RR_MAX_PROTOCOLS_REGISTERED > ReliableRadioProtocol_vector;
+		typedef typename ReliableRadioProtocol_vector::iterator ReliableRadioProtocol_vector_iterator;
+		typedef typename ReliableRadioProtocol::event_notifier_delegate_t ReliableRadioProtocol_event_notifier_delegate_t;
+		typedef ReliableRadioProtocolSetting_Type<Os, Radio, Timer, Debug> ReliableRadioProtocolSetting;
 		typedef ReliableRadio_Type<Os, Radio,	Clock, Timer, Rand, Debug> self_t;
 		typedef Message_Type<Os, Radio> Message;
-		typedef delegate4<void, uint8_t, node_id_t, size_t, uint8_t*> event_notifier_delegate_t;
 		// --------------------------------------------------------------------
 		ReliableRadio_Type()
 		{};
@@ -76,52 +82,22 @@ namespace wiselib
 			}
 		}
 		// --------------------------------------------------------------------
-//		uint8_t register_protocol(  )
-//		{
-//			if ( protocols.max_size() == protocols.size() )
-//			{
-//				return PROT_LIST_FULL;
-//			}
-//			if ( ( _psett.get_protocol_payload_ref()->get_payload_size() > protocol_max_payload_size ) && ( protocol_max_payload_size_strategy == FIXED_PAYLOAD_SIZE ) )
-//			{
-//				return PAYLOAD_SIZE_OUT_OF_BOUNDS;
-//			}
-//
-//			size_t protocol_total_payload_size = 0;
-//			for ( Protocol_vector_iterator it = protocols.begin(); it != protocols.end(); ++it )
-//			{
-//				protocol_total_payload_size = it->get_protocol_settings_ref()->get_protocol_payload_ref()->serial_size() + protocol_total_payload_size;
-//			}
-//			size_t neighbors_total_payload_size = 0;
-//			Protocol* prot_ref = get_protocol_ref( NB_PROTOCOL_ID );
-//			if ( prot_ref != NULL )
-//			{
-//				Neighbor_vector* n_ref = prot_ref->get_neighborhood_ref();
-//
-//				for ( Neighbor_vector_iterator it = n_ref->begin(); it != n_ref->end(); ++it )
-//				{
-//					neighbors_total_payload_size = it->serial_size() + neighbors_total_payload_size;
-//				}
-//			}
-//			Beacon b;
-//			if ( protocol_total_payload_size + neighbors_total_payload_size + b.serial_size() + sizeof(message_id_t) + sizeof(size_t) + _psett.get_protocol_payload_ref()->serial_size() > Radio::MAX_MESSAGE_LENGTH )
-//			{
-//				return NO_PAYLOAD_SPACE;
-//			}
-//			for ( Protocol_vector_iterator it = protocols.begin(); it != protocols.end(); ++it )
-//			{
-//				if ( ( it->get_protocol_id() == _pid ) || ( it->get_protocol_settings_ref()->get_protocol_payload_ref()->get_protocol_id() == _pid ) )
-//				{
-//					return PROT_NUM_IN_USE;
-//				}
-//			}
-//			//Protocol p;
-//			//p.set_protocol_id( _pid );
-//			//p.set_protocol_settings( _psett );
-//			//p.set_event_notifier_callback( event_notifier_delegate_t::template from_method<T, TMethod > ( _obj_pnt ) );
-//			//protocols.push_back( p );
-//			return SUCCESS;
-//		}
+		uint8_t register_protocol( ReliableRadioProtocol& _p )
+		{
+			if ( protocols.max_size() == protocols.size() )
+			{
+				return PROT_LIST_FULL;
+			}
+			for ( ReliableRadioProtocol_vector_iterator it = protocols.begin(); it != protocols.end(); ++it )
+			{
+				if ( it->get_protocol_id() == _p.get_protocol_id() )
+				{
+					return PROT_NUM_IN_USE;
+				}
+			}
+			protocols.push_back( _p );
+			return SUCCESS;
+		}
 		// --------------------------------------------------------------------
 		int get_status()
 		{
@@ -181,12 +157,20 @@ namespace wiselib
 		{
 			ACTIVE_STATUS,
 			WAITING_STATUS,
-			NB_STATUS_NUM_VALUES
+			RR_STATUS_NUM_VALUES
+		};
+		enum reliable_radio_errors
+		{
+			SUCCESS,
+			PROT_LIST_FULL,
+			PROT_NUM_IN_USE,
+			RR_ERROR_NUM_VALUES
 		};
 	private:
 		uint32_t recv_callback_id_;
         uint8_t status;
         millis_t reliable_radio_period;
+        ReliableRadioProtocol_vector protocols;
         Radio * radio_;
         Clock * clock_;
         Timer * timer_;

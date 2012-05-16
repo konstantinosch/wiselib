@@ -64,8 +64,10 @@ namespace wiselib
 #ifdef RR_DEBUG
 		void print( Debug& debug, Radio& radio )
 		{
+			debug.debug( "-------------------------------------------------------\n");
 			debug.debug( "message_id : %d\n", message_id);
 			debug.debug( "period : %d\n", period);
+			debug.debug( "-------------------------------------------------------\n");
 		}
 #endif
 	private:

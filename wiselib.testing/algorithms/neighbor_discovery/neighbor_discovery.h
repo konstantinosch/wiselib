@@ -12,8 +12,11 @@
 #include "protocol.h"
 #include "beacon.h"
 
+//
 #include "radio/reliable/reliable_radio_protocol.h"
 #include "radio/reliable/reliable_radio_protocol_setting.h"
+#include "radio/reliable/reliable_radio.h"
+//
 
 namespace wiselib
 {
@@ -58,9 +61,13 @@ namespace wiselib
 		typedef typename Protocol_vector::iterator Protocol_vector_iterator;
 		typedef delegate4<void, uint8_t, node_id_t, size_t, uint8_t*> event_notifier_delegate_t;
 
+		//
 		typedef ReliableRadioProtocol_Type<Os, Radio, Timer, Debug> ReliableRadioProtocol;
+		typedef typename ReliableRadioProtocol::event_notifier_delegate_t event_notifier_delegate_t2;
 		typedef ReliableRadioProtocolSetting_Type<Os, Radio, Timer, Debug> ReliableRadioProtocolSetting;
 		typedef typename ReliableRadioProtocol::ReliableRadioProtocolSetting_vector ReliableRadioProtocolSetting_vector;
+		typedef ReliableRadio_Type<Os, Radio, Clock, Timer, Rand, Debug> ReliableRadio;
+		//
 
 		// --------------------------------------------------------------------
 		NeighborDiscovery_Type()	:
@@ -89,6 +96,14 @@ namespace wiselib
 		~NeighborDiscovery_Type()
 		{};
 		// --------------------------------------------------------------------
+		// --------------------------------------------------------------------
+		// --------------------------------------------------------------------
+		void null_callback( node_id_t null_node_id, size_t null_len, uint8_t* null_data, ExData const& null_metrics )
+		{
+			debug().debug("%d, %d", null_node_id, null_len );
+		}
+		// --------------------------------------------------------------------
+		// --------------------------------------------------------------------
 		void enable()
 		{
 
@@ -101,13 +116,58 @@ namespace wiselib
 			//debug().debug( " period : %d, message_id :%d\n", rrps.get_period(), rrps.get_message_id() );
 			ReliableRadioProtocolSetting rrps2(50, 500);
 			rrps = rrps2;
+			rrps2.set_message_id( 3 );
+			rrps2.set_period( 20 );
 			//rrps.print( debug(), radio() );
 
-			ReliableRadioProtocolSetting_vector rrps_v;
-			rrps_v.push_back(rrps2);
+			//ReliableRadioProtocolSetting_vector rrps_v;
+			//rrps_v.push_back(rrps2);
+			ReliableRadioProtocol rrp;
+			//rrp.print( debug(), radio() );
+			rrp.add_protocol_setting( rrps );
+			//debug().debug("adding\n");
+			//rrp.print( debug(), radio() );
+			rrp.remove_protocol_setting( rrps.get_message_id() );
+			//debug().debug("removing\n");
+			//rrp.print( debug(), radio() );
+			rrp.set_protocol_id( 100 );
+			//debug().debug( "proto id %d \n", rrp.get_protocol_id() );
+			rrp.add_protocol_setting( rrps2 );
+			rrp.add_protocol_setting( rrps );
+			//rrp.print( debug(), radio() );
+			//debug().debug( "@@@@@@@@@@@@@@@" );
+			//debug().debug( " %d , %d \n", rrp.get_protocol_settings_ref()->size(),rrp.get_protocol_settings().size() );
+			//debug().debug("null enter");
+			//rrp.get_event_notifier_callback()( 100, 200, 255, NULL );
+			//debug().debug("null exit");
+			event_notifier_delegate_t2 e = event_notifier_delegate_t2::template from_method<self_t, &self_t::receive > ( this );
+			rrp.set_event_notifier_callback( e );
+			//debug().debug("test enter");
+			//rrp.get_event_notifier_callback()( 100, 200, 255, NULL );
+			//debug().debug("test exit");
+			rrp.reset_event_notifier_callback();
+			//debug().debug("test enter3");
+			//rrp.get_event_notifier_callback()( 100, 200, 255, NULL );
+			//debug().debug("test exit3");
+			rrp.template set_event_notifier_callback<self_t, &self_t::receive > ( this );
+			//debug().debug("test enter4");
+			//rrp.get_event_notifier_callback()( 102, 202, 252, NULL );
+			//debug().debug("test exit4");
 
+			ReliableRadioProtocol rrp2 = rrp;
 
+			//rrp2.print( debug(), radio() );
+			//debug().debug("test enter5");
+			//rrp2.get_event_notifier_callback()( 104, 204, 254, NULL );
+			//debug().debug("test exit5");
 
+			ReliableRadioProtocolSetting_vector bla;
+			bla.push_back( ReliableRadioProtocolSetting( 1, 1 ) );
+			bla.push_back( ReliableRadioProtocolSetting( 2, 2 ) );
+			rrp2.set_protocol_settings( bla );
+			ExData ex;
+			rrp2.get_event_notifier_callback()( 122, 222, NULL, ex );
+			rrp2.print( debug(), radio() );
 
 //#ifdef NB_DEBUG_STATS
 //			timer().template set_timer<self_t, &self_t::nb_metrics_daemon> ( NB_STATS_DURATION, this, 0 );
@@ -279,6 +339,7 @@ namespace wiselib
 		// --------------------------------------------------------------------
 		void receive( node_id_t _from, size_t _len, block_data_t * _msg, ExData const &_ex )
 		{
+			debug().debug("ha! %d, %d", _from, _len );
 			if ( _from != radio().id() )
 			{
 #ifdef NB_DEBUG_RECEIVE
