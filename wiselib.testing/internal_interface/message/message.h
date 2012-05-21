@@ -61,7 +61,9 @@ namespace wiselib
 		}
 		// --------------------------------------------------------------------
 		inline size_t buffer_size()
-		{ return PAYLOAD_POS + sizeof(size_t) + payload_size(); }
+		{
+			return PAYLOAD_POS + sizeof(size_t) + payload_size();
+		}
 	private:
 		enum data_positions
 		{

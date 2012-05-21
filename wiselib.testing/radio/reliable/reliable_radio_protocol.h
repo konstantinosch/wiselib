@@ -60,11 +60,20 @@ namespace wiselib
 			return NULL;
 		}
 		// --------------------------------------------------------------------
-		void add_protocol_setting( ReliableRadioProtocolSetting& _prot_set )
+		uint8_t add_protocol_setting( ReliableRadioProtocolSetting& _prot_set )
 		{
-			if ( !get_protocol_setting_ref( _prot_set.get_message_id() ) )
+			if ( protocol_settings.max_size() == protocol_settings.size() )
+			{
+				return RRP_MSG_LIST_FULL;
+			}
+			if ( get_protocol_setting_ref( _prot_set.get_message_id() ) == NULL )
 			{
 				protocol_settings.push_back( _prot_set );
+				return RRP_SUCCESS;
+			}
+			else
+			{
+				return RRP_MSG_ID_IN_USE;
 			}
 		}
 		// --------------------------------------------------------------------
@@ -143,6 +152,14 @@ namespace wiselib
 			debug.debug( "-------------------------------------------------------\n");
 		}
 #endif
+		// --------------------------------------------------------------------
+		enum reliable_radio_protocol_errors
+		{
+			RRP_SUCCESS,
+			RRP_MSG_LIST_FULL,
+			RRP_MSG_ID_IN_USE,
+			RRP_ERROR_NUM_VALUES
+		};
 	private:
 		uint8_t protocol_id;
 		ReliableRadioProtocolSetting_vector protocol_settings;
