@@ -44,7 +44,9 @@ namespace wiselib
 		typedef Message_Type<Os, Radio> Message;
 		typedef ReliableRadio_Type<Os, Radio, Clock, Timer, Rand, Debug> self_t;
 		// --------------------------------------------------------------------
-		ReliableRadio_Type()
+		ReliableRadio_Type() :
+			reliable_radio_daemon_period		( RR_DAEMON_PERIOD ),
+			dummy_counter						( 0 )
 		{};
 		// --------------------------------------------------------------------
 		~ReliableRadio_Type()
@@ -52,8 +54,9 @@ namespace wiselib
 		// --------------------------------------------------------------------
 		void enable()
 		{
+			radio().enable_radio();
 			set_status( ACTIVE_STATUS );
-			recv_callback_id_ = radio().template reg_recv_callback<self_t, &self_t::receive> (this);
+			recv_callback_id_ = radio().template reg_recv_callback<self_t, &self_t::receive>( this );
 			reliable_radio_daemon();
 		};
 		// --------------------------------------------------------------------
@@ -65,60 +68,62 @@ namespace wiselib
 		// --------------------------------------------------------------------
 		void send( node_id_t _dest, size_t _len, block_data_t* _data, message_id_t _msg_id )
 		{
-#ifdef RR_DEBUG
-			debug().debug( "ReliableRadio-register_protocol %x - Entering.\n", radio().id() );
-#endif
-			if ( status == ACTIVE_STATUS )
-			{
-				Message message;
-				message.set_msg_id( _msg_id );
-				message.set_payload( _len, _data );
-				radio().send( _dest, message.buffer_size(), (uint8_t*) &message );
-			}
-#ifdef RR_DEBUG
-			debug().debug( "ReliableRadio-register_protocol %x - Exiting.\n", radio().id() );
-#endif
+//#ifdef RR_DEBUG
+//			debug().debug( "ReliableRadio-register_protocol %x - Entering.\n", radio().id() );
+//#endif
+//			if ( status == ACTIVE_STATUS )
+//			{
+//				Message message;
+//				message.set_msg_id( _msg_id );
+//				message.set_payload( _len, _data );
+//				radio().send( _dest, message.buffer_size(), (uint8_t*) &message );
+//			}
+//#ifdef RR_DEBUG
+//			debug().debug( "ReliableRadio-register_protocol %x - Exiting.\n", radio().id() );
+//#endif
 		}
 		// --------------------------------------------------------------------
 		void receive( node_id_t _from, size_t _len, block_data_t * _msg, ExData const &_ex )
 		{
-#ifdef RR_DEBUG
-			debug().debug( "ReliableRadio-register_protocol %x - Entering.\n", radio().id() );
-#endif
-			if ( status == ACTIVE_STATUS )
-			{
-				if ( _from != radio().id() )
-				{
-					Message* msg = (Message*)_msg;
-					for ( ReliableRadioProtocol_vector_iterator it = protocols.begin(); it != protocols.end(); ++it )
-					{
-						for ( ReliableRadioProtocolSetting_vector_iterator iit = it->get_protocol_settings_ref()->begin(); iit != it->get_protocol_settings_ref()->end(); ++iit )
-						{
-							if ( msg->msg_id() == iit->get_message_id() )
-							{
-								it->get_event_notifier_callback()( _from, msg->payload_size(), msg->payload(), _ex );
-							}
-						}
-					}
-				}
-			}
-#ifdef RR_DEBUG
-			debug().debug( "ReliableRadio-register_protocol %x - Entering.\n", radio().id() );
-#endif
+//#ifdef RR_DEBUG
+//			debug().debug( "ReliableRadio-register_protocol %x - Entering.\n", radio().id() );
+//#endif
+//			if ( status == ACTIVE_STATUS )
+//			{
+//				if ( _from != radio().id() )
+//				{
+//					Message* msg = (Message*)_msg;
+//					for ( ReliableRadioProtocol_vector_iterator it = protocols.begin(); it != protocols.end(); ++it )
+//					{
+//						for ( ReliableRadioProtocolSetting_vector_iterator iit = it->get_protocol_settings_ref()->begin(); iit != it->get_protocol_settings_ref()->end(); ++iit )
+//						{
+//							if ( msg->msg_id() == iit->get_message_id() )
+//							{
+//								it->get_event_notifier_callback()( _from, msg->payload_size(), msg->payload(), _ex );
+//							}
+//						}
+//					}
+//				}
+//			}
+//#ifdef RR_DEBUG
+//			debug().debug( "ReliableRadio-register_protocol %x - Entering.\n", radio().id() );
+//#endif
 		}
 		// --------------------------------------------------------------------
 		void reliable_radio_daemon( void* user_data = NULL )
 		{
 #ifdef RR_DEBUG
-			debug().debug( "ReliableRadio-register_protocol %x - Entering.\n", radio().id() );
+			debug().debug( "ReliableRadio-realiable_radio_daemon %x - Entering.\n", radio().id() );
 #endif
 			if ( status == ACTIVE_STATUS )
 			{
+				dummy_counter++;
+				debug().debug("dummy:%d", dummy_counter );
 				//modulo with list of registered modules for periods setup of minimum period etc
-				timer().template set_timer<self_t, &self_t::reliable_radio_daemon> ( reliable_radio_period, this, 0 );
+				timer().template set_timer<self_t, &self_t::reliable_radio_daemon> ( reliable_radio_daemon_period, this, 0 );
 			}
 #ifdef RR_DEBUG
-			debug().debug( "ReliableRadio-register_protocol %x - Exiting.\n", radio().id() );
+			debug().debug( "ReliableRadio-realiable_radio_daemon %x - Exiting.\n", radio().id() );
 #endif
 		}
 		// --------------------------------------------------------------------
@@ -147,12 +152,13 @@ namespace wiselib
 						}
 					}
 				}
+				protocols.push_back( _p );
+				return SUCCESS;
 			}
-			protocols.push_back( _p );
+			return RR_INACTIVE;
 #ifdef RR_DEBUG
 			debug().debug( "ReliableRadio-register_protocol %x - Exiting.\n", radio().id() );
 #endif
-			return SUCCESS;
 		}
 		// --------------------------------------------------------------------
 		int get_status()
@@ -165,14 +171,14 @@ namespace wiselib
 			status = _st;
 		}
 		// --------------------------------------------------------------------
-		millis_t get_reliable_radio_period()
+		millis_t get_reliable_radio_daemon_period()
 		{
-			return reliable_radio_period;
+			return reliable_radio_daemon_period;
 		}
 		// --------------------------------------------------------------------
-		void set_reliable_radio_period( millis_t _rrp )
+		void set_reliable_radio_daemon_period( millis_t _rrp )
 		{
-			reliable_radio_period =_rrp;
+			reliable_radio_daemon_period =_rrp;
 		}
 		// --------------------------------------------------------------------
 		void init( Radio& _radio, Timer& _timer, Debug& _debug, Clock& _clock, Rand& _rand )
@@ -221,18 +227,20 @@ namespace wiselib
 			PROT_LIST_FULL,
 			PROT_NUM_IN_USE,
 			MSG_ID_IN_USE,
+			RR_INACTIVE,
 			RR_ERROR_NUM_VALUES
 		};
 	private:
 		uint32_t recv_callback_id_;
         uint8_t status;
-        millis_t reliable_radio_period;
+        millis_t reliable_radio_daemon_period;
         ReliableRadioProtocol_vector protocols;
         Radio * radio_;
         Clock * clock_;
         Timer * timer_;
         Debug * debug_;
         Rand * rand_;
+        uint32_t dummy_counter;
     };
 }
 

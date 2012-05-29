@@ -156,34 +156,46 @@ namespace wiselib
 //
 //
 			ReliableRadioProtocol rrp3;
-			ReliableRadioProtocolSetting rrps11 = ReliableRadioProtocolSetting( 1, 1000 );
-			debug().debug( " rrps11 res = %d", rrp3.add_protocol_setting( rrps11 ) );
-			ReliableRadioProtocolSetting rrps22 = ReliableRadioProtocolSetting( 2, 2000 );
-			debug().debug( " rrps22 res = %d", rrp3.add_protocol_setting( rrps22 ) );
-			ReliableRadioProtocolSetting rrps33 = ReliableRadioProtocolSetting( 3, 3000 );
-			debug().debug( " rrps33 res = %d", rrp3.add_protocol_setting( rrps33 ) );
-			ReliableRadioProtocolSetting rrps44 = ReliableRadioProtocolSetting( 4, 4000 );
-			debug().debug( " rrps44 res = %d", rrp3.add_protocol_setting( rrps44 ) );
+			ReliableRadioProtocol rrp4;
+			ReliableRadioProtocol rrp5;
+			ReliableRadioProtocolSetting rrps11 = ReliableRadioProtocolSetting( 1, 1000, 1000 );
+//			debug().debug( " rrps11 res = %d", rrp3.add_protocol_setting( rrps11 ) );
+			ReliableRadioProtocolSetting rrps22 = ReliableRadioProtocolSetting( 2, 2000, 2000 );
+//			debug().debug( " rrps22 res = %d", rrp3.add_protocol_setting( rrps22 ) );
+			ReliableRadioProtocolSetting rrps33 = ReliableRadioProtocolSetting( 3, 3000, 3000 );
+//			debug().debug( " rrps33 res = %d", rrp3.add_protocol_setting( rrps33 ) );
+			ReliableRadioProtocolSetting rrps44 = ReliableRadioProtocolSetting( 4, 4000, 4000 );
+//			debug().debug( " rrps44 res = %d", rrp3.add_protocol_setting( rrps44 ) );
 //			debug().debug("@@@@@@@\n");
+			rrp3.add_protocol_setting( rrps11 );
+			rrp3.add_protocol_setting( rrps22 );
+			rrp3.add_protocol_setting( rrps33 );
+			rrp3.add_protocol_setting( rrps44 );
 
 			//rrp2.print( debug(), radio() );
 			//debug().debug("test enter5");
 			//rrp2.get_event_notifier_callback()( 104, 204, 254, NULL );
 			//debug().debug("test exit5");
 
-
 			ExData ex;
 			//rrp2.get_event_notifier_callback()( 122, 222, NULL, ex );
 			//rrp2.print( debug(), radio() );
-			ReliableRadio RR;
-			RR.init( radio(), timer(), debug(), clock(), rand() );
-			debug().debug( " after RR\n");
-			debug().debug( " before all 1\n");
-			debug().debug( "res = %d", RR.register_protocol( rrp3 ) );
-			debug().debug( " after 1\n");
+			RR.set_status(ReliableRadio::ACTIVE_STATUS);
+			debug().debug( "0: RR init\n");
+			debug().debug( "1: res = %d", RR.register_protocol( rrp3 ) );
+			debug().debug( "1: after register rrp3\n");
+			debug().debug( "2: res = %d", RR.register_protocol( rrp3 ) );
+			debug().debug( "2: after register rrp3 equal\n");
 			rrp3.set_protocol_id( 101 );
-			debug().debug( "res = %d", RR.register_protocol( rrp3 ) );
-			debug().debug( " after 2\n");
+			debug().debug( "3: res = %d", RR.register_protocol( rrp3 ) );
+			debug().debug( "3: after register rrp3 with new id\n");
+			rrp4.set_protocol_id( 104 );
+			debug().debug( "4: res = %d", RR.register_protocol( rrp4 ) );
+			debug().debug( "4: after register rrp4 with new id\n");
+			rrp5.set_protocol_id( 105 );
+			debug().debug( "5: res = %d", RR.register_protocol( rrp5 ) );
+			debug().debug( "5: after register rrp5 with new id\n");
+			RR.enable();
 
 			//rrp2.print( debug(), radio() );
 
@@ -1177,6 +1189,12 @@ namespace wiselib
 		{
 			return *rand_;
 		}
+
+		void set_RR( ReliableRadio _rr )
+		{
+			RR = _rr;
+		}
+
 		enum error_codes
 		{
 			SUCCESS,
@@ -1255,6 +1273,8 @@ namespace wiselib
         Timer * timer_;
         Debug * debug_;
         Rand * rand_;
+
+        ReliableRadio RR;
     };
 }
 
