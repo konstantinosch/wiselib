@@ -3,7 +3,7 @@
 
 #include "util/pstl/vector_static.h"
 #include "reliable_radio_source_config.h"
-#include "reliable_radio_protocol_setting.h"
+#include "reliable_radio_message.h"
 #include "reliable_radio_default_values_config.h"
 
 
@@ -24,14 +24,15 @@ namespace wiselib
 		typedef typename Radio::size_t size_t;
 		typedef typename Radio::message_id_t message_id_t;
 		typedef typename Radio::ExtendedData ExData;
+		typedef typename Timer::millis_t millis_t;
 		typedef ReliableRadioProtocol_Type<Os, Radio, Timer, Debug> self_t;
-		typedef ReliableRadioProtocolSetting_Type<Os, Radio, Timer, Debug> ReliableRadioProtocolSetting;
-		typedef vector_static<Os, ReliableRadioProtocolSetting, RR_MAX_MESSAGES_PER_PROTOCOL> ReliableRadioProtocolSetting_vector;
-		typedef typename ReliableRadioProtocolSetting_vector::iterator ReliableRadioProtocolSetting_vector_iterator;
+		typedef ReliableRadioMessage_Type<Os, Radio, Timer, Debug> ReliableRadioMessage;
+		typedef vector_static<Os, ReliableRadioMessage, RR_MAX_MESSAGES_PER_PROTOCOL> ReliableRadioMessage_vector;
+		typedef typename ReliableRadioMessage_vector::iterator ReliableRadioMessage_vector_iterator;
 		typedef delegate4<void, node_id_t, size_t, uint8_t*, ExData const&> event_notifier_delegate_t;
 		// --------------------------------------------------------------------
 		ReliableRadioProtocol_Type() :
-			protocol_id		( 0 ),
+			protocol_id					( 0 ),
 			event_notifier_callback		( event_notifier_delegate_t::template from_method<ReliableRadioProtocol_Type, &ReliableRadioProtocol_Type::null_callback > ( this ) )
 		{};
 		// --------------------------------------------------------------------
@@ -50,7 +51,7 @@ namespace wiselib
 		// --------------------------------------------------------------------
 		ReliableRadioProtocolSetting* get_protocol_setting_ref( message_id_t _msg_id )
 		{
-			for ( ReliableRadioProtocolSetting_vector_iterator i = protocol_settings.begin(); i != protocol_settings.end(); ++i )
+			for ( ReliableRadioMessage_vector_iterator i = protocol_settings.begin(); i != protocol_settings.end(); ++i )
 			{
 				if ( _msg_id == i->get_message_id() )
 				{
@@ -162,6 +163,8 @@ namespace wiselib
 		};
 	private:
 		uint8_t protocol_id;
+		millis_t period;
+		millis_t alive_period;
 		ReliableRadioProtocolSetting_vector protocol_settings;
 		event_notifier_delegate_t event_notifier_callback;
     };

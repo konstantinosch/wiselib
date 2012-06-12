@@ -35,13 +35,15 @@ namespace wiselib
 		typedef typename Radio::TxPower TxPower;
 		typedef typename Timer::millis_t millis_t;
 		typedef ReliableRadioProtocol_Type<Os, Radio, Timer, Debug> ReliableRadioProtocol;
-		typedef vector_static<Os, ReliableRadioProtocol, RR_MAX_PROTOCOLS_REGISTERED > ReliableRadioProtocol_vector;
+		typedef vector_static<Os, ReliableRadioProtocol, RR_MAX_PROTOCOLS_REGISTERED> ReliableRadioProtocol_vector;
 		typedef typename ReliableRadioProtocol_vector::iterator ReliableRadioProtocol_vector_iterator;
 		typedef typename ReliableRadioProtocol::event_notifier_delegate_t ReliableRadioProtocol_event_notifier_delegate_t;
 		typedef typename ReliableRadioProtocol::ReliableRadioProtocolSetting ReliableRadioProtocolSetting;
 		typedef typename ReliableRadioProtocol::ReliableRadioProtocolSetting_vector ReliableRadioProtocolSetting_vector;
 		typedef typename ReliableRadioProtocol::ReliableRadioProtocolSetting_vector_iterator ReliableRadioProtocolSetting_vector_iterator;
 		typedef Message_Type<Os, Radio> Message;
+		typedef vector_static<Os, Message, RR_MAX_BUFFERED_MESSAGES> ReliableMessage_vector;
+		typedef typename ReliableMessage_vector::iterator ReliableMessage_vector_iterator;
 		typedef ReliableRadio_Type<Os, Radio, Clock, Timer, Rand, Debug> self_t;
 		// --------------------------------------------------------------------
 		ReliableRadio_Type() :
@@ -68,26 +70,30 @@ namespace wiselib
 		// --------------------------------------------------------------------
 		void send( node_id_t _dest, size_t _len, block_data_t* _data, message_id_t _msg_id )
 		{
-//#ifdef RR_DEBUG
-//			debug().debug( "ReliableRadio-register_protocol %x - Entering.\n", radio().id() );
-//#endif
-//			if ( status == ACTIVE_STATUS )
-//			{
-//				Message message;
-//				message.set_msg_id( _msg_id );
-//				message.set_payload( _len, _data );
-//				radio().send( _dest, message.buffer_size(), (uint8_t*) &message );
-//			}
-//#ifdef RR_DEBUG
-//			debug().debug( "ReliableRadio-register_protocol %x - Exiting.\n", radio().id() );
-//#endif
+#ifdef RR_DEBUG
+			debug().debug( "ReliableRadio-register_protocol %x - Entering.\n", radio().id() );
+#endif
+			if ( status == ACTIVE_STATUS )
+			{
+				block_data_t new_data[Radio::MAX_MESSAGE_LENGTH];
+
+				//size_t new_len = DATA_POS + _len;
+				Message message;
+				//message.set_msg_id( RELIABLE_MESSAGE );
+				//message.set_payload( new_len, new_data );
+				//reliable_messages.push_back( message );
+				//radio().send( _dest, message.buffer_size(), (uint8_t*) &message );
+			}
+#ifdef RR_DEBUG
+			debug().debug( "ReliableRadio-register_protocol %x - Exiting.\n", radio().id() );
+#endif
 		}
 		// --------------------------------------------------------------------
 		void receive( node_id_t _from, size_t _len, block_data_t * _msg, ExData const &_ex )
 		{
-//#ifdef RR_DEBUG
-//			debug().debug( "ReliableRadio-register_protocol %x - Entering.\n", radio().id() );
-//#endif
+#ifdef RR_DEBUG
+			debug().debug( "ReliableRadio-register_protocol %x - Entering.\n", radio().id() );
+#endif
 //			if ( status == ACTIVE_STATUS )
 //			{
 //				if ( _from != radio().id() )
@@ -105,9 +111,9 @@ namespace wiselib
 //					}
 //				}
 //			}
-//#ifdef RR_DEBUG
-//			debug().debug( "ReliableRadio-register_protocol %x - Entering.\n", radio().id() );
-//#endif
+#ifdef RR_DEBUG
+			debug().debug( "ReliableRadio-register_protocol %x - Entering.\n", radio().id() );
+#endif
 		}
 		// --------------------------------------------------------------------
 		void reliable_radio_daemon( void* user_data = NULL )
@@ -117,9 +123,7 @@ namespace wiselib
 #endif
 			if ( status == ACTIVE_STATUS )
 			{
-				dummy_counter++;
-				debug().debug("dummy:%d", dummy_counter );
-				//modulo with list of registered modules for periods setup of minimum period etc
+
 				timer().template set_timer<self_t, &self_t::reliable_radio_daemon> ( reliable_radio_daemon_period, this, 0 );
 			}
 #ifdef RR_DEBUG
@@ -235,6 +239,7 @@ namespace wiselib
         uint8_t status;
         millis_t reliable_radio_daemon_period;
         ReliableRadioProtocol_vector protocols;
+        ReliableMessage_vector reliable_messages;
         Radio * radio_;
         Clock * clock_;
         Timer * timer_;

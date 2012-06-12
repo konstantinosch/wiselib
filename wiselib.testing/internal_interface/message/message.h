@@ -32,7 +32,12 @@ namespace wiselib
 		typedef typename Radio::size_t size_t;
 		typedef typename Radio::message_id_t message_id_t;
 		// --------------------------------------------------------------------
-		inline Message_Type();
+		inline Message_Type()
+		{
+			set_msg_id( 0 );
+			size_t len = 0;
+			write<OsModel, block_data_t, size_t>(buffer + PAYLOAD_POS, len);;
+		}
 		// --------------------------------------------------------------------
 		inline message_id_t msg_id()
 		{
@@ -56,6 +61,10 @@ namespace wiselib
 		// --------------------------------------------------------------------
 		inline void set_payload( size_t len, block_data_t *buf )
 		{
+			if ( len > Radio::MAX_MESSAGE_LENGTH )
+			{
+				len = Radio::MAX_MESSAGE_LENGTH;
+			}
 			write<OsModel, block_data_t, size_t>(buffer + PAYLOAD_POS, len);
 			memcpy( buffer + PAYLOAD_POS + sizeof(size_t), buf, len);
 		}
@@ -64,6 +73,17 @@ namespace wiselib
 		{
 			return PAYLOAD_POS + sizeof(size_t) + payload_size();
 		}
+		// --------------------------------------------------------------------
+		inline block_data_t* buffer()
+		{
+			return buffer;
+		}
+		// --------------------------------------------------------------------
+		Message_Type& operator=( const Message_Type& _msg )
+		{
+			memcpy( buffer, _msg.buffer, _msg.buffer_size() );
+			return *this;
+		}
 	private:
 		enum data_positions
 		{
@@ -71,15 +91,5 @@ namespace wiselib
 		};
 		block_data_t buffer[Radio::MAX_MESSAGE_LENGTH];
 	};
-	// -----------------------------------------------------------------------
-	template<typename OsModel_P,
-		typename Radio_P>
-	Message_Type<OsModel_P, Radio_P>::
-	Message_Type()
-	{
-		set_msg_id( 0 );
-		size_t len = 0;
-		write<OsModel, block_data_t, size_t>(buffer + PAYLOAD_POS, len);
-	}
 }
 #endif

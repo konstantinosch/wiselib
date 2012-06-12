@@ -180,22 +180,22 @@ namespace wiselib
 			ExData ex;
 			//rrp2.get_event_notifier_callback()( 122, 222, NULL, ex );
 			//rrp2.print( debug(), radio() );
-			RR.set_status(ReliableRadio::ACTIVE_STATUS);
+			reliable_radio_->set_status(ReliableRadio::ACTIVE_STATUS);
 			debug().debug( "0: RR init\n");
-			debug().debug( "1: res = %d", RR.register_protocol( rrp3 ) );
+			debug().debug( "1: res = %d", reliable_radio_->register_protocol( rrp3 ) );
 			debug().debug( "1: after register rrp3\n");
-			debug().debug( "2: res = %d", RR.register_protocol( rrp3 ) );
+			debug().debug( "2: res = %d", reliable_radio_->register_protocol( rrp3 ) );
 			debug().debug( "2: after register rrp3 equal\n");
 			rrp3.set_protocol_id( 101 );
-			debug().debug( "3: res = %d", RR.register_protocol( rrp3 ) );
+			debug().debug( "3: res = %d", reliable_radio_->register_protocol( rrp3 ) );
 			debug().debug( "3: after register rrp3 with new id\n");
 			rrp4.set_protocol_id( 104 );
-			debug().debug( "4: res = %d", RR.register_protocol( rrp4 ) );
+			debug().debug( "4: res = %d", reliable_radio_->register_protocol( rrp4 ) );
 			debug().debug( "4: after register rrp4 with new id\n");
 			rrp5.set_protocol_id( 105 );
-			debug().debug( "5: res = %d", RR.register_protocol( rrp5 ) );
+			debug().debug( "5: res = %d", reliable_radio_->register_protocol( rrp5 ) );
 			debug().debug( "5: after register rrp5 with new id\n");
-			RR.enable();
+			reliable_radio_->enable();
 
 			//rrp2.print( debug(), radio() );
 
@@ -708,7 +708,6 @@ namespace wiselib
 			p.set_protocol_settings( _psett );
 			p.set_event_notifier_callback( event_notifier_delegate_t::template from_method<T, TMethod > ( _obj_pnt ) );
 			protocols.push_back( p );
-
 #ifdef NB_DEBUG_REGISTER_PROTOCOL
 			debug().debug("NeighborDiscovery-register_protocols %x - Exiting for protocol_id = %i.\n", radio().id(), _pid );
 #endif
@@ -1156,13 +1155,20 @@ namespace wiselib
 		}
 #endif
 		// --------------------------------------------------------------------
-		void init( Radio& _radio, Timer& _timer, Debug& _debug, Clock& _clock, Rand& _rand )
+		void init( Radio& _radio, Timer& _timer, Debug& _debug, Clock& _clock, Rand& _rand
+#ifdef NB_RELIABLE_RADIO_SUPPORT
+			,ReliableRadio& _reliable_radio
+#endif
+				)
 		{
 			radio_ = &_radio;
 			timer_ = &_timer;
 			debug_ = &_debug;
 			clock_ = &_clock;
 			rand_ = &_rand;
+#ifdef NB_RELIABLE_RADIO_SUPPORT
+			reliable_radio_ = &_reliable_radio;
+#endif
 		}
 		// --------------------------------------------------------------------
 		Radio& radio()
@@ -1189,12 +1195,14 @@ namespace wiselib
 		{
 			return *rand_;
 		}
-
-		void set_RR( ReliableRadio _rr )
+		// --------------------------------------------------------------------
+#ifdef NB_RELIABLE_RADIO_SUPPORT
+		ReliableRadio& reliable_radio()
 		{
-			RR = _rr;
+			return *reliable_radio_;
 		}
-
+#endif
+		// --------------------------------------------------------------------
 		enum error_codes
 		{
 			SUCCESS,
@@ -1256,14 +1264,14 @@ namespace wiselib
         millis_t relax_millis;
         millis_t nb_daemon_period;
 #ifdef NB_DEBUG_STATS
-       uint32_t messages_received;
-       uint32_t bytes_received;
-       uint32_t avg_bytes_size_received;
-       uint32_t square_stdv_bytes_size_received;
-       uint32_t messages_send;
-       uint32_t bytes_send;
-       uint32_t avg_bytes_size_send;
-       uint32_t square_stdv_bytes_size_send;
+		uint32_t messages_received;
+		uint32_t bytes_received;
+		uint32_t avg_bytes_size_received;
+		uint32_t square_stdv_bytes_size_received;
+		uint32_t messages_send;
+		uint32_t bytes_send;
+		uint32_t avg_bytes_size_send;
+		uint32_t square_stdv_bytes_size_send;
 #endif
 #ifdef NB_COORD_SUPPORT
 		Position position;
@@ -1273,8 +1281,9 @@ namespace wiselib
         Timer * timer_;
         Debug * debug_;
         Rand * rand_;
-
-        ReliableRadio RR;
+#ifdef NB_RELIABLE_RADIO_SUPPORT
+        ReliableRadio *reliable_radio_;
+#endif
     };
 }
 
