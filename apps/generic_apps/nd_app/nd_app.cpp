@@ -2,7 +2,7 @@
 #include "util/serialization/simple_types.h"
 #include "internal_interface/position/position_new.h"
 #include "algorithms/neighbor_discovery/neighbor_discovery.h"
-#include "radio/reliable/reliable_radio.h"
+#include "radio/reliable/reliable_radio_simple.h"
 
 #define UNIGE_TESTBED
 #ifdef UNIGE_TESTBED
@@ -25,9 +25,11 @@ typedef Os::Debug Debug;
 typedef Os::Timer Timer;
 typedef Os::Rand Rand;
 typedef wiselib::Position2DType<Os, Radio, uint8, Debug> Position;
-typedef wiselib::NeighborDiscovery_Type<Os, Radio, Clock, Timer, Rand, Debug> NeighborDiscovery;
 #ifdef NB_RELIABLE_RADIO_SUPPORT
 	typedef wiselib::ReliableRadio_Type<Os, Radio, Clock, Timer, Rand, Debug> ReliableRadio;
+	typedef wiselib::NeighborDiscovery_Type<Os, Radio, ReliableRadio, Clock, Timer, Rand, Debug> NeighborDiscovery;
+#else
+	typedef wiselib::NeighborDiscovery_Type<Os, Radio, Clock, Timer, Rand, Debug> NeighborDiscovery;
 #endif
 
 NeighborDiscovery neighbor_discovery;

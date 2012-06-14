@@ -183,7 +183,7 @@ public:
 		TxPower power;
 		power.set_dB( transmission_power_dB);
 		radio().set_power( power );
-		radio().send( destination, message.buffer_size(), (uint8_t*) &message );
+		radio().send( destination, message.get_buffer_size(), (uint8_t*) &message );
 	}
 	// -----------------------------------------------------------------------
 	void receive( node_id_t from, size_t len, block_data_t *data, const ExtendedData& exdata )

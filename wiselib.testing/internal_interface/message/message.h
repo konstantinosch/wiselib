@@ -69,19 +69,20 @@ namespace wiselib
 			memcpy( buffer + PAYLOAD_POS + sizeof(size_t), buf, len);
 		}
 		// --------------------------------------------------------------------
-		inline size_t buffer_size()
+		inline size_t get_buffer_size()
 		{
 			return PAYLOAD_POS + sizeof(size_t) + payload_size();
 		}
 		// --------------------------------------------------------------------
-		inline block_data_t* buffer()
+		inline block_data_t* get_buffer()
 		{
 			return buffer;
 		}
 		// --------------------------------------------------------------------
 		Message_Type& operator=( const Message_Type& _msg )
 		{
-			memcpy( buffer, _msg.buffer, _msg.buffer_size() );
+			size_t len = _msg.get_buffer_size();
+			memcpy( buffer, _msg.buffer, len );
 			return *this;
 		}
 	private:

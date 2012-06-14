@@ -12,16 +12,13 @@
 #include "protocol.h"
 #include "beacon.h"
 
-//
-#include "radio/reliable/reliable_radio_protocol.h"
-#include "radio/reliable/reliable_radio_protocol_setting.h"
-#include "radio/reliable/reliable_radio.h"
-//
-
 namespace wiselib
 {
 	template<	typename Os_P,
 				typename Radio_P,
+#ifdef NB_RELIABLE_RADIO_SUPPORT
+				typename ReliableRadio_P,
+#endif
 				typename Clock_P,
 				typename Timer_P,
 				typename Rand_P,
@@ -31,6 +28,10 @@ namespace wiselib
 	public:
 		typedef Os_P Os;
 		typedef Radio_P Radio;
+#ifdef NB_RELIABLE_RADIO_SUPPORT
+		typedef ReliableRadio_P ReliableRadio;
+		typedef typename ReliableRadio::ReliableRadioMessage ReliableRadioMessage;
+#endif
 		typedef Timer_P Timer;
 		typedef Debug_P Debug;
 		typedef Clock_P Clock;
@@ -43,7 +44,11 @@ namespace wiselib
 		typedef typename Radio::ExtendedData ExData;
 		typedef typename Radio::TxPower TxPower;
 		typedef typename Timer::millis_t millis_t;
+#ifdef NB_RELIABLE_RADIO_SUPPORT
+		typedef NeighborDiscovery_Type	<Os, Radio,	ReliableRadio, Clock, Timer, Rand, Debug> self_t;
+#else
 		typedef NeighborDiscovery_Type	<Os, Radio,	Clock, Timer, Rand, Debug> self_t;
+#endif
 		typedef Message_Type<Os, Radio> Message;
 		typedef Neighbor_Type<Os, Radio, Clock, Timer, Debug> Neighbor;
 #ifdef NB_COORD_SUPPORT
@@ -60,15 +65,6 @@ namespace wiselib
 		typedef vector_static<Os, Protocol, NB_MAX_REGISTERED_PROTOCOLS> Protocol_vector;
 		typedef typename Protocol_vector::iterator Protocol_vector_iterator;
 		typedef delegate4<void, uint8_t, node_id_t, size_t, uint8_t*> event_notifier_delegate_t;
-
-		//
-		typedef ReliableRadioProtocol_Type<Os, Radio, Timer, Debug> ReliableRadioProtocol;
-		typedef typename ReliableRadioProtocol::event_notifier_delegate_t event_notifier_delegate_t2;
-		typedef ReliableRadioProtocolSetting_Type<Os, Radio, Timer, Debug> ReliableRadioProtocolSetting;
-		typedef typename ReliableRadioProtocol::ReliableRadioProtocolSetting_vector ReliableRadioProtocolSetting_vector;
-		typedef ReliableRadio_Type<Os, Radio, Clock, Timer, Rand, Debug> ReliableRadio;
-		//
-
 		// --------------------------------------------------------------------
 		NeighborDiscovery_Type()	:
 			status								( WAITING_STATUS ),
@@ -100,105 +96,35 @@ namespace wiselib
 		// --------------------------------------------------------------------
 		void null_callback( node_id_t null_node_id, size_t null_len, uint8_t* null_data, ExData const& null_metrics )
 		{
-			debug().debug("%d, %d", null_node_id, null_len );
+			debug().debug("%x, %d", null_node_id, null_len );
 		}
 		// --------------------------------------------------------------------
 		// --------------------------------------------------------------------
 		void enable()
 		{
-//
-//
-//			ReliableRadioProtocolSetting rrps;
-//			//rrps.print( debug(), radio() );
-//			rrps.set_message_id( 5 );
-//			rrps.set_period( 8 );
-//			//rrps.print( debug(), radio() );
-//			//debug().debug( " period : %d, message_id :%d\n", rrps.get_period(), rrps.get_message_id() );
-//			ReliableRadioProtocolSetting rrps2(50, 500);
-//			rrps = rrps2;
-//			rrps2.set_message_id( 3 );
-//			rrps2.set_period( 20 );
-//			//rrps.print( debug(), radio() );
-//
-//			//ReliableRadioProtocolSetting_vector rrps_v;
-//			//rrps_v.push_back(rrps2);
-//			ReliableRadioProtocol rrp;
-//			//rrp.print( debug(), radio() );
-//			rrp.add_protocol_setting( rrps );
-//			//debug().debug("adding\n");
-//			//rrp.print( debug(), radio() );
-//			rrp.remove_protocol_setting( rrps.get_message_id() );
-//			//debug().debug("removing\n");
-//			//rrp.print( debug(), radio() );
-//			rrp.set_protocol_id( 100 );
-//			//debug().debug( "proto id %d \n", rrp.get_protocol_id() );
-//			rrp.add_protocol_setting( rrps2 );
-//			rrp.add_protocol_setting( rrps );
-//			//rrp.print( debug(), radio() );
-//			//debug().debug( "@@@@@@@@@@@@@@@" );
-//			//debug().debug( " %d , %d \n", rrp.get_protocol_settings_ref()->size(),rrp.get_protocol_settings().size() );
-//			//debug().debug("null enter");
-//			//rrp.get_event_notifier_callback()( 100, 200, 255, NULL );
-//			//debug().debug("null exit");
-//			event_notifier_delegate_t2 e = event_notifier_delegate_t2::template from_method<self_t, &self_t::receive > ( this );
-//			rrp.set_event_notifier_callback( e );
-//			//debug().debug("test enter");
-//			//rrp.get_event_notifier_callback()( 100, 200, 255, NULL );
-//			//debug().debug("test exit");
-//			rrp.reset_event_notifier_callback();
-//			//debug().debug("test enter3");
-//			//rrp.get_event_notifier_callback()( 100, 200, 255, NULL );
-//			//debug().debug("test exit3");
-//			rrp.template set_event_notifier_callback<self_t, &self_t::receive > ( this );
-//			//debug().debug("test enter4");
-//			//rrp.get_event_notifier_callback()( 102, 202, 252, NULL );
-//			//debug().debug("test exit4");
-//
-//
-			ReliableRadioProtocol rrp3;
-			ReliableRadioProtocol rrp4;
-			ReliableRadioProtocol rrp5;
-			ReliableRadioProtocolSetting rrps11 = ReliableRadioProtocolSetting( 1, 1000, 1000 );
-//			debug().debug( " rrps11 res = %d", rrp3.add_protocol_setting( rrps11 ) );
-			ReliableRadioProtocolSetting rrps22 = ReliableRadioProtocolSetting( 2, 2000, 2000 );
-//			debug().debug( " rrps22 res = %d", rrp3.add_protocol_setting( rrps22 ) );
-			ReliableRadioProtocolSetting rrps33 = ReliableRadioProtocolSetting( 3, 3000, 3000 );
-//			debug().debug( " rrps33 res = %d", rrp3.add_protocol_setting( rrps33 ) );
-			ReliableRadioProtocolSetting rrps44 = ReliableRadioProtocolSetting( 4, 4000, 4000 );
-//			debug().debug( " rrps44 res = %d", rrp3.add_protocol_setting( rrps44 ) );
-//			debug().debug("@@@@@@@\n");
-			rrp3.add_protocol_setting( rrps11 );
-			rrp3.add_protocol_setting( rrps22 );
-			rrp3.add_protocol_setting( rrps33 );
-			rrp3.add_protocol_setting( rrps44 );
 
-			//rrp2.print( debug(), radio() );
-			//debug().debug("test enter5");
-			//rrp2.get_event_notifier_callback()( 104, 204, 254, NULL );
-			//debug().debug("test exit5");
+			reliable_radio().enable();
+			//reliable_radio().register_callback( event_notifier_delegate_t::template from_method<self_t, &self_t::null_callback > ( this ) );
+			reliable_radio().template register_callback<self_t, &self_t::null_callback>( this );
 
+
+			block_data_t bufff[Radio::MAX_MESSAGE_LENGTH];
+			Message message_inner;
+			message_inner.set_msg_id( NeighborDiscovery::NB_MESSAGE );
+			message_inner.set_payload( position.set_buffer_from( bufff ), position.get_buffer_size() );
+
+			ReliableRadioMessage reliable_radio_message;
+			reliable_radio_message.set_message_id( 4321 );
+			reliable_radio_message.set_payload( message_inner.buffer(), message_inner.buffer_size() );
+			block_data_t buff[Radio::MAX_MESSAGE_LENGTH];
+
+			Message message;
+			message.set_msg_id( ReliableRadio::RR_MESSAGE );
+			message.set_payload( reliable_radio_message.serialize( buff ), reliable_radio_message.serial_size() );
 			ExData ex;
-			//rrp2.get_event_notifier_callback()( 122, 222, NULL, ex );
-			//rrp2.print( debug(), radio() );
-			reliable_radio_->set_status(ReliableRadio::ACTIVE_STATUS);
-			debug().debug( "0: RR init\n");
-			debug().debug( "1: res = %d", reliable_radio_->register_protocol( rrp3 ) );
-			debug().debug( "1: after register rrp3\n");
-			debug().debug( "2: res = %d", reliable_radio_->register_protocol( rrp3 ) );
-			debug().debug( "2: after register rrp3 equal\n");
-			rrp3.set_protocol_id( 101 );
-			debug().debug( "3: res = %d", reliable_radio_->register_protocol( rrp3 ) );
-			debug().debug( "3: after register rrp3 with new id\n");
-			rrp4.set_protocol_id( 104 );
-			debug().debug( "4: res = %d", reliable_radio_->register_protocol( rrp4 ) );
-			debug().debug( "4: after register rrp4 with new id\n");
-			rrp5.set_protocol_id( 105 );
-			debug().debug( "5: res = %d", reliable_radio_->register_protocol( rrp5 ) );
-			debug().debug( "5: after register rrp5 with new id\n");
-			reliable_radio_->enable();
 
-			//rrp2.print( debug(), radio() );
-
+			debug().debug(" message b4:  %d - %d", message.msg_id(), message.payload_size() );
+			reliable_radio().receive( 0x1111, message.get_buffer_size(), message.get_buffer(), ex );
 //#ifdef NB_DEBUG_STATS
 //			timer().template set_timer<self_t, &self_t::nb_metrics_daemon> ( NB_STATS_DURATION, this, 0 );
 //#endif
@@ -300,10 +226,10 @@ namespace wiselib
 			power.set_dB( get_transmission_power_dB() );
 			radio().set_channel( get_channel() );
 			radio().set_power( power );
-			radio().send( _dest, message.buffer_size(), (uint8_t*) &message );
+			radio().send( _dest, message.get_buffer_size(), (uint8_t*) &message );
 #ifdef NB_DEBUG_STATS
 			messages_send = messages_send + 1;
-			bytes_send = bytes_send + message.buffer_size() + sizeof( size_t ) + sizeof( node_id_t );
+			bytes_send = bytes_send + message.get_buffer_size() + sizeof( size_t ) + sizeof( node_id_t );
 			avg_bytes_size_send = bytes_send / messages_send;
 			square_stdv_bytes_size_send = ( bytes_send - avg_bytes_size_send ) * ( bytes_send - avg_bytes_size_send ) + square_stdv_bytes_size_send;
 #endif
