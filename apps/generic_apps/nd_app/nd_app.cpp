@@ -24,7 +24,7 @@ typedef Os::Clock Clock;
 typedef Os::Debug Debug;
 typedef Os::Timer Timer;
 typedef Os::Rand Rand;
-typedef wiselib::Position2DType<Os, Radio, uint8, Debug> Position;
+typedef wiselib::Position2DType<Os, Radio, uint8_t, Debug> Position;
 #ifdef NB_RELIABLE_RADIO_SUPPORT
 	typedef wiselib::ReliableRadio_Type<Os, Radio, Clock, Timer, Rand, Debug> ReliableRadio;
 	typedef wiselib::NeighborDiscovery_Type<Os, Radio, ReliableRadio, Clock, Timer, Rand, Debug> NeighborDiscovery;

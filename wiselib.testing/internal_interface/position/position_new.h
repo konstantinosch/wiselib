@@ -47,7 +47,7 @@ namespace wiselib
 		{
 			*this = _p;
 		}
-		inline block_data_t* set_buffer_from( block_data_t* buff, size_t offset = 0 )
+		inline block_data_t* serialize( block_data_t* buff, size_t offset = 0 )
 		{
 			size_t X_POS = 0;
 			size_t Y_POS = X_POS + sizeof( CoordinatesNumber );
@@ -57,7 +57,7 @@ namespace wiselib
 			write<Os, block_data_t, CoordinatesNumber>( buff + Z_POS + offset, z );
 			return buff;
 		}
-		inline void get_from_buffer( block_data_t* buff, size_t offset = 0 )
+		inline void de_serialize( block_data_t* buff, size_t offset = 0 )
 		{
 			size_t X_POS = 0;
 			size_t Y_POS = X_POS + sizeof( CoordinatesNumber );
@@ -66,7 +66,7 @@ namespace wiselib
 			y = read<Os, block_data_t, CoordinatesNumber>( buff + Y_POS + offset );
 			z = read<Os, block_data_t, CoordinatesNumber>( buff + Z_POS + offset );
 		}
-		inline size_t get_buffer_size()
+		inline size_t serial_size()
 		{
 			size_t X_POS = 0;
 			size_t Y_POS = X_POS + sizeof( CoordinatesNumber );
@@ -117,9 +117,9 @@ namespace wiselib
 			const register CoordinatesNumber inc_z = z - _p.z;
 			return inc_x*inc_x + inc_y*inc_y + inc_z*inc_z;
 		}
-		inline void print( Debug& debug )
+		inline void print( Debug& debug, Radio& radio )
 		{
-			debug.debug("Position (size %i) : ( %f, %f, %f )", get_buffer_size(), x, y, z);
+			debug.debug("Position (size %i) : ( %d, %d, %d )", serial_size(), x, y, z);
 		}
 	private:
 		CoordinatesNumber x, y, z;
@@ -153,7 +153,7 @@ namespace wiselib
 		{
 			*this = _p;
 		}
-		inline block_data_t* set_buffer_from( block_data_t* buff, size_t offset = 0 )
+		inline block_data_t* serialize( block_data_t* buff, size_t offset = 0 )
 		{
 			uint8_t X_POS = 0;
 			uint8_t Y_POS = X_POS + sizeof( CoordinatesNumber );
@@ -161,14 +161,14 @@ namespace wiselib
 			write<Os, block_data_t, CoordinatesNumber>( buff + Y_POS + offset, y );
 			return buff;
 		}
-		inline void get_from_buffer( block_data_t* buff, size_t offset = 0 )
+		inline void de_serialize( block_data_t* buff, size_t offset = 0 )
 		{
 			uint8_t X_POS = 0;
 			uint8_t Y_POS = X_POS + sizeof( CoordinatesNumber );
 			x = read<Os, block_data_t, CoordinatesNumber>( buff + X_POS + offset );
 			y = read<Os, block_data_t, CoordinatesNumber>( buff + Y_POS + offset );
 		}
-		inline size_t get_buffer_size()
+		inline size_t serial_size()
 		{
 			uint8_t X_POS = 0;
 			uint8_t Y_POS = X_POS + sizeof( CoordinatesNumber );
@@ -214,9 +214,9 @@ namespace wiselib
 			const register CoordinatesNumber inc_y = y - _p.y;
 			return inc_x*inc_x + inc_y*inc_y;
 		}
-		inline void print( Debug& debug )
+		inline void print( Debug& debug, Radio& radio )
 		{
-			debug.debug("Position (size %i) : ( %f, %f )\n", get_buffer_size(), x, y );
+			debug.debug("Position (size %i) : ( %d, %d )\n", serial_size(), x, y );
 		}
 	private:
 		CoordinatesNumber x, y;

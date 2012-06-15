@@ -22,74 +22,101 @@
 namespace wiselib
 {
 	template<	typename OsModel_P,
-				typename Radio_P>
+				typename Radio_P,
+				typename Debug_P>
 	class Message_Type
 	{
 	public:
 		typedef OsModel_P OsModel;
 		typedef Radio_P Radio;
+		typedef Debug_P Debug;
 		typedef typename Radio::block_data_t block_data_t;
 		typedef typename Radio::size_t size_t;
 		typedef typename Radio::message_id_t message_id_t;
 		// --------------------------------------------------------------------
 		inline Message_Type()
 		{
-			set_msg_id( 0 );
-			size_t len = 0;
-			write<OsModel, block_data_t, size_t>(buffer + PAYLOAD_POS, len);;
+			set_message_id( 0 );
+			set_payload( 0, buffer );
 		}
 		// --------------------------------------------------------------------
-		inline message_id_t msg_id()
+		inline message_id_t get_message_id()
 		{
-			return read<OsModel, block_data_t, message_id_t>( buffer );
+			size_t MESSAGE_ID_POS = 0;
+			return read<OsModel, block_data_t, message_id_t>( buffer + MESSAGE_ID_POS );
 		};
 		// --------------------------------------------------------------------
-		inline void set_msg_id( message_id_t id )
+		inline void set_message_id( message_id_t _id )
 		{
-			write<OsModel, block_data_t, message_id_t>( buffer, id );
+			size_t MESSAGE_ID_POS = 0;
+			write<OsModel, block_data_t, message_id_t>( buffer + MESSAGE_ID_POS, _id );
 		}
 		// --------------------------------------------------------------------
-		inline size_t payload_size()
+		inline size_t get_payload_size()
 		{
-			return read<OsModel, block_data_t, size_t>(buffer + PAYLOAD_POS);
+			size_t MESSAGE_ID_POS = 0;
+			size_t PAYLOAD_SIZE_POS = MESSAGE_ID_POS + sizeof( message_id_t );
+			return read<OsModel, block_data_t, size_t>(buffer + PAYLOAD_SIZE_POS);
 		}
 		// --------------------------------------------------------------------
-		inline block_data_t* payload()
+		inline block_data_t* get_payload()
 		{
-			return buffer + PAYLOAD_POS + sizeof(size_t);
+			size_t MESSAGE_ID_POS = 0;
+			size_t PAYLOAD_SIZE_POS = MESSAGE_ID_POS + sizeof( message_id_t );
+			size_t PAYLOAD_POS = PAYLOAD_SIZE_POS + sizeof( size_t );
+			return buffer + PAYLOAD_POS;
 		}
 		// --------------------------------------------------------------------
 		inline void set_payload( size_t len, block_data_t *buf )
 		{
-			if ( len > Radio::MAX_MESSAGE_LENGTH )
-			{
-				len = Radio::MAX_MESSAGE_LENGTH;
-			}
-			write<OsModel, block_data_t, size_t>(buffer + PAYLOAD_POS, len);
-			memcpy( buffer + PAYLOAD_POS + sizeof(size_t), buf, len);
+			size_t MESSAGE_ID_POS = 0;
+			size_t PAYLOAD_SIZE_POS = MESSAGE_ID_POS + sizeof( message_id_t );
+			size_t PAYLOAD_POS = PAYLOAD_SIZE_POS + sizeof( size_t );
+			write<OsModel, block_data_t, size_t>(buffer + PAYLOAD_SIZE_POS, len);
+			memcpy( buffer + PAYLOAD_POS, buf, len);
 		}
 		// --------------------------------------------------------------------
-		inline size_t get_buffer_size()
+		inline size_t serial_size()
 		{
-			return PAYLOAD_POS + sizeof(size_t) + payload_size();
+			size_t MESSAGE_ID_POS = 0;
+			size_t PAYLOAD_SIZE_POS = MESSAGE_ID_POS + sizeof( message_id_t );
+			size_t PAYLOAD_POS = PAYLOAD_SIZE_POS + sizeof( size_t );
+			return PAYLOAD_POS + get_payload_size();
 		}
 		// --------------------------------------------------------------------
-		inline block_data_t* get_buffer()
+		inline block_data_t* serialize( block_data_t* _buff = NULL )
 		{
+			_buff = buffer;
 			return buffer;
+		}
+		// --------------------------------------------------------------------
+		inline void de_serialize( block_data_t* _buff = NULL )
+		{
+			_buff = buffer;
 		}
 		// --------------------------------------------------------------------
 		Message_Type& operator=( const Message_Type& _msg )
 		{
-			size_t len = _msg.get_buffer_size();
+			size_t len = _msg.serial_size();
 			memcpy( buffer, _msg.buffer, len );
 			return *this;
 		}
-	private:
-		enum data_positions
+		// --------------------------------------------------------------------
+		inline void print( Debug& debug, Radio& radio )
 		{
-			PAYLOAD_POS = sizeof(message_id_t)
-		};
+			debug.debug( "-------------------------------------------------------\n");
+			debug.debug( "Message (serial_size: %i) :\n", serial_size() );
+			debug.debug( "message_id : %d\n", get_message_id() );
+			debug.debug( "payload_size: %d\n", get_payload_size() );
+			debug.debug( "serial_size: %d\n", serial_size() );
+			debug.debug( "payload:\n");
+			for (size_t i = 0; i < get_payload_size(); i++ )
+			{
+				debug.debug( "%d", get_payload()[i] );
+			}
+			debug.debug( "-------------------------------------------------------\n");
+		}
+	private:
 		block_data_t buffer[Radio::MAX_MESSAGE_LENGTH];
 	};
 }

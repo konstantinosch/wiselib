@@ -49,7 +49,7 @@ namespace wiselib
 #else
 		typedef NeighborDiscovery_Type	<Os, Radio,	Clock, Timer, Rand, Debug> self_t;
 #endif
-		typedef Message_Type<Os, Radio> Message;
+		typedef Message_Type<Os, Radio, Debug> Message;
 		typedef Neighbor_Type<Os, Radio, Clock, Timer, Debug> Neighbor;
 #ifdef NB_COORD_SUPPORT
 		typedef typename Neighbor::Position Position;
@@ -96,35 +96,28 @@ namespace wiselib
 		// --------------------------------------------------------------------
 		void null_callback( node_id_t null_node_id, size_t null_len, uint8_t* null_data, ExData const& null_metrics )
 		{
-			debug().debug("%x, %d", null_node_id, null_len );
+			debug().debug("--------------------------------------------------------------------\n");
+			debug().debug("null callback:");
+			Message* msg = (Message*) null_data;
+			Position p;
+			p.de_serialize( msg->get_payload() );
+			msg->print( debug(), radio() );
+			p.print( debug(), radio() );
+			debug().debug("--------------------------------------------------------------------\n");
 		}
 		// --------------------------------------------------------------------
 		// --------------------------------------------------------------------
 		void enable()
 		{
-
 			reliable_radio().enable();
-			//reliable_radio().register_callback( event_notifier_delegate_t::template from_method<self_t, &self_t::null_callback > ( this ) );
 			reliable_radio().template register_callback<self_t, &self_t::null_callback>( this );
-
-
 			block_data_t bufff[Radio::MAX_MESSAGE_LENGTH];
 			Message message_inner;
-			message_inner.set_msg_id( NeighborDiscovery::NB_MESSAGE );
-			message_inner.set_payload( position.set_buffer_from( bufff ), position.get_buffer_size() );
+			message_inner.set_message_id( NeighborDiscovery_Type::NB_MESSAGE );
+			message_inner.set_payload( position.serial_size(), position.serialize( bufff ) );
+			message_inner.print( debug(), radio() );
+			reliable_radio().send( 0x1111, message_inner.serial_size(), message_inner.serialize() );
 
-			ReliableRadioMessage reliable_radio_message;
-			reliable_radio_message.set_message_id( 4321 );
-			reliable_radio_message.set_payload( message_inner.buffer(), message_inner.buffer_size() );
-			block_data_t buff[Radio::MAX_MESSAGE_LENGTH];
-
-			Message message;
-			message.set_msg_id( ReliableRadio::RR_MESSAGE );
-			message.set_payload( reliable_radio_message.serialize( buff ), reliable_radio_message.serial_size() );
-			ExData ex;
-
-			debug().debug(" message b4:  %d - %d", message.msg_id(), message.payload_size() );
-			reliable_radio().receive( 0x1111, message.get_buffer_size(), message.get_buffer(), ex );
 //#ifdef NB_DEBUG_STATS
 //			timer().template set_timer<self_t, &self_t::nb_metrics_daemon> ( NB_STATS_DURATION, this, 0 );
 //#endif
@@ -136,7 +129,7 @@ namespace wiselib
 //			neighbors.push_back( n );
 //#ifdef NB_COORD_SUPPORT
 //			block_data_t buff[100];
-//			ProtocolPayload pp( NB_PROTOCOL_ID, position.get_buffer_size(), position.set_buffer_from( buff ) );
+//			ProtocolPayload pp( NB_PROTOCOL_ID, position.serial_size(), position.serialize( buff ) );
 //#else
 //			ProtocolPayload pp;
 //			pp.set_protocol_id( NB_PROTOCOL_ID );
@@ -207,7 +200,7 @@ namespace wiselib
 					if ( i->get_id() == _node_id )
 					{
 						Position p;
-						p.get_from_buffer( _data );
+						p.de_serialize( _data );
 						i->set_position( p );
 						return;
 					}
@@ -220,16 +213,16 @@ namespace wiselib
 		void send( node_id_t _dest, size_t _len, block_data_t* _data, message_id_t _msg_id )
 		{
 			Message message;
-			message.set_msg_id( _msg_id );
+			message.set_message_id( _msg_id );
 			message.set_payload( _len, _data );
 			TxPower power;
 			power.set_dB( get_transmission_power_dB() );
 			radio().set_channel( get_channel() );
 			radio().set_power( power );
-			radio().send( _dest, message.get_buffer_size(), (uint8_t*) &message );
+			radio().send( _dest, message.serial_size(), message.serialize() );
 #ifdef NB_DEBUG_STATS
 			messages_send = messages_send + 1;
-			bytes_send = bytes_send + message.get_buffer_size() + sizeof( size_t ) + sizeof( node_id_t );
+			bytes_send = bytes_send + message.serial_size() + sizeof( size_t ) + sizeof( node_id_t );
 			avg_bytes_size_send = bytes_send / messages_send;
 			square_stdv_bytes_size_send = ( bytes_send - avg_bytes_size_send ) * ( bytes_send - avg_bytes_size_send ) + square_stdv_bytes_size_send;
 #endif
@@ -295,7 +288,6 @@ namespace wiselib
 		// --------------------------------------------------------------------
 		void receive( node_id_t _from, size_t _len, block_data_t * _msg, ExData const &_ex )
 		{
-			debug().debug("ha! %d, %d", _from, _len );
 			if ( _from != radio().id() )
 			{
 #ifdef NB_DEBUG_RECEIVE
@@ -306,7 +298,7 @@ namespace wiselib
 				{
 					Message *message = (Message*) _msg;
 					Beacon beacon;
-					beacon.de_serialize( message->payload() );
+					beacon.de_serialize( message->get_payload() );
 #ifdef NB_DEBUG_RECEIVE
 					debug().debug( "NeighborDiscovery-receive %x - Received beacon message.\n", radio().id() );
 #endif
