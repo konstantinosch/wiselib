@@ -16,9 +16,6 @@ namespace wiselib
 {
 	template<	typename Os_P,
 				typename Radio_P,
-#ifdef NB_RELIABLE_RADIO_SUPPORT
-				typename ReliableRadio_P,
-#endif
 				typename Clock_P,
 				typename Timer_P,
 				typename Rand_P,
@@ -28,10 +25,6 @@ namespace wiselib
 	public:
 		typedef Os_P Os;
 		typedef Radio_P Radio;
-#ifdef NB_RELIABLE_RADIO_SUPPORT
-		typedef ReliableRadio_P ReliableRadio;
-		typedef typename ReliableRadio::ReliableRadioMessage ReliableRadioMessage;
-#endif
 		typedef Timer_P Timer;
 		typedef Debug_P Debug;
 		typedef Clock_P Clock;
@@ -44,11 +37,7 @@ namespace wiselib
 		typedef typename Radio::ExtendedData ExData;
 		typedef typename Radio::TxPower TxPower;
 		typedef typename Timer::millis_t millis_t;
-#ifdef NB_RELIABLE_RADIO_SUPPORT
-		typedef NeighborDiscovery_Type	<Os, Radio,	ReliableRadio, Clock, Timer, Rand, Debug> self_t;
-#else
 		typedef NeighborDiscovery_Type	<Os, Radio,	Clock, Timer, Rand, Debug> self_t;
-#endif
 		typedef Message_Type<Os, Radio, Debug> Message;
 		typedef Neighbor_Type<Os, Radio, Clock, Timer, Debug> Neighbor;
 #ifdef NB_COORD_SUPPORT
@@ -85,101 +74,77 @@ namespace wiselib
 			messages_send						( 0 ),
 			bytes_send							( 0 ),
 			avg_bytes_size_send					( 0 ),
-			square_stdv_bytes_size_send			( 0 )
+			square_stdv_bytes_size_send			( 0 ),
+			counter								( 0 )
 #endif
 		{};
 		// --------------------------------------------------------------------
 		~NeighborDiscovery_Type()
 		{};
-
-		// --------------------------------------------------------------------
-		// --------------------------------------------------------------------
-		void null_callback( node_id_t null_node_id, size_t null_len, uint8_t* null_data, ExData const& null_metrics )
-		{
-			debug().debug("--------------------------------------------------------------------\n");
-			debug().debug("null callback:");
-			Message* msg = (Message*) null_data;
-			Position p;
-			p.de_serialize( msg->get_payload() );
-			msg->print( debug(), radio() );
-			p.print( debug(), radio() );
-			debug().debug("--------------------------------------------------------------------\n");
-		}
-		// --------------------------------------------------------------------
-		// --------------------------------------------------------------------
 		void enable()
 		{
-			reliable_radio().enable();
-			reliable_radio().template register_callback<self_t, &self_t::null_callback>( this );
-			block_data_t bufff[Radio::MAX_MESSAGE_LENGTH];
-			Message message_inner;
-			message_inner.set_message_id( NeighborDiscovery_Type::NB_MESSAGE );
-			message_inner.set_payload( position.serial_size(), position.serialize( bufff ) );
-			message_inner.print( debug(), radio() );
-			reliable_radio().send( 0x1111, message_inner.serial_size(), message_inner.serialize() );
-
-//#ifdef NB_DEBUG_STATS
-//			timer().template set_timer<self_t, &self_t::nb_metrics_daemon> ( NB_STATS_DURATION, this, 0 );
-//#endif
-//			Protocol p;
-//			Neighbor n;
-//			n.set_id( radio().id() );
-//			n.set_active();
-//			Neighbor_vector neighbors;
-//			neighbors.push_back( n );
-//#ifdef NB_COORD_SUPPORT
-//			block_data_t buff[100];
-//			ProtocolPayload pp( NB_PROTOCOL_ID, position.serial_size(), position.serialize( buff ) );
-//#else
-//			ProtocolPayload pp;
-//			pp.set_protocol_id( NB_PROTOCOL_ID );
-//			pp.set_payload_size( 0 );
-//#endif
-//			uint8_t events_flag = 	ProtocolSettings::NEW_NB|
-//									ProtocolSettings::UPDATE_NB|
-//									ProtocolSettings::NEW_PAYLOAD|
-//									ProtocolSettings::LOST_NB|
-//									ProtocolSettings::TRANS_DB_UPDATE|
-//									ProtocolSettings::BEACON_PERIOD_UPDATE|
-//									ProtocolSettings::NEIGHBOR_REMOVED;
-//			ProtocolSettings ps(
-//									NB_MAX_AVG_LQI_THRESHOLD,
-//									NB_MIN_AVG_LQI_THRESHOLD,
-//									NB_MAX_AVG_LQI_INVERSE_THRESHOLD,
-//									NB_MIN_AVG_LQI_INVERSE_THRESHOLD,
-//									NB_MAX_LINK_STAB_RATIO_THRESHOLD,
-//									NB_MIN_LINK_STABILITY_RATIO_THRESHOLD,
-//									NB_MAX_LINK_STAB_RATIO_INVERSE_THRESHOLD,
-//									NB_MIN_LINK_STAB_RATIO_INVERSE_THRESHOLD,
-//									events_flag,
-//									get_transmission_power_dB(),
-//									NB_PROPOSED_TRANSMISSION_POWER_DB_WEIGHT,
-//									get_beacon_period(),
-//									NB_PROPOSED_BEACON_PERIOD_WEIGHT,
-//									ProtocolSettings::RATIO_DIVIDER,
-//									NB_RATIO_DIVIDER,
-//									ProtocolSettings::MEAN_DEAD_TIME_PERIOD,
-//									NB_OLD_DEAD_TIME_PERIOD_WEIGHT,
-//									NB_NEW_DEAD_TIME_PERIOD_WEIGHT,
-//									ProtocolSettings::R_NR_NORMAL,
-//									NB_BEACON_WEIGHT,
-//									NB_LOST_BEACON_WEIGHT,
-//									pp
-//								);
-//			p.set_protocol_id( NB_PROTOCOL_ID );
-//			p.set_neighborhood( neighbors );
-//			p.set_protocol_settings( ps );
-//			p.set_event_notifier_callback( event_notifier_delegate_t::template from_method<NeighborDiscovery_Type, &NeighborDiscovery_Type::events_callback > ( this ) );
-//			protocols.push_back( p );
-//			set_status( ACTIVE_STATUS );
-//			radio().enable_radio();
-//			recv_callback_id_ = radio().template reg_recv_callback<self_t, &self_t::receive>( this );
-//#ifdef NB_RAND_STARTUP
-//			timer().template set_timer<self_t, &self_t::beacons> ( rand()() % get_beacon_period(), this, 0 );
-//#else
-//			beacons();
-//#endif
-//			nb_daemon();
+#ifdef NB_DEBUG_STATS
+			timer().template set_timer<self_t, &self_t::nb_metrics_daemon> ( NB_STATS_DURATION, this, 0 );
+#endif
+			Protocol p;
+			Neighbor n;
+			n.set_id( radio().id() );
+			n.set_active();
+			Neighbor_vector neighbors;
+			neighbors.push_back( n );
+#ifdef NB_COORD_SUPPORT
+			block_data_t buff[100];
+			ProtocolPayload pp( NB_PROTOCOL_ID, position.serial_size(), position.serialize( buff ) );
+#else
+			ProtocolPayload pp;
+			pp.set_protocol_id( NB_PROTOCOL_ID );
+			pp.set_payload_size( 0 );
+#endif
+			uint8_t events_flag = 	ProtocolSettings::NEW_NB|
+									ProtocolSettings::UPDATE_NB|
+									ProtocolSettings::NEW_PAYLOAD|
+									ProtocolSettings::LOST_NB|
+									ProtocolSettings::TRANS_DB_UPDATE|
+									ProtocolSettings::BEACON_PERIOD_UPDATE|
+									ProtocolSettings::NEIGHBOR_REMOVED;
+			ProtocolSettings ps(
+									NB_MAX_AVG_LQI_THRESHOLD,
+									NB_MIN_AVG_LQI_THRESHOLD,
+									NB_MAX_AVG_LQI_INVERSE_THRESHOLD,
+									NB_MIN_AVG_LQI_INVERSE_THRESHOLD,
+									NB_MAX_LINK_STAB_RATIO_THRESHOLD,
+									NB_MIN_LINK_STABILITY_RATIO_THRESHOLD,
+									NB_MAX_LINK_STAB_RATIO_INVERSE_THRESHOLD,
+									NB_MIN_LINK_STAB_RATIO_INVERSE_THRESHOLD,
+									events_flag,
+									get_transmission_power_dB(),
+									NB_PROPOSED_TRANSMISSION_POWER_DB_WEIGHT,
+									get_beacon_period(),
+									NB_PROPOSED_BEACON_PERIOD_WEIGHT,
+									ProtocolSettings::RATIO_DIVIDER,
+									NB_RATIO_DIVIDER,
+									ProtocolSettings::MEAN_DEAD_TIME_PERIOD,
+									NB_OLD_DEAD_TIME_PERIOD_WEIGHT,
+									NB_NEW_DEAD_TIME_PERIOD_WEIGHT,
+									ProtocolSettings::R_NR_NORMAL,
+									NB_BEACON_WEIGHT,
+									NB_LOST_BEACON_WEIGHT,
+									pp
+								);
+			p.set_protocol_id( NB_PROTOCOL_ID );
+			p.set_neighborhood( neighbors );
+			p.set_protocol_settings( ps );
+			p.set_event_notifier_callback( event_notifier_delegate_t::template from_method<NeighborDiscovery_Type, &NeighborDiscovery_Type::events_callback > ( this ) );
+			protocols.push_back( p );
+			set_status( ACTIVE_STATUS );
+			radio().enable_radio();
+			recv_callback_id_ = radio().template reg_recv_callback<self_t, &self_t::receive>( this );
+#ifdef NB_RAND_STARTUP
+			timer().template set_timer<self_t, &self_t::beacons> ( rand()() % get_beacon_period(), this, 0 );
+#else
+			beacons();
+#endif
+			nb_daemon();
 		};
 		// --------------------------------------------------------------------
 		void disable()
@@ -1073,20 +1038,13 @@ namespace wiselib
 		}
 #endif
 		// --------------------------------------------------------------------
-		void init( Radio& _radio, Timer& _timer, Debug& _debug, Clock& _clock, Rand& _rand
-#ifdef NB_RELIABLE_RADIO_SUPPORT
-			,ReliableRadio& _reliable_radio
-#endif
-				)
+		void init( Radio& _radio, Timer& _timer, Debug& _debug, Clock& _clock, Rand& _rand )
 		{
 			radio_ = &_radio;
 			timer_ = &_timer;
 			debug_ = &_debug;
 			clock_ = &_clock;
 			rand_ = &_rand;
-#ifdef NB_RELIABLE_RADIO_SUPPORT
-			reliable_radio_ = &_reliable_radio;
-#endif
 		}
 		// --------------------------------------------------------------------
 		Radio& radio()
@@ -1113,13 +1071,6 @@ namespace wiselib
 		{
 			return *rand_;
 		}
-		// --------------------------------------------------------------------
-#ifdef NB_RELIABLE_RADIO_SUPPORT
-		ReliableRadio& reliable_radio()
-		{
-			return *reliable_radio_;
-		}
-#endif
 		// --------------------------------------------------------------------
 		enum error_codes
 		{
@@ -1199,9 +1150,7 @@ namespace wiselib
         Timer * timer_;
         Debug * debug_;
         Rand * rand_;
-#ifdef NB_RELIABLE_RADIO_SUPPORT
-        ReliableRadio *reliable_radio_;
-#endif
+        uint32_t counter;
     };
 }
 

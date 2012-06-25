@@ -1,4 +1,4 @@
-/***************************************************************************
+/**************************************************************************
 ** This file is part of the generic algorithm library Wiselib.           **
 ** Copyright (C) 2008,2009 by the Wisebed (www.wisebed.eu) project.      **
 **                                                                       **
@@ -16,8 +16,12 @@
 ** License along with the Wiselib.                                       **
 ** If not, see <http://www.gnu.org/licenses/>.                           **
 ***************************************************************************/
+
 #ifndef __PLTT_NODE_H__
 #define __PLTT_NODE_H__
+
+#include "PLTT_source_config.h"
+
 namespace wiselib
 {
 	template<	typename Os_P,
@@ -48,48 +52,48 @@ namespace wiselib
 		{}
 		inline PLTT_NodeType( block_data_t* buff, size_t offset = 0 )
 		{
-			get_from_buffer( buff, offset );
+			de_serialize( buff, offset );
 		}
 		inline PLTT_NodeType( Node _n )
 		{
 			node = _n;
 		}
-		inline block_data_t* set_buffer_from( block_data_t* buff, size_t offset = 0 )
+		inline block_data_t* serialize( block_data_t* buff, size_t offset = 0 )
 		{
 			size_t PLTT_NODE_SIZE_POS = 0;
 			size_t  NODE_POS = PLTT_NODE_SIZE_POS + sizeof( size_t );
-			size_t TARGET_LIST_POS = NODE_POS + node.get_buffer_size();
-			size_t len = get_buffer_size();
+			size_t TARGET_LIST_POS = NODE_POS + node.serial_size();
+			size_t len = serial_size();
 			write<Os, block_data_t, size_t>( buff + PLTT_NODE_SIZE_POS + offset, len );
-			node.set_buffer_from( buff, NODE_POS + offset );
+			node.serialize( buff, NODE_POS + offset );
 			for ( size_t i = 0; i < target_list.size(); i++ )
 			{
-				target_list.at( i ).set_buffer_from( buff, TARGET_LIST_POS + i * target_list.at( i ).get_buffer_size() + offset );
+				target_list.at( i ).serialize( buff, TARGET_LIST_POS + i * target_list.at( i ).serial_size() + offset );
 			}
 			return buff;
 		}
-		inline void get_from_buffer( block_data_t* buff, size_t offset = 0 )
+		inline void de_serialize( block_data_t* buff, size_t offset = 0 )
 		{
 			size_t PLTT_NODE_SIZE_POS = 0;
 			size_t NODE_POS = PLTT_NODE_SIZE_POS + sizeof( size_t );
-			size_t TARGET_LIST_POS = NODE_POS + node.get_buffer_size();
+			size_t TARGET_LIST_POS = NODE_POS + node.serial_size();
 			size_t len = read<Os, block_data_t, size_t>( buff + PLTT_NODE_SIZE_POS + offset );
-			node.get_from_buffer( buff, NODE_POS + offset );
+			node.de_serialize( buff, NODE_POS + offset );
 			PLTT_NodeTarget nt;
 			target_list.clear();
-			for ( size_t i = 0; i < ( ( len - node.get_buffer_size() - 1 ) / nt.get_buffer_size() ); i++ )
+			for ( size_t i = 0; i < ( ( len - node.serial_size() - 1 ) / nt.serial_size() ); i++ )
 			{
-				nt.get_from_buffer( buff, TARGET_LIST_POS + nt.get_buffer_size() * i + offset );
+				nt.de_serialize( buff, TARGET_LIST_POS + nt.serial_size() * i + offset );
 				target_list.push_back( nt );
 			}
 		}
-		inline size_t get_buffer_size()
+		inline size_t serial_size()
 		{
 			size_t PLTT_NODE_SIZE_POS = 0;
 			size_t NODE_POS = PLTT_NODE_SIZE_POS + sizeof( size_t );
-			size_t TARGET_LIST_POS = NODE_POS + node.get_buffer_size();
+			size_t TARGET_LIST_POS = NODE_POS + node.serial_size();
 			PLTT_NodeTarget nt;
-			return TARGET_LIST_POS + target_list.size() * nt.get_buffer_size();
+			return TARGET_LIST_POS + target_list.size() * nt.serial_size();
 		}
 		inline self_type& operator=( const self_type& _p )
 		{
@@ -146,14 +150,14 @@ namespace wiselib
 			set_node( _n );
 			set_node_target_list( _tl );
 		}
-		inline void print( Debug& debug )
+		inline void print( Debug& debug, Radio radio )
 		{
-			debug.debug( " PLTT_Node (size %i) :\n", get_buffer_size() );
-			node.print( debug );
+			debug.debug( " PLTT_Node (size %i) :\n", serial_size() );
+			node.print( debug, radio );
 			debug.debug( " PLTT_TargetList (size %i) :\n", target_list.size()*sizeof( PLTT_NodeTarget ) );
 			for ( PLTT_NodeTargetListIterator i = target_list.begin(); i != target_list.end(); ++i )
 			{
-				i->print( debug );
+				i->print( debug, radio );
 			}
 		}
 	private:

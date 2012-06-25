@@ -1,6 +1,6 @@
 //main app switches
 //#define PLTT_TRACKER
-#define PLTT_TARGET
+//#define PLTT_TARGET
 #define PLTT_SECURE
 #define UNIGE_TESTBED
 //#define CTI_TESTBED

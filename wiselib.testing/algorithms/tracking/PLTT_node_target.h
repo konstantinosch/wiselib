@@ -1,23 +1,27 @@
-/***************************************************************************
- ** This file is part of the generic algorithm library Wiselib.           **
- ** Copyright (C) 2008,2009 by the Wisebed (www.wisebed.eu) project.      **
- **                                                                       **
- ** The Wiselib is free software: you can redistribute it and/or modify   **
- ** it under the terms of the GNU Lesser General Public License as        **
- ** published by the Free Software Foundation, either version 3 of the    **
- ** License, or (at your option) any later version.                       **
- **                                                                       **
- ** The Wiselib is distributed in the hope that it will be useful,        **
- ** but WITHOUT ANY WARRANTY; without even the implied warranty of        **
- ** MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         **
- ** GNU Lesser General Public License for more details.                   **
- **                                                                       **
- ** You should have received a copy of the GNU Lesser General Public      **
- ** License along with the Wiselib.                                       **
- ** If not, see <http://www.gnu.org/licenses/>.                           **
- ***************************************************************************/
+/**************************************************************************
+** This file is part of the generic algorithm library Wiselib.           **
+** Copyright (C) 2008,2009 by the Wisebed (www.wisebed.eu) project.      **
+**                                                                       **
+** The Wiselib is free software: you can redistribute it and/or modify   **
+** it under the terms of the GNU Lesser General Public License as        **
+** published by the Free Software Foundation, either version 3 of the    **
+** License, or (at your option) any later version.                       **
+**                                                                       **
+** The Wiselib is distributed in the hope that it will be useful,        **
+** but WITHOUT ANY WARRANTY; without even the implied warranty of        **
+** MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         **
+** GNU Lesser General Public License for more details.                   **
+**                                                                       **
+** You should have received a copy of the GNU Lesser General Public      **
+** License along with the Wiselib.                                       **
+** If not, see <http://www.gnu.org/licenses/>.                           **
+***************************************************************************/
+
 #ifndef __PLTT_NODE_TARGET_H__
 #define __PLTT_NODE_TARGET_H__
+
+#include "PLTT_source_config.h"
+
 namespace wiselib
 {
 	template<	typename Os_P,
@@ -44,13 +48,13 @@ namespace wiselib
 		}
 		PLTT_NodeTargetType( block_data_t* buff, size_t offset = 0 )
 		{
-			get_from_buffer( buff, offset );
+			de_serialize( buff, offset );
 		}
 		PLTT_NodeTargetType( const NodeID& _id, const IntensityNumber& _in )
 		{
 			set_all( _id, _in );
 		}
-		inline block_data_t* set_buffer_from( block_data_t* buff, size_t offset = 0 )
+		inline block_data_t* serialize( block_data_t* buff, size_t offset = 0 )
 		{
 			uint8_t TARGET_ID_POS = 0;
 			uint8_t INTENSITY_POS = TARGET_ID_POS + sizeof(NodeID);
@@ -58,14 +62,14 @@ namespace wiselib
 			write<Os, block_data_t, IntensityNumber>( buff + INTENSITY_POS + offset, intensity );
 			return buff;
 		}
-		inline void get_from_buffer(block_data_t* buff, size_t offset = 0 )
+		inline void de_serialize(block_data_t* buff, size_t offset = 0 )
 		{
 			uint8_t TARGET_ID_POS = 0;
 			uint8_t INTENSITY_POS = TARGET_ID_POS + sizeof( NodeID );
 			target_id = read<Os, block_data_t, NodeID> ( buff + TARGET_ID_POS + offset );
 			intensity = read<Os, block_data_t, IntensityNumber>( buff + INTENSITY_POS + offset );
 		}
-		inline size_t get_buffer_size()
+		inline size_t serial_size()
 		{
 			uint8_t TARGET_ID_POS = 0;
 			uint8_t INTENSITY_POS = TARGET_ID_POS + sizeof( NodeID );
@@ -98,9 +102,9 @@ namespace wiselib
 		{
 			return intensity;
 		}
-		inline void print( Debug& debug )
+		inline void print( Debug& debug, Radio& radio )
 		{
-			debug.debug( "NodeTarget (size %i) :\n", get_buffer_size() );
+			debug.debug( "NodeTarget (size %i) :\n", serial_size() );
 			debug.debug( "target_id (size %i) : %x\n", sizeof( NodeID ), target_id );
 			debug.debug( "intensity (size %i) : %i\n", sizeof( IntensityNumber ), intensity );
 		}

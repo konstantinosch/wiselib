@@ -42,7 +42,7 @@ namespace wiselib
 		{}
 		NodeType( block_data_t* buff, size_t offset = 0 )
 		{
-			get_from_buffer(buff, offset);
+			de_serialize(buff, offset);
 		}
 		NodeType( const self_type& _n )
 		{
@@ -52,26 +52,26 @@ namespace wiselib
 		{
 			set_all( _id, _p );
 		}
-		inline block_data_t* set_buffer_from( block_data_t* buff, size_t offset = 0 )
+		inline block_data_t* serialize( block_data_t* buff, size_t offset = 0 )
 		{
 			size_t ID_POS = 0;
 			size_t POSITION_POS = ID_POS + sizeof( NodeID );
 			write<Os, block_data_t, NodeID>( buff + ID_POS + offset, id );
-			position.set_buffer_from( buff, POSITION_POS + offset );
+			position.serialize( buff, POSITION_POS + offset );
 			return buff;
 		}
-		inline void get_from_buffer(block_data_t* buff, size_t offset = 0)
+		inline void de_serialize(block_data_t* buff, size_t offset = 0)
 		{
 			size_t ID_POS = 0;
 			size_t POSITION_POS = ID_POS + sizeof( NodeID );
 			id = read<Os, block_data_t, NodeID>( buff + ID_POS + offset );
-			position.get_from_buffer( buff, POSITION_POS + offset );
+			position.de_serialize( buff, POSITION_POS + offset );
 		}
-		inline size_t get_buffer_size()
+		inline size_t serial_size()
 		{
 			size_t ID_POS = 0;
 			size_t POSITION_POS = ID_POS + sizeof( NodeID );
-			return POSITION_POS + position.get_buffer_size();
+			return POSITION_POS + position.serial_size();
 		}
 		inline self_type& operator=( const self_type& _n )
 		{
@@ -100,11 +100,11 @@ namespace wiselib
 			position = _p;
 			id = _id;
 		}
-		inline void print( Debug& debug )
+		inline void print( Debug& debug, Radio& radio )
 		{
-			debug.debug( "Node (size %i) :\n", get_buffer_size() );
+			debug.debug( "Node (size %i) :\n", serial_size() );
 			debug.debug( "id (size %i) : %x\n", sizeof( NodeID ), id );
-			position.print( debug );
+			position.print( debug, radio);
 		}
 	private:
 		NodeID id;
