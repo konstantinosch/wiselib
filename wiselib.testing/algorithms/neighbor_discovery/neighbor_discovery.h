@@ -70,11 +70,9 @@ namespace wiselib
 			,messages_received					( 0 ),
 			bytes_received						( 0 ),
 			avg_bytes_size_received				( 0 ),
-			square_stdv_bytes_size_received		( 0 ),
 			messages_send						( 0 ),
 			bytes_send							( 0 ),
 			avg_bytes_size_send					( 0 ),
-			square_stdv_bytes_size_send			( 0 ),
 			counter								( 0 )
 #endif
 		{};
@@ -189,7 +187,6 @@ namespace wiselib
 			messages_send = messages_send + 1;
 			bytes_send = bytes_send + message.serial_size() + sizeof( size_t ) + sizeof( node_id_t );
 			avg_bytes_size_send = bytes_send / messages_send;
-			square_stdv_bytes_size_send = ( bytes_send - avg_bytes_size_send ) * ( bytes_send - avg_bytes_size_send ) + square_stdv_bytes_size_send;
 #endif
 		}
 		// --------------------------------------------------------------------
@@ -534,7 +531,6 @@ namespace wiselib
 				messages_received = messages_received + 1;
 				bytes_received = bytes_received + _len;
 				avg_bytes_size_received = bytes_received / messages_received;
-				square_stdv_bytes_size_received = ( _len - avg_bytes_size_received ) * ( _len - avg_bytes_size_received ) + square_stdv_bytes_size_received;
 #endif
 			}
 		}
@@ -843,11 +839,13 @@ namespace wiselib
 		// --------------------------------------------------------------------
 		int8_t get_transmission_power_dB()
 		{
+#ifndef NB_LIGHTWEIGHT
 			int8_t old_transmission_power_dB = transmission_power_dB;
 			if ( transmission_power_dB_strategy == FIXED_TRANSM )
 			{
 				return transmission_power_dB;
 			}
+
 			else if ( transmission_power_dB_strategy == LEAST_TRANSM )
 			{
 				int8_t least = 128;
@@ -894,6 +892,7 @@ namespace wiselib
 					}
 				}
 			}
+#endif
 			return transmission_power_dB;
 		}
 		// --------------------------------------------------------------------
@@ -1005,26 +1004,22 @@ namespace wiselib
 				p->print( debug(), radio() );
 #endif
 			}
-			debug().debug( "AGGR:%x:%d:%d:%d:%d:%d:%d:%d:%d:%d:%d\n",
+			debug().debug( "AGGR:%x:%d:%d:%d:%d:%d:%d:%d:%d\n",
 										radio().id(),
 										p->get_neighborhood_ref()->size(),
 										p->get_neighborhood_active_size(),
 										messages_received,
 										bytes_received,
 										avg_bytes_size_received,
-										square_stdv_bytes_size_received / messages_received,
 										messages_send,
 										bytes_send,
-										avg_bytes_size_send,
-										square_stdv_bytes_size_send / messages_send );
+										avg_bytes_size_send );
 			messages_received = 0;
 			bytes_received = 0;
 			avg_bytes_size_received = 0;
-			square_stdv_bytes_size_received = 0;
 			messages_send = 0;
 			bytes_send = 0;
 			avg_bytes_size_send = 0;
-			square_stdv_bytes_size_send = 0;
 #ifdef NB_DEBUG_NB_METRICS_DAEMON
 			debug().debug("NeighborDiscovery-nb_metrics_daemon %x - Exiting.\n", radio().id() );
 #endif
@@ -1136,11 +1131,9 @@ namespace wiselib
 		uint32_t messages_received;
 		uint32_t bytes_received;
 		uint32_t avg_bytes_size_received;
-		uint32_t square_stdv_bytes_size_received;
 		uint32_t messages_send;
 		uint32_t bytes_send;
 		uint32_t avg_bytes_size_send;
-		uint32_t square_stdv_bytes_size_send;
 #endif
 #ifdef NB_COORD_SUPPORT
 		Position position;

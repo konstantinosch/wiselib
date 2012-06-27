@@ -1,12 +1,11 @@
 //default NB protocol settings
-#define NB_MAX_NEIGHBORS 24
+#define NB_MAX_NEIGHBORS 25
 #define NB_MAX_REGISTERED_PROTOCOLS 2
 #define NB_BEACON_PERIOD 5000
 #define NB_CHANNEL 0
-#define NB_TRANSMISSION_POWER_DB -12
+#define NB_TRANSMISSION_POWER_DB -30
 #define NB_RELAX_MILLIS 100 //great care with this one when tinkering with very minute period predictions/calculations. Could be set to a tiny analogous value of the period like 10%.
 #define NB_DAEMON_PERIOD 200
-
 
 //benchmark settings
 //#define NB_STATS_DURATION 1800000
