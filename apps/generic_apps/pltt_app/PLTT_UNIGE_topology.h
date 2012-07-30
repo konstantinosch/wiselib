@@ -4,20 +4,20 @@ Position get_node_info( Radio* radio )
 {
 	typedef typename Radio::TxPower TxPower;
 	TxPower power;
-	//base1
+	//basestation 01
 	if ( radio->id() == 0x9710 )
 	{
 		power.set_dB( DB );
 		radio->set_power( power );
 		return Position( 83, 31, 12 );
 	}
-	else if ( radio->id() == 0x1b7f )
+	else if ( radio->id() == 0x99ad )
 	{
 		power.set_dB( DB );
 		radio->set_power( power );
 		return Position( 119, 28, 12 );
 	}
-	else if ( radio->id() == 0x99ad )
+	else if ( radio->id() == 0x1b7f)
 	{
 		power.set_dB( DB );
 		radio->set_power( power );
@@ -36,7 +36,7 @@ Position get_node_info( Radio* radio )
 		return Position( 132, 60, 14 );
 	}
 	//basestation 02
-	else if ( radio->id() == 0x1b95 )
+	else if ( radio->id() == 0x9731)
 	{
 		power.set_dB( DB );
 		radio->set_power( power );
@@ -48,7 +48,7 @@ Position get_node_info( Radio* radio )
 		radio->set_power( power );
 		return Position( 54, 97, 12 );
 	}
-	else if ( radio->id() == 0x9731 )
+	else if ( radio->id() == 0x1b95 )
 	{
 		power.set_dB( DB );
 		radio->set_power( power );
@@ -110,12 +110,12 @@ Position get_node_info( Radio* radio )
 		return Position( 69, 63, 12 );
 	}
 	//basestation 04
-	else if ( radio->id() == 0x1b4c )
-	{
-		power.set_dB( DB );
-		radio->set_power( power );
-		return Position( 0, 0, 12 );
-	}
+//	else if ( radio->id() == 0x1b4c )
+//	{
+//		power.set_dB( DB );
+//		radio->set_power( power );
+//		return Position( 0, 0, 12 );
+//	}
 	else if ( radio->id() == 0x1b84 )
 	{
 		power.set_dB( DB );

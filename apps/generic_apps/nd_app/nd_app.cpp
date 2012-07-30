@@ -2,19 +2,13 @@
 #include "util/serialization/simple_types.h"
 #include "internal_interface/position/position_new.h"
 #include "algorithms/neighbor_discovery/neighbor_discovery.h"
+#include "nd_app_config.h"
 
-#define UNIGE_TESTBED
 #ifdef UNIGE_TESTBED
-#include "PLTT_UNIGE_topology.h"
+#include "../topologies/UNIGE_ISENSE_topology.h"
 #endif
 #ifdef CTI_TESTBED
-#include "PLTT_CTI_topology.h"
-#endif
-#ifdef UZL_TESTBED
-#include "PLTT_UZL_topology.h"
-#endif
-#ifdef PLTT_DEMO_topology
-#include "PLTT_DEMO_topology.h"
+#include "../topologies/CTI_ISENSE_topology.h"
 #endif
 
 typedef wiselib::OSMODEL Os;

@@ -138,8 +138,10 @@ namespace wiselib
 			radio().enable_radio();
 			recv_callback_id_ = radio().template reg_recv_callback<self_t, &self_t::receive>( this );
 #ifdef NB_RAND_STARTUP
+			debug().debug("%x:%i:%d:%d:R\n", radio().id(), transmission_power_dB, beacon_period, NB_STATS_DURATION );
 			timer().template set_timer<self_t, &self_t::beacons> ( rand()() % get_beacon_period(), this, 0 );
 #else
+			debug().debug("%x:%i:%d:%d:N\n", radio().id(), transmission_power_dB, beacon_period, NB_STATS_DURATION );
 			beacons();
 #endif
 			nb_daemon();
@@ -1006,8 +1008,8 @@ namespace wiselib
 			}
 			debug().debug( "AGGR:%x:%d:%d:%d:%d:%d:%d:%d:%d\n",
 										radio().id(),
-										p->get_neighborhood_ref()->size(),
-										p->get_neighborhood_active_size(),
+										p->get_neighborhood_ref()->size() - 1,
+										p->get_neighborhood_active_size() - 1,
 										messages_received,
 										bytes_received,
 										avg_bytes_size_received,
