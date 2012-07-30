@@ -23,7 +23,6 @@ namespace wiselib
 	template<	typename Os_P,
 				typename Radio_P,
 				typename AgentID_P,
-				typename Node_P,
 				typename IntensitiyNumber_P,
 				typename Debug_P>
 	class PLTT_AgentType
@@ -37,7 +36,7 @@ namespace wiselib
 		typedef typename Radio::block_data_t block_data_t;
 		typedef typename Radio::size_t size_t;
 		typedef typename Radio::node_id_t node_id_t;
-		typedef PLTT_AgentType<Os, Radio, AgentID, Node, IntensityNumber, Clock, Debug> self_type;
+		typedef PLTT_AgentType<Os, Radio, AgentID, IntensityNumber, Debug> self_type;
 		PLTT_AgentType()
 		{}
 		PLTT_AgentType( const AgentID& _aid, const node_id_t& _tid, const node_id_t& _trid, const IntensityNumber& _mi )
@@ -70,7 +69,7 @@ namespace wiselib
 			tracker_id = read<Os, block_data_t, node_id_t> (buff + TRACKER_ID_POS + offset );
 			max_intensity = read<Os, block_data_t, IntensityNumber> (buff + MAX_INTEN_POS + offset );
 		}
-		size_t get_buffer_size()
+		size_t serial_size()
 		{
 			size_t AGENT_ID_POS = 0;
 			size_t TARGET_ID_POS = AGENT_ID_POS + sizeof(AgentID);
@@ -118,10 +117,19 @@ namespace wiselib
 		{
 			return max_intensity;
 		}
-		void print( Debug& debug )
+		inline void switch_dest()
 		{
-			debug.debug( "agent_id (size %i), %x\n", sizeof( agent_id ), agent_id );
-			debug.debug( "max_intensity (size %i), %i\n", sizeof( max_intensity ), max_intensity );
+			node_id_t buff;
+			buff = target_id;
+			target_id = tracker_id;
+			tracker_id = buff;
+		}
+		void print( Debug& debug, Radio& radio )
+		{
+			debug.debug( "node %x, agent_id (size %i), %x\n", radio.id(), sizeof( agent_id ), agent_id );
+			debug.debug( "node %x, max_intensity (size %i), %i\n", radio.id(), sizeof( max_intensity ), max_intensity );
+			debug.debug( "node %x, current target id (size %i), %x\n", radio.id(), sizeof( node_id_t), target_id );
+			debug.debug( "node %x, current tracker id (size %i), %x\n", radio.id(), sizeof( node_id_t), tracker_id );
 		}
 	private:
 		AgentID agent_id;

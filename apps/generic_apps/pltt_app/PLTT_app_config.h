@@ -70,3 +70,8 @@
 #define PLTT_SECURE_MAX_CALLBACKS
 #define PLTT_SECURE_MAX_RECEIVERS
 
+typedef uint16_t CoordinatesNumber;
+typedef uint8_t IntensityNumber;
+typedef uint8_t TimesNumber;
+typedef uint8_t SecondsNumber;
+
