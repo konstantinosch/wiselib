@@ -145,7 +145,7 @@ namespace wiselib
 						{
 							if ( i->get_message_id() == reliable_radio_reply.get_message_id() )
 							{
-								i->set_counter( max_retries + 1 );
+								i->set_counter( max_retries + 2 );
 #ifdef RR_DEBUG
 								debug().debug( "ReliableRadio-receive %x - Exiting with mark of %d message.\n", radio().id(), i->get_message_id() );
 #endif
@@ -178,12 +178,23 @@ namespace wiselib
 						message.set_message_id( RR_MESSAGE );
 						block_data_t buff[Radio::MAX_MESSAGE_LENGTH];
 						message.set_payload( i->serial_size(), i->serialize( buff ) );
-						i->inc_counter();
 						radio().send( i->get_destination(), message.serial_size(), message.serialize() );
 #ifdef RR_DEBUG
 						debug().debug( "ReliableRadio-daemon %x - An RR_MESSAGE exists with less than max retries... - Sending again...\n", radio().id() );
 #endif
 					}
+					else if ( i->get_counter() == ( max_retries + 1 ) )
+					{
+						for ( RegisteredCallbacks_vector_iterator j = callbacks.begin(); j != callbacks.end(); ++j )
+						{
+							ExData ex;
+							Message message;
+							message.set_message_id( RR_UNDELIVERED );
+							message.set_payload( i->get_payload_size(), i->get_payload() );
+							(*j)( i->get_destination(), message.serial_size(), message.serialize(), ex);
+						}
+					}
+					i->inc_counter();
 				}
 				for ( ReliableRadioMessage_vector_iterator i = reliable_radio_replies.begin(); i != reliable_radio_replies.end(); ++i )
 				{
@@ -384,7 +395,8 @@ namespace wiselib
 		enum reliable_radio_message_ids
 		{
 			RR_MESSAGE = 112,
-			RR_REPLY = 113
+			RR_REPLY = 113,
+			RR_UNDELIVERED = 114
 		};
 	private:
 		uint32_t recv_callback_id_;

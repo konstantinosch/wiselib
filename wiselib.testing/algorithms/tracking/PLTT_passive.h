@@ -126,7 +126,7 @@ public:
 		reliable_radio().enable();
 		reliable_radio().template register_callback<self_type, &self_type::receive> (this);
 
-		if ( radio().id() == 0x1b4c )
+		if ( radio().id() == 0x15e1 )
 		{
 			PLTT_Agent a( 0x1, 0x2, 0x3, 127 );
 			block_data_t buff[100];
@@ -135,7 +135,7 @@ public:
 			m.set_message_id( PLTT_AGENT_MESSAGE_ID );
 			m.set_payload( a.serial_size(), buff );
 			m.print( debug(), radio() );
-			reliable_radio().send( 0x1234, m.serial_size(), m.serialize() );
+			reliable_radio().send( 0x1cd0, m.serial_size(), m.serialize() );
 		}
 //#ifndef CONFIG_PLTT_PASSIVE_RANDOM_BOOT_TIMER
 //		neighbor_discovery_enable_task();
@@ -239,6 +239,18 @@ public:
 			PLTT_Agent a;
 			a.de_serialize( message->get_payload() );
 			a.print( debug(), radio() );
+		}
+		else if ( msg_id == ReliableRadio::RR_UNDELIVERED)
+		{
+			block_data_t* buff = message->get_payload();
+			Message *message_inner = (Message*) buff;
+			if ( message_inner->get_message_id() == PLTT_AGENT_MESSAGE_ID )
+			{
+				PLTT_Agent a;
+				a.de_serialize( message_inner->get_payload() );
+				//debug().debug(" undelivered message id : %i", message_inner->get_message_id() );
+				//a.print( debug(), radio() );
+			}
 		}
 #else
 		if ( msg_id == PLTT_SECURE_SPREAD_ID )
