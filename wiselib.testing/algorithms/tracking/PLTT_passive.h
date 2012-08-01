@@ -115,28 +115,28 @@ public:
 	{
 	}
 	// -----------------------------------------------------------------------
-	void enable(void)
+	void enable( void )
 	{
 //#ifdef PLTT_PASSIVE_DEBUG_MISC
-		debug().debug( "PLTT_Passive %x: Boot - entering \n", self.get_node().get_id() );
+		debug().debug( "PLTT_Passive %x: Boot11 - entering \n", self.get_node().get_id() );
 //#endif
+
 		radio().enable_radio();
+		radio_callback_id_ = radio().template reg_recv_callback<self_type, &self_type::receive> (this);
 		reliable_radio().enable();
-		reliable_radio_callback_id_ = reliable_radio().template register_callback<self_type, &self_type::receive> (this);
-		//radio_callback_id_ = radio().template reg_recv_callback<self_type, &self_type::receive> (this);
-//		if ( radio().id() == 0x15e1 )
-//		{
-//			PLTT_Agent a( 0x1, 0x2, 0x3, 127 );
-//			block_data_t buff[100];
-//			a.serialize( buff );
-//			Message m;
-//			m.set_message_id( PLTT_AGENT_MESSAGE_ID );
-//			m.set_payload( a.serial_size(), buff );
-//			block_data_t buff2[100];
-//			m.serialize( buff2 );
-//			m.print( debug(), radio() );
-//			reliable_radio().send( 0x1cd0, m.serial_size(), buff2 );
-//		}
+		reliable_radio().template register_callback<self_type, &self_type::receive> (this);
+
+		if ( radio().id() == 0x1b4c )
+		{
+			PLTT_Agent a( 0x1, 0x2, 0x3, 127 );
+			block_data_t buff[100];
+			a.serialize( buff );
+			Message m;
+			m.set_message_id( PLTT_AGENT_MESSAGE_ID );
+			m.set_payload( a.serial_size(), buff );
+			m.print( debug(), radio() );
+			reliable_radio().send( 0x1234, m.serial_size(), m.serialize() );
+		}
 //#ifndef CONFIG_PLTT_PASSIVE_RANDOM_BOOT_TIMER
 //		neighbor_discovery_enable_task();
 //#else
@@ -148,7 +148,7 @@ public:
 //#endif
 	}
 	// -----------------------------------------------------------------------
-	void neighbor_discovery_enable_task(void* userdata = NULL)
+	void neighbor_discovery_enable_task( void* userdata = NULL )
 	{
 #ifdef PLTT_PASSIVE_DEBUG_NEIGHBORHOOD_DISCOVERY
 		debug().debug( "PLTT_Passive %x: Neighbor discovery enable task \n", self.get_node().get_id() );
@@ -193,7 +193,7 @@ public:
 #endif
 	}
 	// -----------------------------------------------------------------------
-	void disable(void)
+	void disable( void )
 	{
 #ifdef PLTT_PASSIVE_DEBUG_MISC
 		debug().debug( "PLTT_Passive %x: Disable \n", self.get_node().id );
@@ -202,7 +202,7 @@ public:
 		radio().disable();
 	}
 	// -----------------------------------------------------------------------
-	void send(node_id_t destination, size_t len, block_data_t *data, message_id_t msg_id)
+	void send( node_id_t destination, size_t len, block_data_t *data, message_id_t msg_id )
 	{
 		Message message;
 		message.set_message_id( msg_id );
@@ -217,6 +217,7 @@ public:
 	{
 		message_id_t msg_id = *data;
 		Message *message = (Message*) data;
+		debug().debug("received smthng but hmm %x:%i:%i", from, msg_id, len );
 #ifndef PLTT_SECURE
 		if ( msg_id == PLTT_SPREAD_ID )
 		{
@@ -970,8 +971,7 @@ public:
 	}
 	// -----------------------------------------------------------------------
 #endif
-	void init(Radio& radio, ReliableRadio& reliable_radio, Timer& timer, Debug& debug, Rand& rand,
-			Clock& clock, NeighborDiscovery& neighbor_discovery)
+	void init( Radio& radio, ReliableRadio& reliable_radio, Timer& timer, Debug& debug, Rand& rand, Clock& clock, NeighborDiscovery& neighbor_discovery )
 	{
 		radio_ = &radio;
 		reliable_radio_ = &reliable_radio;
@@ -1169,11 +1169,11 @@ private:
 	}
 	// -----------------------------------------------------------------------
 	Radio * radio_;
+	ReliableRadio * reliable_radio_;
 	Timer * timer_;
 	Debug * debug_;
 	Rand * rand_;
 	Clock * clock_;
-	ReliableRadio * reliable_radio_;
 	NeighborDiscovery * neighbor_discovery_;
 	enum MessageIds
 	{

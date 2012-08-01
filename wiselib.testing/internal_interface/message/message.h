@@ -86,13 +86,7 @@ namespace wiselib
 		// --------------------------------------------------------------------
 		inline block_data_t* serialize( block_data_t* _buff = NULL )
 		{
-			_buff = buffer;
 			return buffer;
-		}
-		// --------------------------------------------------------------------
-		inline void de_serialize( block_data_t* _buff = NULL )
-		{
-			_buff = buffer;
 		}
 		// --------------------------------------------------------------------
 		Message_Type& operator=( const Message_Type& _msg )

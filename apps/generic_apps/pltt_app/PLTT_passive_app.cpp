@@ -59,6 +59,7 @@ typedef wiselib::PLTT_PassiveType<Os, Node, PLTT_Node, PLTT_NodeList, PLTT_Trace
 
 NeighborDiscovery neighbor_discovery;
 PLTT_Passive passive;
+ReliableRadio reliable_radio;
 
 void application_main( Os::AppMainParameter& value )
 {
@@ -67,12 +68,11 @@ void application_main( Os::AppMainParameter& value )
 	Debug *wiselib_debug_ = &wiselib::FacetProvider<Os, Debug>::get_facet( value );
 	Rand *wiselib_rand_ = &wiselib::FacetProvider<Os, Rand>::get_facet( value );
 	Clock *wiselib_clock_ = &wiselib::FacetProvider<Os, Clock>::get_facet( value );
-	ReliableRadio reliable_radio_;
-	reliable_radio_.init(  *wiselib_radio_, *wiselib_timer_, *wiselib_debug_, *wiselib_clock_, *wiselib_rand_ );
 	wiselib_rand_->srand( wiselib_radio_->id() );
 	wiselib_radio_->set_channel(20);
 	neighbor_discovery.init( *wiselib_radio_, *wiselib_timer_, *wiselib_debug_, *wiselib_clock_, *wiselib_rand_ );
-	passive.init( *wiselib_radio_, reliable_radio_, *wiselib_timer_, *wiselib_debug_, *wiselib_rand_, *wiselib_clock_, neighbor_discovery );
+	reliable_radio.init(  *wiselib_radio_, *wiselib_timer_, *wiselib_debug_, *wiselib_clock_, *wiselib_rand_ );
+	passive.init( *wiselib_radio_, reliable_radio, *wiselib_timer_, *wiselib_debug_, *wiselib_rand_, *wiselib_clock_, neighbor_discovery );
 	passive.set_self( PLTT_Node( Node( wiselib_radio_->id(), get_node_info<Position, Radio>( wiselib_radio_ ) ) ) );
 	passive.set_intensity_detection_threshold( INTENSITY_DETECTION_THRESHOLD );
 	passive.set_nb_convergence_time( NB_CONVERGENCE_TIME );

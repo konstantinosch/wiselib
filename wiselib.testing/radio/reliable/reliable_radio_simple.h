@@ -55,12 +55,12 @@ namespace wiselib
 #ifdef RR_DEBUG
 			debug().debug( "ReliableRadio-enable %x - Entering.\n", radio().id() );
 #endif
-			//radio().enable_radio();
-			//set_status( RR_ACTIVE_STATUS );
-			//recv_callback_id_ = radio().template reg_recv_callback<self_t, &self_t::receive>( this );
-			//daemon();
+			radio().enable_radio();
+			set_status( RR_ACTIVE_STATUS );
+			recv_callback_id_ = radio().template reg_recv_callback<self_t, &self_t::receive>( this );
+			daemon();
 #ifdef RR_DEBUG
-			debug().debug( "ReliableRadio-enable %x - Entering.\n", radio().id() );
+			debug().debug( "ReliableRadio-enable %x - Exiting.\n", radio().id() );
 #endif
 		};
 		// --------------------------------------------------------------------
@@ -190,7 +190,10 @@ namespace wiselib
 #ifdef RR_DEBUG
 					debug().debug( "ReliableRadio-daemon %x -Inside replies vector updating counters...\n", radio().id() );
 #endif
-					i->inc_counter();
+					if ( i->get_counter() <= ( max_retries + 1 ) )
+					{
+						i->inc_counter();
+					}
 				}
 				timer().template set_timer<self_t, &self_t::daemon> ( daemon_period, this, 0 );
 			}
@@ -263,7 +266,7 @@ namespace wiselib
 		{
 			for ( ReliableRadioMessage_vector_iterator i = reliable_radio_replies.begin(); i != reliable_radio_replies.end(); ++i )
 			{
-				if ( i->get_message_id() == _msg_id )
+				if ( ( i->get_message_id() == _msg_id ) &&  ( i->get_counter() <= ( max_retries + 1 ) ) )
 				{
 					return 1;
 				}
@@ -271,7 +274,7 @@ namespace wiselib
 			return 0;
 		}
 		// --------------------------------------------------------------------
-		template<class T, void(T::*TMethod)(node_id_t, size_t, uint8_t*, ExData const&) >
+		template<class T, void(T::*TMethod)(node_id_t, size_t, block_data_t*, ExData const&) >
 		uint32_t register_callback( T *_obj_pnt )
 		{
 #ifdef RR_DEBUG
