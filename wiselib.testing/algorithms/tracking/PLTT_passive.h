@@ -117,35 +117,19 @@ public:
 	// -----------------------------------------------------------------------
 	void enable( void )
 	{
-//#ifdef PLTT_PASSIVE_DEBUG_MISC
+#ifdef PLTT_PASSIVE_DEBUG_MISC
 		debug().debug( "PLTT_Passive %x: Boot11 - entering \n", self.get_node().get_id() );
-//#endif
-
+#endif
 		radio().enable_radio();
-		radio_callback_id_ = radio().template reg_recv_callback<self_type, &self_type::receive> (this);
-		reliable_radio().enable();
-		reliable_radio().template register_callback<self_type, &self_type::receive> (this);
-
-		if ( radio().id() == 0x15e1 )
-		{
-			PLTT_Agent a( 0x1, 0x2, 0x3, 127 );
-			block_data_t buff[100];
-			a.serialize( buff );
-			Message m;
-			m.set_message_id( PLTT_AGENT_MESSAGE_ID );
-			m.set_payload( a.serial_size(), buff );
-			m.print( debug(), radio() );
-			reliable_radio().send( 0x1cd0, m.serial_size(), m.serialize() );
-		}
-//#ifndef CONFIG_PLTT_PASSIVE_RANDOM_BOOT_TIMER
-//		neighbor_discovery_enable_task();
-//#else
-//		millis_t r = rand()() % random_enable_timer_range;
-//		timer().template set_timer<self_type, &self_type::neighbor_discovery_enable_task> ( r, this, 0 );
-//#endif
-//#ifdef PLTT_PASSIVE_DEBUG_MISC
+#ifndef CONFIG_PLTT_PASSIVE_RANDOM_BOOT_TIMER
+		neighbor_discovery_enable_task();
+#else
+		millis_t r = rand()() % random_enable_timer_range;
+		timer().template set_timer<self_type, &self_type::neighbor_discovery_enable_task> ( r, this, 0 );
+#endif
+#ifdef PLTT_PASSIVE_DEBUG_MISC
 		debug().debug( "PLTT_Passive %x: Boot - exiting \n", self.get_node().get_id() );
-//#endif
+#endif
 	}
 	// -----------------------------------------------------------------------
 	void neighbor_discovery_enable_task( void* userdata = NULL )
@@ -234,7 +218,13 @@ public:
 				store_inhibit_trace( trace, 1 );
 			}
 		}
-		else if ( msg_id == PLTT_AGENT_MESSAGE_ID )
+		else if ( msg_id == PLTT_AGENT_QUERY_MESSAGE_ID )
+		{
+			PLTT_Agent a;
+			a.de_serialize( message->get_payload() );
+			a.print( debug(), radio() );
+		}
+		else if ( msg_id == PLTT_AGENT_REPORT_MESSAGE_ID )
 		{
 			PLTT_Agent a;
 			a.de_serialize( message->get_payload() );
@@ -244,12 +234,15 @@ public:
 		{
 			block_data_t* buff = message->get_payload();
 			Message *message_inner = (Message*) buff;
-			if ( message_inner->get_message_id() == PLTT_AGENT_MESSAGE_ID )
+			if ( message_inner->get_message_id() == PLTT_AGENT_QUERY_MESSAGE_ID )
 			{
 				PLTT_Agent a;
 				a.de_serialize( message_inner->get_payload() );
-				//debug().debug(" undelivered message id : %i", message_inner->get_message_id() );
-				//a.print( debug(), radio() );
+			}
+			else if ( message_inner->get_message_id() == PLTT_AGENT_REPORT_MESSAGE_ID )
+			{
+				PLTT_Agent a;
+				a.de_serialize( message_inner->get_payload() );
 			}
 		}
 #else
@@ -1190,7 +1183,8 @@ private:
 	enum MessageIds
 	{
 		PLTT_SPREAD_ID = 11,
-		PLTT_AGENT_MESSAGE_ID = 31,
+		PLTT_AGENT_QUERY_MESSAGE_ID = 31,
+		PLTT_AGENT_REPORT_MESSAGE_ID = 41,
 #ifdef CONFIG_PROACTIVE_INHIBITION
 		,PLTT_INHIBITION_MESSAGE_ID = 21
 #endif
