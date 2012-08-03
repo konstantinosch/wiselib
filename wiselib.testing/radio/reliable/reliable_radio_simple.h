@@ -50,7 +50,7 @@ namespace wiselib
 		~ReliableRadio_Type()
 		{};
 		// --------------------------------------------------------------------
-		void enable()
+		void enable_radio()
 		{
 #ifdef RR_DEBUG
 			debug().debug( "ReliableRadio-enable %x - Entering.\n", radio().id() );
@@ -286,7 +286,7 @@ namespace wiselib
 		}
 		// --------------------------------------------------------------------
 		template<class T, void(T::*TMethod)(node_id_t, size_t, block_data_t*, ExData const&) >
-		uint32_t register_callback( T *_obj_pnt )
+		uint32_t reg_recv_callback( T *_obj_pnt )
 		{
 #ifdef RR_DEBUG
 			debug().debug( "ReliableRadio-register_callback %x - Entering.\n", radio().id() );
@@ -398,6 +398,10 @@ namespace wiselib
 			RR_REPLY = 113,
 			RR_UNDELIVERED = 114
 		};
+        enum Restrictions
+        {
+            MAX_MESSAGE_LENGTH = 112
+        };
 	private:
 		uint32_t recv_callback_id_;
         uint8_t status;

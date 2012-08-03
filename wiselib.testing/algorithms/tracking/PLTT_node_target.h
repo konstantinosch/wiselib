@@ -40,20 +40,25 @@ namespace wiselib
 		typedef typename Radio::block_data_t block_data_t;
 		typedef typename Radio::size_t size_t;
 		typedef PLTT_NodeTargetType<Os, Radio, NodeID, IntensityNumber, Debug> self_type;
+		// --------------------------------------------------------------------
 		PLTT_NodeTargetType()
 		{}
+		// --------------------------------------------------------------------
 		PLTT_NodeTargetType( const self_type& _nt )
 		{
 			*this = _nt;
 		}
-		PLTT_NodeTargetType( block_data_t* buff, size_t offset = 0 )
+		// --------------------------------------------------------------------
+		PLTT_NodeTargetType( block_data_t* _buff, size_t _offset = 0 )
 		{
-			de_serialize( buff, offset );
+			de_serialize( _buff, _offset );
 		}
+		// --------------------------------------------------------------------
 		PLTT_NodeTargetType( const NodeID& _id, const IntensityNumber& _in )
 		{
 			set_all( _id, _in );
 		}
+		// --------------------------------------------------------------------
 		inline block_data_t* serialize( block_data_t* buff, size_t offset = 0 )
 		{
 			uint8_t TARGET_ID_POS = 0;
@@ -62,52 +67,64 @@ namespace wiselib
 			write<Os, block_data_t, IntensityNumber>( buff + INTENSITY_POS + offset, intensity );
 			return buff;
 		}
-		inline void de_serialize(block_data_t* buff, size_t offset = 0 )
+		// --------------------------------------------------------------------
+		inline void de_serialize(block_data_t* _buff, size_t _offset = 0 )
 		{
 			uint8_t TARGET_ID_POS = 0;
-			uint8_t INTENSITY_POS = TARGET_ID_POS + sizeof( NodeID );
-			target_id = read<Os, block_data_t, NodeID> ( buff + TARGET_ID_POS + offset );
-			intensity = read<Os, block_data_t, IntensityNumber>( buff + INTENSITY_POS + offset );
+			uint8_t INTENSITY_POS = TARGET_ID_POS + sizeof(NodeID);
+			target_id = read<Os, block_data_t, NodeID> ( _buff + TARGET_ID_POS + _offset );
+			intensity = read<Os, block_data_t, IntensityNumber> ( _buff + INTENSITY_POS + _offset );
 		}
+		// --------------------------------------------------------------------
 		inline size_t serial_size()
 		{
 			uint8_t TARGET_ID_POS = 0;
-			uint8_t INTENSITY_POS = TARGET_ID_POS + sizeof( NodeID );
-			return INTENSITY_POS + sizeof( IntensityNumber );
+			uint8_t INTENSITY_POS = TARGET_ID_POS + sizeof(NodeID);
+			return INTENSITY_POS + sizeof(IntensityNumber);
 		}
+		// --------------------------------------------------------------------
 		inline self_type& operator=( const self_type& _nt )
 		{
 			target_id = _nt.target_id;
 			intensity = _nt.intensity;
 			return *this;
 		}
+		// --------------------------------------------------------------------
 		inline void set_target_id( const NodeID& _tid )
 		{
 			target_id = _tid;
 		}
+		// --------------------------------------------------------------------
 		inline void set_intensity( const IntensityNumber& _i )
 		{
 			intensity = _i;
 		}
+		// --------------------------------------------------------------------
 		inline void set_all( const NodeID& _tid, const IntensityNumber& _i )
 		{
 			target_id = _tid;
 			intensity = _i;
 		}
+		// --------------------------------------------------------------------
 		inline NodeID get_target_id()
 		{
 			return target_id;
 		}
+		// --------------------------------------------------------------------
 		inline IntensityNumber get_intensity()
 		{
 			return intensity;
 		}
+		// --------------------------------------------------------------------
+#ifdef PLTT_DEBUG_PLTT_NODE_TARGET_H
 		inline void print( Debug& debug, Radio& radio )
 		{
 			debug.debug( "NodeTarget (size %i) :\n", serial_size() );
 			debug.debug( "target_id (size %i) : %x\n", sizeof( NodeID ), target_id );
 			debug.debug( "intensity (size %i) : %i\n", sizeof( IntensityNumber ), intensity );
 		}
+#endif
+		// --------------------------------------------------------------------
 	private:
 		NodeID target_id;
 		IntensityNumber intensity;

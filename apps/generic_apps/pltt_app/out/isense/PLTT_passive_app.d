@@ -91,7 +91,9 @@ out/isense/PLTT_passive_app.o: PLTT_passive_app.cpp \
   /home/konstantinos/Desktop/wiselib/wiselib.testing/algorithms/tracking/PLTT_trace.h \
   /home/konstantinos/Desktop/wiselib/wiselib.testing/algorithms/tracking/PLTT_passive.h \
   /home/konstantinos/Desktop/wiselib/wiselib.testing/algorithms/tracking/../../internal_interface/message/message.h \
+  /home/konstantinos/Desktop/wiselib/wiselib.testing/algorithms/tracking/../privacy/privacy_message.h \
   /home/konstantinos/Desktop/wiselib/wiselib.testing/algorithms/tracking/PLTT_agent.h \
+  /home/konstantinos/Desktop/wiselib/wiselib.testing/algorithms/tracking/PLTT_default_values_config.h \
   /home/konstantinos/Desktop/wiselib/wiselib.testing/algorithms/neighbor_discovery/neighbor_discovery.h \
   /home/konstantinos/Desktop/wiselib/wiselib.stable/util/pstl/vector_static.h \
   /home/konstantinos/Desktop/wiselib/wiselib.stable/util/delegates/delegate.hpp \
@@ -111,4 +113,6 @@ out/isense/PLTT_passive_app.o: PLTT_passive_app.cpp \
   /home/konstantinos/Desktop/wiselib/wiselib.testing/radio/reliable/reliable_radio_message.h \
   /home/konstantinos/Desktop/wiselib/wiselib.testing/radio/reliable/reliable_radio_source_config.h \
   /home/konstantinos/Desktop/wiselib/wiselib.testing/radio/reliable/reliable_radio_default_values_config.h \
+  /home/konstantinos/Desktop/wiselib/wiselib.testing/algorithms/tracking/PLTT_secure_trace.h \
+  /home/konstantinos/Desktop/wiselib/wiselib.testing/algorithms/privacy/privacy_config.h \
   PLTT_app_config.h ../topologies/UNIGE_ISENSE_topology.h

@@ -1,5 +1,5 @@
 #define PLTT_DEBUG
-//#define PLTT_SECURE
+#define PLTT_SECURE
 
 //target configuration
 //#define PLTT_TARGET_MINI_RUN
@@ -17,6 +17,26 @@
 //#define CONFIG PLTT_PASSIVE_RANDOM_BOOT_TIMER
 
 //debug
+
+
+
+//#define PLTT_DEBUG_PLTT_NODE_H
+//#define PLTT_DEBUG_PLTT_NODE_TARGET_H
+//#define PLTT_DEBUG_PLTT_AGENT_H
+//#define PLTT_DEBUG_PLTT_TRACE_H
+//#define PLTT_DEBUG_PLTT_SECURE_TRACE_H
+
+
+
+
+
+
+
+
+
+
+
+
 #ifdef PLTT_DEBUG
 	#define PLTT_PASSIVE_DEBUG
 	#define PLTT_TARGET_DEBUG
@@ -36,6 +56,12 @@
 	//#ifdef PLTT_SECURE_DEBUG
 	//	#define PLTT_PASSIVE_DEBUG_SECURE
 	//#endif
+
+
+
+
+
+
 #endif
 #ifdef PLTT_TARGET_DEBUG
 	#define PLTT_TARGET_DEBUG_SEND

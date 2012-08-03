@@ -48,75 +48,87 @@ namespace wiselib
 		typedef typename Radio::size_t size_t;
 		typedef typename Radio::node_id_t node_id_t;
 		typedef PLTT_NodeType<Os, Radio, Node, PLTT_NodeTarget, PLTT_NodeTargetList, PLTT_TraceList, Debug> self_type;
+		// --------------------------------------------------------------------
 		inline PLTT_NodeType()
 		{}
-		inline PLTT_NodeType( block_data_t* buff, size_t offset = 0 )
+		// --------------------------------------------------------------------
+		inline PLTT_NodeType( block_data_t* _buff, size_t _offset = 0 )
 		{
-			de_serialize( buff, offset );
+			de_serialize( _buff, _offset );
 		}
+		// --------------------------------------------------------------------
 		inline PLTT_NodeType( Node _n )
 		{
 			node = _n;
 		}
-		inline block_data_t* serialize( block_data_t* buff, size_t offset = 0 )
+		// --------------------------------------------------------------------
+		inline block_data_t* serialize( block_data_t* _buff, size_t _offset = 0 )
 		{
 			size_t PLTT_NODE_SIZE_POS = 0;
-			size_t  NODE_POS = PLTT_NODE_SIZE_POS + sizeof( size_t );
+			size_t  NODE_POS = PLTT_NODE_SIZE_POS + sizeof(size_t);
 			size_t TARGET_LIST_POS = NODE_POS + node.serial_size();
 			size_t len = serial_size();
-			write<Os, block_data_t, size_t>( buff + PLTT_NODE_SIZE_POS + offset, len );
-			node.serialize( buff, NODE_POS + offset );
+			write<Os, block_data_t, size_t> ( _buff + PLTT_NODE_SIZE_POS + _offset, len );
+			node.serialize( _buff, NODE_POS + _offset );
 			for ( size_t i = 0; i < target_list.size(); i++ )
 			{
-				target_list.at( i ).serialize( buff, TARGET_LIST_POS + i * target_list.at( i ).serial_size() + offset );
+				target_list.at( i ).serialize( _buff, TARGET_LIST_POS + i * target_list.at( i ).serial_size() + _offset );
 			}
-			return buff;
+			return _buff;
 		}
-		inline void de_serialize( block_data_t* buff, size_t offset = 0 )
+		// --------------------------------------------------------------------
+		inline void de_serialize( block_data_t* _buff, size_t _offset = 0 )
 		{
 			size_t PLTT_NODE_SIZE_POS = 0;
-			size_t NODE_POS = PLTT_NODE_SIZE_POS + sizeof( size_t );
+			size_t NODE_POS = PLTT_NODE_SIZE_POS + sizeof(size_t);
 			size_t TARGET_LIST_POS = NODE_POS + node.serial_size();
-			size_t len = read<Os, block_data_t, size_t>( buff + PLTT_NODE_SIZE_POS + offset );
-			node.de_serialize( buff, NODE_POS + offset );
+			size_t len = read<Os, block_data_t, size_t> ( _buff + PLTT_NODE_SIZE_POS + _offset );
+			node.de_serialize( _buff, NODE_POS + _offset );
 			PLTT_NodeTarget nt;
 			target_list.clear();
 			for ( size_t i = 0; i < ( ( len - node.serial_size() - 1 ) / nt.serial_size() ); i++ )
 			{
-				nt.de_serialize( buff, TARGET_LIST_POS + nt.serial_size() * i + offset );
+				nt.de_serialize( _buff, TARGET_LIST_POS + nt.serial_size() * i + _offset );
 				target_list.push_back( nt );
 			}
 		}
+		// --------------------------------------------------------------------
 		inline size_t serial_size()
 		{
 			size_t PLTT_NODE_SIZE_POS = 0;
-			size_t NODE_POS = PLTT_NODE_SIZE_POS + sizeof( size_t );
+			size_t NODE_POS = PLTT_NODE_SIZE_POS + sizeof(size_t);
 			size_t TARGET_LIST_POS = NODE_POS + node.serial_size();
 			PLTT_NodeTarget nt;
 			return TARGET_LIST_POS + target_list.size() * nt.serial_size();
 		}
+		// --------------------------------------------------------------------
 		inline self_type& operator=( const self_type& _p )
 		{
 			node = _p.node;
 			target_list = _p.target_list;
 			return *this;
 		}
+		// --------------------------------------------------------------------
 		inline Node get_node()
 		{
 			return node;
 		}
+		// --------------------------------------------------------------------
 		inline PLTT_NodeTargetList* get_node_target_list()
 		{
 			return &target_list;
 		}
+		// --------------------------------------------------------------------
 		inline void set_node( Node _n )
 		{
 			node = _n;
 		}
+		// --------------------------------------------------------------------
 		inline void set_node_target_list( PLTT_NodeTargetList& _ntl )
 		{
 			target_list = _ntl;
 		}
+		// --------------------------------------------------------------------
 		inline void set_node_target_list( PLTT_TraceList& _tl )
 		{
 			target_list.clear();
@@ -131,6 +143,7 @@ namespace wiselib
 				}
 			}
 		}
+		// --------------------------------------------------------------------
 		inline void set_node_target( PLTT_TraceList& _tl, node_id_t _nid )
 		{
 			target_list.clear();
@@ -145,21 +158,26 @@ namespace wiselib
 				}
 			}
 		}
+		// --------------------------------------------------------------------
 		inline void set_all( Node& _n, PLTT_TraceList& _tl )
 		{
 			set_node( _n );
 			set_node_target_list( _tl );
 		}
-		inline void print( Debug& debug, Radio radio )
+		// --------------------------------------------------------------------
+#ifdef PLTT_DEBUG_PLTT_NODE_H
+		inline void print( Debug& _debug, Radio _radio )
 		{
-			debug.debug( " PLTT_Node (size %i) :\n", serial_size() );
-			node.print( debug, radio );
-			debug.debug( " PLTT_TargetList (size %i) :\n", target_list.size()*sizeof( PLTT_NodeTarget ) );
+			_debug.debug( " PLTT_Node : \n" );
+			node.print( _debug, _radio );
+			_debug.debug( " PLTT_TargetList (size %i) :\n", target_list.size()*sizeof(PLTT_NodeTarget) );
 			for ( PLTT_NodeTargetListIterator i = target_list.begin(); i != target_list.end(); ++i )
 			{
-				i->print( debug, radio );
+				i->print( _debug, _radio );
 			}
 		}
+#endif
+		// --------------------------------------------------------------------
 	private:
 		Node node;
 		PLTT_NodeTargetList target_list;
