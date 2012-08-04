@@ -358,7 +358,7 @@ namespace wiselib
 			recipient_2_id = r_2_id;
 		}
 		// --------------------------------------------------------------------
-#ifdef	PLTT_DEBUG_PLTT_TRACE_H
+#ifdef	DEBUG_PLTT_TRACE_H
 		inline void print( Debug& _debug, Radio& _radio )
 		{
 			_debug.debug( "-------------------------------------------------------\n");

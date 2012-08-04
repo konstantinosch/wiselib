@@ -116,10 +116,10 @@ namespace wiselib
 			return intensity;
 		}
 		// --------------------------------------------------------------------
-#ifdef PLTT_DEBUG_PLTT_NODE_TARGET_H
+#ifdef DEBUG_PLTT_NODE_TARGET_H
 		inline void print( Debug& debug, Radio& radio )
 		{
-			debug.debug( "NodeTarget (size %i) :\n", serial_size() );
+			debug.debug( "NodeTarget : \n" );
 			debug.debug( "target_id (size %i) : %x\n", sizeof( NodeID ), target_id );
 			debug.debug( "intensity (size %i) : %i\n", sizeof( IntensityNumber ), intensity );
 		}

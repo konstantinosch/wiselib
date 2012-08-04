@@ -165,7 +165,7 @@ namespace wiselib
 			set_node_target_list( _tl );
 		}
 		// --------------------------------------------------------------------
-#ifdef PLTT_DEBUG_PLTT_NODE_H
+#ifdef DEBUG_PLTT_NODE_H
 		inline void print( Debug& _debug, Radio _radio )
 		{
 			_debug.debug( " PLTT_Node : \n" );

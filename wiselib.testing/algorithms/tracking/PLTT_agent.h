@@ -173,7 +173,7 @@ namespace wiselib
 			tracker_id = buff;
 		}
 		// --------------------------------------------------------------------
-#ifdef PLTT_DEBUG_PLTT_AGENT_H
+#ifdef DEBUG_PLTT_AGENT_H
 		inline void print( Debug& _debug, Radio& _radio )
 		{
 			_debug.debug( "-------------------------------------------------------\n");

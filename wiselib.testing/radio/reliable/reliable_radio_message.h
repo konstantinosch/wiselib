@@ -29,7 +29,7 @@ namespace wiselib
 		~ReliableRadioMessage_Type()
 		{};
 		// --------------------------------------------------------------------
-		self_t& operator=( const self_t& _rrm)
+		self_t& operator=( const self_t& _rrm )
 		{
 			message_id = _rrm.message_id;
 			counter = _rrm.counter;
@@ -119,15 +119,15 @@ namespace wiselib
 			return DATA_POS + payload_size;
 		}
 		// --------------------------------------------------------------------
-#ifdef RR_DEBUG
+#ifdef DEBUG_RELIABLE_RADIO_H
 		void print( Debug& debug, Radio& radio )
 		{
 			debug.debug( "-------------------------------------------------------\n");
-			debug.debug( "ReliableRadioMessage:\n" );
-			debug.debug( "message_id : %d\n", message_id );
-			debug.debug( "counter : %d\n", counter );
-			debug.debug( "destination: %d\n", destination );
-			debug.debug( "payload_size : %d\n", payload_size );
+			debug.debug( "ReliableRadioMessage : \n" );
+			debug.debug( "message_id (size %i) : %d\n", sizeof(message_id_t), message_id );
+			debug.debug( "counter (size %i) : %d\n", sizeof(uint32_t), counter );
+			debug.debug( "destination (size %i) : %d\n", sizeof(node_id_t), destination );
+			debug.debug( "payload_size (size %i) : %d\n", sizeof(size_t), payload_size );
 			debug.debug( "payload: \n");
 			for ( size_t i = 0; i < payload_size; i++ )
 			{

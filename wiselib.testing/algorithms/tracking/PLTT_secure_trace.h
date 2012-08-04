@@ -429,7 +429,7 @@ namespace wiselib
 			return PRIVACY_CIPHER_TEXT_MAX_SIZE;
 		}
 		// --------------------------------------------------------------------
-#ifdef	PLTT_DEBUG_PLTT_SECURE_TRACE_H
+#ifdef DEBUG_PLTT_SECURE_TRACE_H
 		inline void print( Debug& _debug, Radio& _radio )
 		{
 			_debug.debug( "PLTT_SecureTrace : \n" );
