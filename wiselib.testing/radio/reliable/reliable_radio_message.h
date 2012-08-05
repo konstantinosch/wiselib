@@ -1,5 +1,5 @@
-#ifndef RELIABLE_RADIO_PROTOCOL_SETTING_H
-#define	RELIABLE_RADIO_PROTOCOL_SETTING_H
+#ifndef __RELIABLE_RADIO_PROTOCOL_SETTING_H__
+#define	__RELIABLE_RADIO_PROTOCOL_SETTING_H__
 
 #include "reliable_radio_source_config.h"
 
@@ -29,7 +29,7 @@ namespace wiselib
 		~ReliableRadioMessage_Type()
 		{};
 		// --------------------------------------------------------------------
-		self_t& operator=( const self_t& _rrm)
+		self_t& operator=( const self_t& _rrm )
 		{
 			message_id = _rrm.message_id;
 			counter = _rrm.counter;
@@ -119,21 +119,21 @@ namespace wiselib
 			return DATA_POS + payload_size;
 		}
 		// --------------------------------------------------------------------
-#ifdef RR_DEBUG
-		void print( Debug& debug, Radio& radio )
+#ifdef DEBUG_RELIABLE_RADIO_H
+		void print( Debug& _debug, Radio& _radio )
 		{
-			debug.debug( "-------------------------------------------------------\n");
-			debug.debug( "ReliableRadioMessage:\n" );
-			debug.debug( "message_id : %d\n", message_id );
-			debug.debug( "counter : %d\n", counter );
-			debug.debug( "destination: %d\n", destination );
-			debug.debug( "payload_size : %d\n", payload_size );
-			debug.debug( "payload: \n");
+			_debug.debug( "-------------------------------------------------------\n");
+			_debug.debug( "ReliableRadioMessage : \n" );
+			_debug.debug( "message_id (size %i) : %d\n", sizeof(message_id_t), message_id );
+			_debug.debug( "counter (size %i) : %d\n", sizeof(uint32_t), counter );
+			_debug.debug( "destination (size %i) : %d\n", sizeof(node_id_t), destination );
+			_debug.debug( "payload_size (size %i) : %d\n", sizeof(size_t), payload_size );
+			_debug.debug( "payload: \n");
 			for ( size_t i = 0; i < payload_size; i++ )
 			{
-				debug.debug("%d", payload[i] );
+				_debug.debug("%d", payload[i] );
 			}
-			debug.debug( "-------------------------------------------------------\n");
+			_debug.debug( "-------------------------------------------------------\n");
 		}
 #endif
 		// --------------------------------------------------------------------

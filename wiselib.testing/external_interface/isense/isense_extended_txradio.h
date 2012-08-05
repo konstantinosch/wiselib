@@ -190,35 +190,35 @@ namespace wiselib {
 
         template<class T, void (T::*TMethod)(node_id_t, size_t, block_data_t*)>
         int reg_recv_callback(T *obj_pnt) {
-        	os().debug( "in_regrcv");
+        	//os().debug( "in_regrcv");
             for (int i = 0; i < MAX_INTERNAL_RECEIVERS; i++) {
-            	os().debug( "in_loop_regrcv");
+            	//os().debug( "in_loop_regrcv");
                 if (!isense_radio_callbacks_[i]) {
                     isense_radio_callbacks_[i] =
                             isense_radio_delegate_t::template from_method<T, TMethod > (obj_pnt);
-                    os().debug( "out_loop_success_regrcv");
+                   // os().debug( "out_loop_success_regrcv");
                     return i;
                 }
-                os().debug( "out_loop_fail_regrcv");
+                //os().debug( "out_loop_fail_regrcv");
             }
-            os().debug( "out_regrcv");
+            //os().debug( "out_regrcv");
             return -1;
         }
         // --------------------------------------------------------------------
 
         template<class T, void (T::*TMethod)(node_id_t, size_t, block_data_t*, const ExtendedData&) >
         int reg_recv_callback(T *obj_pnt) {
-        	os().debug( "in_ext_regrcv");
+        	//os().debug( "in_ext_regrcv");
             for (int i = 0; i < MAX_EXTENDED_RECEIVERS; i++) {
-            	os().debug( "in_loop_ext_regrcv");
+            	//os().debug( "in_loop_ext_regrcv");
                 if (!isense_ext_radio_callbacks_[i]) {
                     isense_ext_radio_callbacks_[i] =
                             extended_radio_delegate_t::template from_method<T, TMethod > (obj_pnt);
-                    os().debug( "out_loop_ext_regrcv");
+                  //  os().debug( "out_loop_ext_regrcv");
                     return i;
                 }
             }
-            os().debug( "out_ext_regrcv");
+            //os().debug( "out_ext_regrcv");
             return -1;
         }
         // --------------------------------------------------------------------

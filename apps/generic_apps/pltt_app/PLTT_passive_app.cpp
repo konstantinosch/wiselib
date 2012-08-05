@@ -10,11 +10,11 @@
 #include "algorithms/tracking/PLTT_agent.h"
 #include "algorithms/neighbor_discovery/neighbor_discovery.h"
 #include "radio/reliable/reliable_radio_simple.h"
+#include "PLTT_app_config.h"
 
-#ifdef PLTT_SECURE
+#ifdef CONFIG_PLTT_SECURE
 #include "algorithms/tracking/PLTT_secure_trace.h"
 #endif
-#include "PLTT_app_config.h"
 #ifdef UNIGE_TESTBED
 #include "../topologies/UNIGE_ISENSE_topology.h"
 #endif
@@ -40,18 +40,18 @@ typedef wiselib::NeighborDiscovery_Type<Os, Radio, Clock, Timer, Rand, Debug> Ne
 typedef wiselib::Position2DType<Os, Radio, CoordinatesNumber, Debug> Position;
 typedef wiselib::NodeType<Os, Radio, node_id_t, Position, Debug> Node;
 typedef wiselib::ReliableRadio_Type<Os, Radio, Clock, Timer, Rand, Debug> ReliableRadio;
-#ifdef PLTT_SECURE
+#ifdef CONFIG_PLTT_SECURE
 typedef wiselib::PLTT_SecureTraceType<Os, Radio, TimesNumber, SecondsNumber, IntensityNumber, Node, node_id_t, Debug> PLTT_SecureTrace;
-typedef wiselib::vector_static<Os, PLTT_SecureTrace, MAX_SECURE_TRACES_SUPPORTED> PLTT_SecureTraceList;
+typedef wiselib::vector_static<Os, PLTT_SecureTrace, PLTT_MAX_SECURE_TRACES_SUPPORTED> PLTT_SecureTraceList;
 #endif
 typedef wiselib::PLTT_TraceType<Os, Radio, TimesNumber, SecondsNumber, IntensityNumber, Node, node_id_t, Debug> PLTT_Trace;
-typedef wiselib::vector_static<Os, PLTT_Trace, MAX_TARGETS_SUPPORTED> PLTT_TraceList;
+typedef wiselib::vector_static<Os, PLTT_Trace, PLTT_MAX_TARGETS_SUPPORTED> PLTT_TraceList;
 typedef wiselib::PLTT_NodeTargetType<Os, Radio, node_id_t, IntensityNumber, Debug > PLTT_NodeTarget;
-typedef wiselib::vector_static<Os, PLTT_NodeTarget, MAX_TARGETS_SUPPORTED> PLTT_NodeTargetList;
+typedef wiselib::vector_static<Os, PLTT_NodeTarget, PLTT_MAX_TARGETS_SUPPORTED> PLTT_NodeTargetList;
 typedef wiselib::PLTT_NodeType<Os, Radio, Node, PLTT_NodeTarget, PLTT_NodeTargetList, PLTT_TraceList, Debug> PLTT_Node;
-typedef wiselib::vector_static<Os, PLTT_Node, MAX_NEIGHBORS_SUPPORTED> PLTT_NodeList;
+typedef wiselib::vector_static<Os, PLTT_Node, PLTT_MAX_NEIGHBORS_SUPPORTED> PLTT_NodeList;
 typedef wiselib::PLTT_AgentType< Os, Radio, AgentID, IntensityNumber, Debug> PLTT_Agent;
-#ifdef PLTT_SECURE
+#ifdef CONFIG_PLTT_SECURE
 typedef wiselib::PLTT_PassiveType<Os, Node, PLTT_Node, PLTT_NodeList, PLTT_Trace, PLTT_TraceList, PLTT_SecureTrace, PLTT_SecureTraceList, PLTT_Agent, NeighborDiscovery, Timer, Radio, ReliableRadio, Rand, Clock, Debug> PLTT_Passive;
 #else
 typedef wiselib::PLTT_PassiveType<Os, Node, PLTT_Node, PLTT_NodeList, PLTT_Trace, PLTT_TraceList, PLTT_Agent, NeighborDiscovery, Timer, Radio, ReliableRadio, Rand, Clock, Debug> PLTT_Passive;
@@ -69,27 +69,10 @@ void application_main( Os::AppMainParameter& value )
 	Rand *wiselib_rand_ = &wiselib::FacetProvider<Os, Rand>::get_facet( value );
 	Clock *wiselib_clock_ = &wiselib::FacetProvider<Os, Clock>::get_facet( value );
 	wiselib_rand_->srand( wiselib_radio_->id() );
-	wiselib_radio_->set_channel(20);
+	wiselib_radio_->set_channel( PLTT_CHANNEL );
 	neighbor_discovery.init( *wiselib_radio_, *wiselib_timer_, *wiselib_debug_, *wiselib_clock_, *wiselib_rand_ );
 	reliable_radio.init(  *wiselib_radio_, *wiselib_timer_, *wiselib_debug_, *wiselib_clock_, *wiselib_rand_ );
 	passive.init( *wiselib_radio_, reliable_radio, *wiselib_timer_, *wiselib_debug_, *wiselib_rand_, *wiselib_clock_, neighbor_discovery );
 	passive.set_self( PLTT_Node( Node( wiselib_radio_->id(), get_node_info<Position, Radio>( wiselib_radio_ ) ) ) );
-	passive.set_intensity_detection_threshold( INTENSITY_DETECTION_THRESHOLD );
-	passive.set_nb_convergence_time( NB_CONVERGENCE_TIME );
-	passive.set_backoff_connectivity_weight( BACKOFF_CONNECTIVITY_WEIGHT );
-	passive.set_backoff_lqi_weight( BACKOFF_LQI_WEIGHT );
-	passive.set_backoff_random_weight( BACKOFF_RANDOM_WEIGHT );
-	passive.set_backoff_candidate_list_weight( BACKOFF_CANDIDATE_LIST_WEIGHT );
-	passive.set_transmission_power_dB( TRANSMISSION_POWER_DB );
-	passive.set_random_enable_timer_range( RANDOM_ENABLE_TIMER_RANGE );
-#ifdef PLTT_SECURE
-	passive.set_decryption_request_timer( DECRYPTION_REQUEST_TIMER );
-	passive.set_decryption_request_offset( DECRYPTION_REQUEST_OFFSET );
-	passive.set_decryption_max_retries( DECRYPTION_MAX_RETRIES );
-	passive.set_erase_daemon_timer( ERASE_DAEMON_TIMER );
-#endif
-#ifdef CONFIG_PROACTIVE_INHIBITION
-	passive.set_proactive_inhibition_timer( PROACTIVE_INHIBITION_TIMER );
-#endif
 	passive.enable();
 }

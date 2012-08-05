@@ -20,8 +20,8 @@
 #ifndef __PLTT_TRACKER_H__
 #define __PLTT_TRACKER_H__
 
-#include "PLTT_config.h"
-#include "PLTT_message.h"
+#include "PLTT_default_values_config.h"
+#include "PLTT_source_config.h"
 
 namespace wiselib
 {
