@@ -20,8 +20,9 @@
 #ifndef __PLTT_TARGET_H__
 #define __PLTT_TARGET_H__
 
-#include "PLTT_config_revision.h"
-#include "PLTT_message.h"
+#include "PLTT_default_values_config.h"
+#include "PLTT_source_config.h"
+
 #undef PLTT_SECURE
 #ifdef PLTT_SECURE
 	#include "util/delegates/delegate.hpp"

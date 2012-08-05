@@ -16,6 +16,7 @@
 ** License along with the Wiselib.                                       **
 ** If not, see <http://www.gnu.org/licenses/>.                           **
 ***************************************************************************/
+
 #ifndef __MESSAGE_H__
 #define __MESSAGE_H__
 
@@ -43,44 +44,44 @@ namespace wiselib
 		inline message_id_t get_message_id()
 		{
 			size_t MESSAGE_ID_POS = 0;
-			return read<OsModel, block_data_t, message_id_t>( buffer + MESSAGE_ID_POS );
+			return read<OsModel, block_data_t, message_id_t> ( buffer + MESSAGE_ID_POS );
 		};
 		// --------------------------------------------------------------------
 		inline void set_message_id( message_id_t _id )
 		{
 			size_t MESSAGE_ID_POS = 0;
-			write<OsModel, block_data_t, message_id_t>( buffer + MESSAGE_ID_POS, _id );
+			write<OsModel, block_data_t, message_id_t> ( buffer + MESSAGE_ID_POS, _id );
 		}
 		// --------------------------------------------------------------------
 		inline size_t get_payload_size()
 		{
 			size_t MESSAGE_ID_POS = 0;
-			size_t PAYLOAD_SIZE_POS = MESSAGE_ID_POS + sizeof( message_id_t );
-			return read<OsModel, block_data_t, size_t>(buffer + PAYLOAD_SIZE_POS);
+			size_t PAYLOAD_SIZE_POS = MESSAGE_ID_POS + sizeof(message_id_t);
+			return read<OsModel, block_data_t, size_t> (buffer + PAYLOAD_SIZE_POS );
 		}
 		// --------------------------------------------------------------------
 		inline block_data_t* get_payload()
 		{
 			size_t MESSAGE_ID_POS = 0;
-			size_t PAYLOAD_SIZE_POS = MESSAGE_ID_POS + sizeof( message_id_t );
-			size_t PAYLOAD_POS = PAYLOAD_SIZE_POS + sizeof( size_t );
+			size_t PAYLOAD_SIZE_POS = MESSAGE_ID_POS + sizeof(message_id_t);
+			size_t PAYLOAD_POS = PAYLOAD_SIZE_POS + sizeof(size_t);
 			return buffer + PAYLOAD_POS;
 		}
 		// --------------------------------------------------------------------
-		inline void set_payload( size_t len, block_data_t *buf )
+		inline void set_payload( size_t _len, block_data_t* _buf )
 		{
 			size_t MESSAGE_ID_POS = 0;
-			size_t PAYLOAD_SIZE_POS = MESSAGE_ID_POS + sizeof( message_id_t );
-			size_t PAYLOAD_POS = PAYLOAD_SIZE_POS + sizeof( size_t );
-			write<OsModel, block_data_t, size_t>(buffer + PAYLOAD_SIZE_POS, len);
-			memcpy( buffer + PAYLOAD_POS, buf, len);
+			size_t PAYLOAD_SIZE_POS = MESSAGE_ID_POS + sizeof(message_id_t);
+			size_t PAYLOAD_POS = PAYLOAD_SIZE_POS + sizeof(size_t);
+			write<OsModel, block_data_t, size_t> ( buffer + PAYLOAD_SIZE_POS, _len );
+			memcpy( buffer + PAYLOAD_POS, _buf, _len );
 		}
 		// --------------------------------------------------------------------
 		inline size_t serial_size()
 		{
 			size_t MESSAGE_ID_POS = 0;
-			size_t PAYLOAD_SIZE_POS = MESSAGE_ID_POS + sizeof( message_id_t );
-			size_t PAYLOAD_POS = PAYLOAD_SIZE_POS + sizeof( size_t );
+			size_t PAYLOAD_SIZE_POS = MESSAGE_ID_POS + sizeof(message_id_t);
+			size_t PAYLOAD_POS = PAYLOAD_SIZE_POS + sizeof(size_t);
 			return PAYLOAD_POS + get_payload_size();
 		}
 		// --------------------------------------------------------------------
@@ -96,19 +97,19 @@ namespace wiselib
 			return *this;
 		}
 		// --------------------------------------------------------------------
-		inline void print( Debug& debug, Radio& radio )
+		inline void print( Debug& _debug, Radio& _radio )
 		{
-			debug.debug( "-------------------------------------------------------\n");
-			debug.debug( "Message (serial_size: %i) :\n", serial_size() );
-			debug.debug( "message_id : %d\n", get_message_id() );
-			debug.debug( "payload_size: %d\n", get_payload_size() );
-			debug.debug( "serial_size: %d\n", serial_size() );
-			debug.debug( "payload:\n");
+			_debug.debug( "-------------------------------------------------------\n" );
+			_debug.debug( "Message : \n" );
+			_debug.debug( "message_id (size %i) : %d\n", sizeof(message_id_t), get_message_id() );
+			_debug.debug( "payload_size: %d\n", get_payload_size() );
+			_debug.debug( "serial_size: %d\n", serial_size() );
+			_debug.debug( "payload : \n");
 			for (size_t i = 0; i < get_payload_size(); i++ )
 			{
-				debug.debug( "%d", get_payload()[i] );
+				_debug.debug( "%d", get_payload()[i] );
 			}
-			debug.debug( "-------------------------------------------------------\n");
+			_debug.debug( "-------------------------------------------------------\n" );
 		}
 	private:
 		block_data_t buffer[Radio::MAX_MESSAGE_LENGTH];

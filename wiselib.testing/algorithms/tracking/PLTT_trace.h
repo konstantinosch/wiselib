@@ -361,7 +361,7 @@ namespace wiselib
 #ifdef	DEBUG_PLTT_TRACE_H
 		inline void print( Debug& _debug, Radio& _radio )
 		{
-			_debug.debug( "-------------------------------------------------------\n");
+			_debug.debug( "-------------------------------------------------------\n" );
 			_debug.debug( "PLTT_Trace : \n" );
 			_debug.debug( "diminish_seconds (size %i) : %i\n", sizeof(diminish_seconds), diminish_seconds );
 			_debug.debug( "diminish_amount (size %i) : %i\n", sizeof(diminish_amount), diminish_amount );
@@ -377,7 +377,7 @@ namespace wiselib
 			current.print( _debug, _radio );
 			parent.print( _debug, _radio );
 			grandparent.print( _debug, _radio );
-			_debug.debug( "-------------------------------------------------------\n");
+			_debug.debug( "-------------------------------------------------------\n" );
 		}
 #endif
 		// --------------------------------------------------------------------

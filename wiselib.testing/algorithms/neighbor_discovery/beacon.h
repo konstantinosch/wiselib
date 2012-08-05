@@ -49,14 +49,14 @@ namespace wiselib
 		typedef ProtocolPayload_Type<Os, Radio, Debug> ProtocolPayload;
 		typedef ProtocolSettings_Type<Os, Radio, Timer, Debug> ProtocolSettings;
 		typedef Protocol_Type<Os, Radio, Clock, Timer, Debug> Protocol;
-		typedef vector_static<Os, Neighbor, NB_MAX_NEIGHBORS> Neighbor_vector;
+		typedef vector_static<Os, Neighbor, ND_MAX_NEIGHBORS> Neighbor_vector;
 		typedef typename Neighbor_vector::iterator Neighbor_vector_iterator;
-		typedef vector_static<Os, ProtocolPayload, NB_MAX_REGISTERED_PROTOCOLS> ProtocolPayload_vector;
+		typedef vector_static<Os, ProtocolPayload, ND_MAX_REGISTERED_PROTOCOLS> ProtocolPayload_vector;
 		typedef typename ProtocolPayload_vector::iterator ProtocolPayload_vector_iterator;
-		typedef vector_static<Os, Protocol, NB_MAX_REGISTERED_PROTOCOLS> Protocol_vector;
+		typedef vector_static<Os, Protocol, ND_MAX_REGISTERED_PROTOCOLS> Protocol_vector;
 		typedef typename Protocol_vector::iterator Protocol_vector_iterator;
 		typedef Beacon_Type<Os, Radio, Clock, Timer, Debug> self_type;
-#ifdef NB_COORD_SUPPORT
+#ifdef NEIGHBOR_DISCOVERY_COORD_SUPPORT
 		typedef typename Neighbor::Position Position;
 #endif
 		// --------------------------------------------------------------------
@@ -145,30 +145,30 @@ namespace wiselib
 			return *this;
 		}
 		// --------------------------------------------------------------------
-#ifdef NB_DEBUG
+#ifdef DEBUG_BEACON_H
 		void print( Debug& debug, Radio& radio
-#ifdef NB_COORD_SUPPORT
+#ifdef NEIGHBOR_DISCOVERY_COORD_SUPPORT
 				,Position& pos = Position( 0, 0, 0 )
 #endif
 				)
 		{
-			debug.debug( "-------------------------------------------------------\n");
-			debug.debug( "beacon :\n");
+			debug.debug( "-------------------------------------------------------\n" );
+			debug.debug( "Beacon : \n");
 			for ( ProtocolPayload_vector_iterator it = protocol_payloads.begin(); it != protocol_payloads.end(); ++it )
 			{
 				it->print( debug, radio );
 			}
 			for ( Neighbor_vector_iterator it = neighborhood.begin(); it != neighborhood.end(); ++it )
 			{
-#ifdef NB_COORD_SUPPORT
+#ifdef NEIGHBOR_DISCOVERY_COORD_SUPPORT
 				it->print( debug, radio, pos );
 #else
 				it->print( debug, radio );
 #endif
 			}
-			debug.debug( "beacon_period : %d\n", beacon_period );
-			debug.debug( "beacon_period_update_counter : %d\n", beacon_period_update_counter );
-			debug.debug( "-------------------------------------------------------\n");
+			debug.debug( "beacon_period (size %i) : %d\n", sizeof(beacon_period), beacon_period );
+			debug.debug( "beacon_period_update_counter (size %i) : %d\n", sizeof(beacon_period_update_counter), beacon_period_update_counter );
+			debug.debug( "-------------------------------------------------------\n" );
 		}
 #endif
 		// --------------------------------------------------------------------

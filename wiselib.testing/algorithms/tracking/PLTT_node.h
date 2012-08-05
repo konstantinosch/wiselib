@@ -168,6 +168,7 @@ namespace wiselib
 #ifdef DEBUG_PLTT_NODE_H
 		inline void print( Debug& _debug, Radio _radio )
 		{
+			_debug.debug( "-------------------------------------------------------\n" );
 			_debug.debug( " PLTT_Node : \n" );
 			node.print( _debug, _radio );
 			_debug.debug( " PLTT_TargetList (size %i) :\n", target_list.size()*sizeof(PLTT_NodeTarget) );
@@ -175,6 +176,7 @@ namespace wiselib
 			{
 				i->print( _debug, _radio );
 			}
+			_debug.debug( "-------------------------------------------------------\n" );
 		}
 #endif
 		// --------------------------------------------------------------------

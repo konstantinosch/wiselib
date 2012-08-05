@@ -117,11 +117,13 @@ namespace wiselib
 		}
 		// --------------------------------------------------------------------
 #ifdef DEBUG_PLTT_NODE_TARGET_H
-		inline void print( Debug& debug, Radio& radio )
+		inline void print( Debug& _debug, Radio& _radio )
 		{
-			debug.debug( "NodeTarget : \n" );
-			debug.debug( "target_id (size %i) : %x\n", sizeof( NodeID ), target_id );
-			debug.debug( "intensity (size %i) : %i\n", sizeof( IntensityNumber ), intensity );
+			_debug.debug( "-------------------------------------------------------\n" );
+			_debug.debug( "NodeTarget : \n" );
+			_debug.debug( "target_id (size %i) : %x\n", sizeof( NodeID ), target_id );
+			_debug.debug( "intensity (size %i) : %i\n", sizeof( IntensityNumber ), intensity );
+			_debug.debug( "-------------------------------------------------------\n" );
 		}
 #endif
 		// --------------------------------------------------------------------
