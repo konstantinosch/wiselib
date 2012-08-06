@@ -110,7 +110,8 @@ namespace wiselib
 			backoff_random_weight			( PLTT_PASSIVE_H_BACKOFF_RANDOM_WEIGHT ),
 			backoff_lqi_weight				( PLTT_PASSIVE_H_BACKOFF_LQI_WEIGHT ),
 			backoff_candidate_list_weight	( PLTT_PASSIVE_H_BACKOFF_CANDIDATE_LIST_WEIGHT ),
-			random_enable_timer_range		( PLTT_PASSIVE_H_RANDOM_ENABLE_TIMER_RANGE )
+			random_enable_timer_range		( PLTT_PASSIVE_H_RANDOM_ENABLE_TIMER_RANGE ),
+			status							( WAITING_STATUS )
 #ifdef CONFIG_PLTT_SECURE
 			,decryption_request_timer		( PLTT_PASSIVE_H_DECRYPTION_REQUEST_TIMER ),
 			decryption_request_offset		( PLTT_PASSIVE_H_DECRYPTION_REQUEST_OFFSET ),
@@ -131,6 +132,7 @@ namespace wiselib
 #endif
 			radio().enable_radio();
 			reliable_radio().enable_radio();
+			set_status( ACTIVE_STATUS );
 #ifndef CONFIG_PLTT_PASSIVE_RANDOM_BOOT
 			neighbor_discovery_enable_task();
 #else
@@ -190,8 +192,8 @@ namespace wiselib
 		// -----------------------------------------------------------------------
 		void disable( void )
 		{
+			set_status( WAITING_STATUS );
 			radio().unreg_recv_callback( radio_callback_id );
-			radio().disable();
 		}
 		// -----------------------------------------------------------------------
 		void send( node_id_t _destination, size_t _len, block_data_t* _data, message_id_t _msg_id )
@@ -595,22 +597,25 @@ namespace wiselib
 		// -----------------------------------------------------------------------
 		void update_traces( void* _userdata = NULL )
 		{
-#ifdef DEBUG_PLTT_PASSIVE_H_UPDATE_TRACES
-			debug().debug( "PLTT_Passive - update_traces - Entering - Tracelist size: %i.\n", traces.size() );
-#endif
-			for ( PLTT_TraceListIterator traces_iterator = traces.begin(); traces_iterator != traces.end(); ++traces_iterator )
+			if ( status == ACTIVE_STATUS )
 			{
-				if ( ( seconds_counter % traces_iterator->get_diminish_seconds() == 0 ) && ( traces_iterator->get_inhibited() != 0 ) )
+#ifdef DEBUG_PLTT_PASSIVE_H_UPDATE_TRACES
+				debug().debug( "PLTT_Passive - update_traces - Entering - Tracelist size: %i.\n", traces.size() );
+#endif
+				for ( PLTT_TraceListIterator traces_iterator = traces.begin(); traces_iterator != traces.end(); ++traces_iterator )
 				{
-					traces_iterator->update_intensity_diminish();
-					if (traces_iterator->get_intensity() == 0)
+					if ( ( seconds_counter % traces_iterator->get_diminish_seconds() == 0 ) && ( traces_iterator->get_inhibited() != 0 ) )
 					{
-						traces_iterator->set_inhibited();
+						traces_iterator->update_intensity_diminish();
+						if (traces_iterator->get_intensity() == 0)
+						{
+							traces_iterator->set_inhibited();
+						}
 					}
 				}
+				seconds_counter++;
+				timer().template set_timer<self_type, &self_type::update_traces> ( 1000, this, 0 );
 			}
-			seconds_counter++;
-			timer().template set_timer<self_type, &self_type::update_traces> ( 1000, this, 0 );
 		}
 		// -----------------------------------------------------------------------
 #ifdef DEBUG_PLTT_PASSIVE_H
@@ -999,47 +1004,50 @@ namespace wiselib
 		// -----------------------------------------------------------------------
 		void decryption_request_daemon( void* _userdata = NULL )
 		{
-#ifdef DEBUG_PLTT_PASSIVE_H_DECRYPTION_REQUEST_DAEMON
-			debug().debug( "PLTT_Passive - decryption_request_daemon - Entering with secure_trace list of size: %i.\n", secure_traces.size() );
-#endif
-			PLTT_SecureTraceListIterator i = secure_traces.begin();
-			while ( i != secure_traces.end() )
+			if ( status == ACTIVE_STATUS )
 			{
-				if ( ( i->get_decryption_retries() >= decryption_max_retries ) && ( i->get_inhibited() !=0 ) )
+#ifdef DEBUG_PLTT_PASSIVE_H_DECRYPTION_REQUEST_DAEMON
+				debug().debug( "PLTT_Passive - decryption_request_daemon - Entering with secure_trace list of size: %i.\n", secure_traces.size() );
+#endif
+				PLTT_SecureTraceListIterator i = secure_traces.begin();
+				while ( i != secure_traces.end() )
 				{
+					if ( ( i->get_decryption_retries() >= decryption_max_retries ) && ( i->get_inhibited() !=0 ) )
+					{
 #ifdef DEBUG_PLTT_PASSIVE_H_DECRYPTION_REQUEST_DAEMON
-					debug().debug( "PLTT_Passive - decryption_request_daemon - Before erase with id: %x and size : %d.\n", i->get_request_id(), secure_traces.size() );
+						debug().debug( "PLTT_Passive - decryption_request_daemon - Before erase with id: %x and size : %d.\n", i->get_request_id(), secure_traces.size() );
 #endif
-					secure_traces.erase( i ); //poop happening...
+						secure_traces.erase( i ); //poop happening...
 #ifdef DEBUG_PLTT_PASSIVE_H_DECRYPTION_REQUEST_DAEMON
-					debug().debug( "PLTT_Passive - decryption_request_daemon - After erase with id: %x and size : %d.\n", i->get_request_id(), secure_traces.size() );
-					timer().template set_timer<self_type, &self_type::decryption_request_daemon>( erase_daemon_timer, this, 0 );
-					return;
+						debug().debug( "PLTT_Passive - decryption_request_daemon - After erase with id: %x and size : %d.\n", i->get_request_id(), secure_traces.size() );
+						timer().template set_timer<self_type, &self_type::decryption_request_daemon>( erase_daemon_timer, this, 0 );
+						return;
 #endif
+					}
+					else if ( i->get_decryption_retries() < decryption_max_retries )
+					{
+						PrivacyMessage pm;
+						pm.set_request_id( i->get_request_id() );
+						pm.set_payload( i->get_target_id_size(), i->get_target_id() );
+						pm.set_msg_id( PRIVACY_DECRYPTION_REQUEST_ID );
+#ifdef DEBUG_PLTT_PASSIVE_H_DECRYPTION_REQUEST_DAEMON
+						debug().debug( "PLTT_Passive - decryption_request_daemon - Sending request with id: %x with dB : %d.\n", i->get_request_id(), transmission_power_dB );
+						i->print( debug(), radio() );
+						debug().debug( "PLTT_Passive - decryption_request_daemon - Buffer size of : %i vs %i.\n", pm.payload_size(), i->get_target_id_size() );
+#endif
+						i->set_decryption_retries();
+						TxPower power;
+						power.set_dB( transmission_power_dB );
+						radio().set_power( power );
+						radio().send( Radio::BROADCAST_ADDRESS, pm.buffer_size(), pm.buffer() );
+					}
+					++i;
 				}
-				else if ( i->get_decryption_retries() < decryption_max_retries )
-				{
-					PrivacyMessage pm;
-					pm.set_request_id( i->get_request_id() );
-					pm.set_payload( i->get_target_id_size(), i->get_target_id() );
-					pm.set_msg_id( PRIVACY_DECRYPTION_REQUEST_ID );
-#ifdef DEBUG_PLTT_PASSIVE_H_DECRYPTION_REQUEST_DAEMON
-					debug().debug( "PLTT_Passive - decryption_request_daemon - Sending request with id: %x with dB : %d.\n", i->get_request_id(), transmission_power_dB );
-					i->print( debug(), radio() );
-					debug().debug( "PLTT_Passive - decryption_request_daemon - Buffer size of : %i vs %i.\n", pm.payload_size(), i->get_target_id_size() );
-#endif
-					i->set_decryption_retries();
-					TxPower power;
-					power.set_dB( transmission_power_dB );
-					radio().set_power( power );
-					radio().send( Radio::BROADCAST_ADDRESS, pm.buffer_size(), pm.buffer() );
-				}
-				++i;
+				timer().template set_timer<self_type, &self_type::decryption_request_daemon>( decryption_request_timer, this, 0 );
 			}
-			timer().template set_timer<self_type, &self_type::decryption_request_daemon>( decryption_request_timer, this, 0 );
 		}
 		// -----------------------------------------------------------------------
-		void erase_secure_trace( PLTT_SecureTrace st )
+		void erase_secure_trace( PLTT_SecureTrace _st )
 		{
 #ifdef DEBUB_PLTT_PASSIVE_H_ERASE_SECURE_TRACE
 			debug().debug( "PLTT_Passive - erase_secure_trace - Entering.\n" );
@@ -1049,7 +1057,7 @@ namespace wiselib
 #ifdef DEBUB_PLTT_PASSIVE_H_ERASE_SECURE_TRACE
 				debug().debug( "PLTT_Passive - erase_secure_trace - Trace of %x with [c : %x] [p: %x] [g %x].\n", i->get_target_id(), i->get_current().get_id(), i->get_parent().get_id(), i->get_grandparent().get_id() );
 #endif
-				if ( ( i->compare_target_id( st.get_target_id() ) ) && ( i->get_decryption_retries() >= decryption_max_retries ) && ( i->get_inhibited() !=0 ) )
+				if ( ( i->compare_target_id( _st.get_target_id() ) ) && ( i->get_decryption_retries() >= decryption_max_retries ) && ( i->get_inhibited() !=0 ) )
 				{
 					secure_traces.erase( i );
 #ifdef DEBUB_PLTT_PASSIVE_H_ERASE_SECURE_TRACE
@@ -1096,34 +1104,34 @@ namespace wiselib
 			self = _n;
 		}
 		// -----------------------------------------------------------------------
-		void set_intensity_detection_threshold( uint8_t value )
+		void set_intensity_detection_threshold( uint8_t _value )
 		{
-			intensity_detection_threshold = value;
+			intensity_detection_threshold = _value;
 		}
 		// -----------------------------------------------------------------------
-		void set_backoff_connectivity_weight( millis_t c )
+		void set_backoff_connectivity_weight( millis_t _c )
 		{
-			backoff_connectivity_weight = c;
+			backoff_connectivity_weight = _c;
 		}
 		// -----------------------------------------------------------------------
-		void set_backoff_lqi_weight( millis_t l )
+		void set_backoff_lqi_weight( millis_t _l )
 		{
-			backoff_lqi_weight = l;
+			backoff_lqi_weight = _l;
 		}
 		// -----------------------------------------------------------------------
-		void set_backoff_random_weight( millis_t r )
+		void set_backoff_random_weight( millis_t _r )
 		{
-			backoff_random_weight = r;
+			backoff_random_weight = _r;
 		}
 		// -----------------------------------------------------------------------
-		void set_backoff_candidate_list_weight( millis_t p )
+		void set_backoff_candidate_list_weight( millis_t _p )
 		{
-			backoff_candidate_list_weight = p;
+			backoff_candidate_list_weight = _p;
 		}
 		// -----------------------------------------------------------------------
-		void set_nb_convergence_time( millis_t nb )
+		void set_nb_convergence_time( millis_t _nb )
 		{
-			nb_convergence_time = nb;
+			nb_convergence_time = _nb;
 		}
 		// -----------------------------------------------------------------------
 		millis_t get_backoff_connectivity_weight()
@@ -1173,9 +1181,9 @@ namespace wiselib
 		// -----------------------------------------------------------------------
 #ifdef CONFIG_PLTT_SECURE
 		// -----------------------------------------------------------------------
-		void set_decryption_request_timer( millis_t drt )
+		void set_decryption_request_timer( millis_t _drt )
 		{
-			decryption_request_timer = drt;
+			decryption_request_timer = _drt;
 		}
 		// -----------------------------------------------------------------------
 		millis_t get_decryption_request_timer()
@@ -1183,9 +1191,9 @@ namespace wiselib
 			return decryption_request_timer;
 		}
 		// -----------------------------------------------------------------------
-		void set_decryption_request_offset( millis_t dro )
+		void set_decryption_request_offset( millis_t _dro )
 		{
-			decryption_request_offset = dro;
+			decryption_request_offset = _dro;
 		}
 		// -----------------------------------------------------------------------
 		millis_t get_decryption_request_offset()
@@ -1211,6 +1219,16 @@ namespace wiselib
 		millis_t get_erase_daemon_timer()
 		{
 			return erase_daemon_timer;
+		}
+		// -----------------------------------------------------------------------
+		uint8_t get_status()
+		{
+			return status;
+		}
+		// -----------------------------------------------------------------------
+		void set_status( int _st )
+		{
+			status = _st;
 		}
 		// -----------------------------------------------------------------------
 #endif
@@ -1269,6 +1287,12 @@ namespace wiselib
 			,PRIVACY_DECRYPTION_REPLY_ID = 130
 #endif
 		};
+		enum pltt_passive_status
+		{
+			ACTIVE_STATUS,
+			WAITING_STATUS,
+			PLTT_PASSIVE_STATUS_NUM_VALUES
+		};
 		uint32_t radio_callback_id;
 		uint32_t reliable_radio_callback_id;
 		uint32_t seconds_counter;
@@ -1282,6 +1306,7 @@ namespace wiselib
 		uint32_t backoff_lqi_weight;
 		uint32_t backoff_candidate_list_weight;
 		uint32_t random_enable_timer_range;
+		uint8_t status;
 #ifdef CONFIG_PLTT_SECURE
 		PLTT_SecureTraceList secure_traces;
 		millis_t decryption_request_timer;

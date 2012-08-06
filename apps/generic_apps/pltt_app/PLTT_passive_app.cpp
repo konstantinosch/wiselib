@@ -11,7 +11,6 @@
 #include "algorithms/neighbor_discovery/neighbor_discovery.h"
 #include "radio/reliable/reliable_radio_simple.h"
 #include "PLTT_app_config.h"
-
 #ifdef CONFIG_PLTT_SECURE
 #include "algorithms/tracking/PLTT_secure_trace.h"
 #endif
@@ -35,7 +34,7 @@ typedef Os::Clock Clock;
 typedef uint8 TimesNumber;
 typedef uint8 SecondsNumber;
 typedef uint32 Integer;
-typedef uint16_t AgentID;
+typedef uint32 AgentID;
 typedef wiselib::NeighborDiscovery_Type<Os, Radio, Clock, Timer, Rand, Debug> NeighborDiscovery;
 typedef wiselib::Position2DType<Os, Radio, CoordinatesNumber, Debug> Position;
 typedef wiselib::NodeType<Os, Radio, node_id_t, Position, Debug> Node;

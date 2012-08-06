@@ -198,7 +198,7 @@ namespace wiselib
 		node_id_t target_id;
 		node_id_t tracker_id;
 		IntensityNumber max_intensity;
-		block_data_t payload[PLTT_AGENT_MAX_PAYLOAD];
+		block_data_t payload[PLTT_AGENT_H_MAX_PAYLOAD];
 		size_t payload_size;
 	};
 }

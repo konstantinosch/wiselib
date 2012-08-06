@@ -315,12 +315,12 @@ namespace wiselib
 			}
 		}
 		// --------------------------------------------------------------------
-		int get_status()
+		uint8_t get_status()
 		{
 			return status;
 		}
 		// --------------------------------------------------------------------
-		void set_status( int _st )
+		void set_status( uint8_t _st )
 		{
 			status = _st;
 		}

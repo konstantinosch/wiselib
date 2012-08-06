@@ -1,3 +1,0 @@
--shawn link metric type incompatability uint16_t vs uint8_t
--check de-serialization in message with the general stability (owner node) also check the data type length
--check received beacon for node_stability memeber (how it's updated)

@@ -141,9 +141,9 @@ template<	typename Os_P,
 #endif
 				)
 			{
-//#ifdef PRIVACY_DEBUG
+#ifdef PRIVACY_DEBUG
 			debug().debug( "Privacy %x: Radio received - Entering with len %i, msg_id %i from %x \n", radio().id(), len, msg_id, from );
-//#endif
+#endif
 				PrivacyMessage* message = (PrivacyMessage*) data;
 #ifdef PRIVACY_DEBUG
 				debug().debug( "Privacy %x: Radio received - received request\n", radio().id() );
@@ -197,9 +197,9 @@ template<	typename Os_P,
 #ifdef PRIVACY_ENABLE_DECRYPTION
 					if ( (  i->msg_id() == PRIVACY_DECRYPTION_REQUEST_ID ) && ( privacy_enable_decryption_switch ) )
 					{
-//#ifdef PRIVACY_DEBUG
+#ifdef PRIVACY_DEBUG
 					debug().debug( "Privacy %x: Process request - Forwarding request %d with service %d to UART\n", radio().id(), i->request_id(), i->msg_id() );
-//#endif
+#endif
 						uart_read_write = 1;
 						i->set_msg_id( PRIVACY_DECRYPTION_REPLY_ID );
 						i->set_payload( sizeof(node_id_t), i->payload() );
@@ -248,21 +248,21 @@ template<	typename Os_P,
 				PrivacyMessage* message = ( PrivacyMessage* )buff;
 				notify_privacy_callbacks( len, buff );
 				send_privacy( len, buff );
-//#ifdef PRIVACY_DEBUG
+#ifdef PRIVACY_DEBUG
 			debug().debug("Privacy %x: UART Receive - sending with req id %x \n", radio().id(), message->request_id() );
-//#endif
+#endif
 				for ( PrivacyMessageListIterator i = message_list.begin(); i != message_list.end(); ++i )
 				{
 					if ( i->request_id() == message->request_id() )
 					{
-//#ifdef PRIVACY_DEBUG
+#ifdef PRIVACY_DEBUG
 			debug().debug("Privacy %x: UART Receive - Before erase with req id %x \n", radio().id(), message->request_id() );
-//#endif
+#endif
 						message_list.erase( i );
 						uart_read_write = 0;
-//#ifdef PRIVACY_DEBUG
+#ifdef PRIVACY_DEBUG
 			debug().debug("Privacy %x: UART Receive - After erase with req id %x \n", radio().id(), message->request_id() );
-//#endif
+#endif
 						return;
 					}
 				}
@@ -270,11 +270,11 @@ template<	typename Os_P,
 		}
 		//------------------------------------------------------------------------
 		template<class T, void (T::*TMethod)( node_id_t, size_t, block_data_t* )>
-		uint8_t reg_privacy_callback( uint16_t callback_id, T *obj_pnt )
+		uint8_t reg_privacy_callback( uint16_t callback_id, T* _obj_pnt )
 		{
 			callback_element ce;
 			ce.callback_id = callback_id;
-			ce.callback = event_notifier_delegate_t::template from_method<T, TMethod>( obj_pnt );
+			ce.callback = event_notifier_delegate_t::template from_method<T, TMethod>( _obj_pnt );
 			privacy_callbacks.push_back ( ce );
 			return 0;
 		}
