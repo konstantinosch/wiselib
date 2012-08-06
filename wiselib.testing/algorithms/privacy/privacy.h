@@ -94,7 +94,7 @@ template<	typename Os_P,
 		void enable( void )
 		{
 #ifdef PRIVACY_DEBUG
-			debug().debug( "Privacy %x: Boot \n", radio().id() );
+			debug().debug( "Privacy - enable - Entering.\n" );
 #endif
 			radio().enable_radio();
 
@@ -107,26 +107,31 @@ template<	typename Os_P,
 				radio_callback_id_ = radio().template reg_recv_callback<self_type, &self_type::radio_receive>( this );
 			}
 			process_request();
+#ifdef PRIVACY_DEBUG
+			debug().debug( "Privacy - enable - Entering.\n" );
+#endif
 		}
 		// -----------------------------------------------------------------------
 		void disable( void )
 		{
 #ifdef PRIVACY_DEBUG
-			debug().debug( "Private %x: Disable \n", radio().id() );
+			debug().debug( "Private - disable - Entering.\n" );
 #endif
 			radio().unreg_recv_callback( radio_callback_id_ );
-			radio().disable();
 #ifndef SHAWN_PRIVACY_PC_APPLICATION
 			uart().unreg_read_callback( uart_callback_id_ );
 			uart().disable_serial_comm();
 #endif
+#ifdef PRIVACY_DEBUG
+			debug().debug( "Private - disable - Exiting.\n" );
+#endif
 		}
 		// -----------------------------------------------------------------------
-		void radio_receive( node_id_t from, size_t len, block_data_t *data )
+		void radio_receive( node_id_t _from, size_t _len, block_data_t* _data )
 		{
-			message_id_t msg_id = *data;
+			message_id_t msg_id = *_data;
 #ifdef PRIVACY_DEBUG
-			debug().debug( "Privacy %x: Radio received - Entering with len %i, msg_id %i \n", radio().id(), len, msg_id );
+			debug().debug( "Privacy - radio_receive - Entering with len %i, msg_id %i, from %x.\n", radio().id(), _len, msg_id, _from );
 #endif
 			if	(
 					0
@@ -141,16 +146,13 @@ template<	typename Os_P,
 #endif
 				)
 			{
+				PrivacyMessage* message = (PrivacyMessage*) _data;
 #ifdef PRIVACY_DEBUG
-			debug().debug( "Privacy %x: Radio received - Entering with len %i, msg_id %i from %x \n", radio().id(), len, msg_id, from );
-#endif
-				PrivacyMessage* message = (PrivacyMessage*) data;
-#ifdef PRIVACY_DEBUG
-				debug().debug( "Privacy %x: Radio received - received request\n", radio().id() );
-				debug().debug( "Message:\n");
-				debug().debug( "msg id %i (size %i )\n", msg_id, sizeof( msg_id ));
-				debug().debug( "req id %x (size %i)\n", message->request_id(), sizeof( uint16_t) );
-				debug().debug( "pay len %i (size %i)\n", message->payload_size(), sizeof( size_t ) );
+				debug().debug( "Privacy - radio_receive - Received request.\n" );
+				debug().debug( "Message : \n");
+				debug().debug( "msg id %i (size %i )\n", msg_id, sizeof(msg_id) );
+				debug().debug( "req id %x (size %i)\n", message->request_id(), sizeof(uint16_t) );
+				debug().debug( "pay len %i (size %i)\n", message->payload_size(), sizeof(size_t) );
 				for ( size_t i = 0; i < message->payload_size(); ++i )
 				{
 					debug().debug( " %i", *(message->payload()+i) );
@@ -161,7 +163,7 @@ template<	typename Os_P,
 			}
 			else if ( msg_id == PRIVACY_UNREGISTER )
 			{
-				PrivacyMessage* message = (PrivacyMessage*) data;
+				PrivacyMessage* message = (PrivacyMessage*) _data;
 				for ( CallbackContainerIterator i = privacy_callbacks.begin(); i != privacy_callbacks.end(); ++i )
 				{
 					if ( i->callback_id == message->request_id() ) { privacy_callbacks.erase( i ); }
@@ -169,12 +171,12 @@ template<	typename Os_P,
 			}
 		}
 		// -----------------------------------------------------------------------
-		void process_request( void* data = NULL )
+		void process_request( void* _userdata = NULL )
 		{
 			if ( ( uart_read_write == 0 ) && ( message_list.size() > 0 ) )
 			{
 #ifdef PRIVACY_DEBUG
-			debug().debug( "Privacy %x: Process request - Message list of %i elements and uart_read_write_switch %i \n", radio().id(), message_list.size(), uart_read_write );
+			debug().debug( "Privacy - process_request - Message list of %i elements and uart_read_write_switch %i.\n", message_list.size(), uart_read_write );
 #endif
 					PrivacyMessageListIterator i = message_list.begin();
 #ifndef SHAWN_PRIVACY_PC_APPLICATION
@@ -185,7 +187,7 @@ template<	typename Os_P,
 					if	( ( i->msg_id() == PRIVACY_ENCRYPTION_REQUEST_ID ) && ( privacy_enable_encryption_switch ) )
 					{
 #ifdef PRIVACY_DEBUG
-						debug().debug( "Privacy %x: Process request - Forwarding request %d with service %d to UART\n", radio().id(), i->request_id(), i->msg_id() );
+						debug().debug( "Privacy - process_request - Forwarding request %d with service %d to UART.\n", i->request_id(), i->msg_id() );
 #endif
 						uart_read_write = 1;
 						i->set_msg_id( PRIVACY_ENCRYPTION_REPLY_ID );
@@ -198,7 +200,7 @@ template<	typename Os_P,
 					if ( (  i->msg_id() == PRIVACY_DECRYPTION_REQUEST_ID ) && ( privacy_enable_decryption_switch ) )
 					{
 #ifdef PRIVACY_DEBUG
-					debug().debug( "Privacy %x: Process request - Forwarding request %d with service %d to UART\n", radio().id(), i->request_id(), i->msg_id() );
+					debug().debug( "Privacy - process_request - Forwarding request %d with service %d to UART.\n", i->request_id(), i->msg_id() );
 #endif
 						uart_read_write = 1;
 						i->set_msg_id( PRIVACY_DECRYPTION_REPLY_ID );
@@ -212,7 +214,7 @@ template<	typename Os_P,
 					if ( (  i->msg_id() == PRIVACY_RANDOMIZE_REQUEST_ID ) && ( privacy_enable_randomization_switch ) )
 					{
 #ifdef PRIVACY_DEBUG
-					debug().debug( "Privacy %x: Process request - Forwarding request %d service %d to UART\n", radio().id(), i->request_id(), i->msg_id() );
+					debug().debug( "Privacy - process_request - Forwarding request %d service %d to UART.\n", i->request_id(), i->msg_id() );
 #endif
 						uart_read_write = 1;
 						i->set_msg_id( PRIVACY_RANDOMIZE_REPLY_ID );
@@ -223,15 +225,15 @@ template<	typename Os_P,
 #endif
 #endif
 			}
-			timer().template set_timer<self_type, &self_type::process_request>( 50, this, ( void* )data );
+			timer().template set_timer<self_type, &self_type::process_request>( 50, this, (void*)_userdata );
 		}
 		//------------------------------------------------------------------------
-		void uart_receive( size_t len, block_data_t* buff )
+		void uart_receive( size_t _len, block_data_t* _buff )
 		{
 #ifdef PRIVACY_DEBUG
-			debug().debug("Privacy %x: UART Receive - Entering \n", radio().id() );
+			debug().debug("Privacy - uart_receive - Entering.\n", radio().id() );
 #endif
-			message_id_t msg_id = *buff;
+			message_id_t msg_id = *_buff;
 			if	(
 					0
 #ifdef PRIVACY_ENABLE_ENCRYPTION
@@ -245,23 +247,23 @@ template<	typename Os_P,
 #endif
 				)
 			{
-				PrivacyMessage* message = ( PrivacyMessage* )buff;
-				notify_privacy_callbacks( len, buff );
-				send_privacy( len, buff );
+				PrivacyMessage* message = ( PrivacyMessage* )_buff;
+				notify_privacy_callbacks( _len, _buff );
+				send_privacy( _len, _buff );
 #ifdef PRIVACY_DEBUG
-			debug().debug("Privacy %x: UART Receive - sending with req id %x \n", radio().id(), message->request_id() );
+			debug().debug("Privacy - uart_receive - sending with req id %x.\n", message->request_id() );
 #endif
 				for ( PrivacyMessageListIterator i = message_list.begin(); i != message_list.end(); ++i )
 				{
 					if ( i->request_id() == message->request_id() )
 					{
 #ifdef PRIVACY_DEBUG
-			debug().debug("Privacy %x: UART Receive - Before erase with req id %x \n", radio().id(), message->request_id() );
+			debug().debug("Privacy - uart_receive - Before erase with req id %x.\n", message->request_id() );
 #endif
 						message_list.erase( i );
 						uart_read_write = 0;
 #ifdef PRIVACY_DEBUG
-			debug().debug("Privacy %x: UART Receive - After erase with req id %x \n", radio().id(), message->request_id() );
+			debug().debug("Privacy - uart_receive - After erase with req id %x.\n", message->request_id() );
 #endif
 						return;
 					}
@@ -279,20 +281,20 @@ template<	typename Os_P,
 			return 0;
 		}
 		//------------------------------------------------------------------------
-		void notify_privacy_callbacks( size_t len, block_data_t* buff )
+		void notify_privacy_callbacks( size_t _len, block_data_t* _buff )
 		{
 #ifdef PRIVACY_DEBUG
-			debug().debug( "Privacy %x: Notify privacy callbacks - Entering with size %i\n", radio().id(), privacy_callbacks.size() );
+			debug().debug( "Privacy - notify_privacy_callbacks - Entering with size %i.\n", privacy_callbacks.size() );
 #endif
 			for ( CallbackContainerIterator i = privacy_callbacks.begin(); i != privacy_callbacks.end(); ++i )
 			{
-				(i->callback )( radio().id(), len, buff );
+				(i->callback )( radio().id(), _len, _buff );
 			}
 		}
 		// -----------------------------------------------------------------------
-		void send_privacy( size_t len, block_data_t* buff )
+		void send_privacy( size_t _len, block_data_t *_buff )
 		{
-			message_id_t msg_id = *buff;
+			message_id_t msg_id = *_buff;
 			if	(
 					0
 #ifdef PRIVACY_ENABLE_ENCRYPTION
@@ -309,7 +311,7 @@ template<	typename Os_P,
 				TxPower power;
 				power.set_dB( privacy_power_db );
 				radio().set_power( power );
-				radio().send( Radio::BROADCAST_ADDRESS, len, buff );
+				radio().send( Radio::BROADCAST_ADDRESS, _len, _buff );
 			}
 		}
 		// -----------------------------------------------------------------------

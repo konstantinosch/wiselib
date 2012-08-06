@@ -71,6 +71,16 @@ namespace wiselib
 			reliable_radio_ = &_reliable_radio;
 		}
 		// -----------------------------------------------------------------------
+		Node* get_self()
+		{
+			return &self;
+		}
+		// -----------------------------------------------------------------------
+		void set_self( Node _n )
+		{
+			self = _n;
+		}
+		// -----------------------------------------------------------------------
 		PLTT_TrackerType() :
 			radio_callback_id					( 0 ),
 			reliable_radio_callback_id			( 0 ),
@@ -134,6 +144,7 @@ namespace wiselib
 			if ( current_link_metric != 255 )
 			{
 				agent = PLTT_Agent( current_agent_id, target_id, radio().id(), target_max_inten );
+				agent.set_start_millis( clock().milliseconds( clock().time() ) + clock().seconds( clock().time() ) * 1000 );
 				block_data_t buff[ReliableRadio::MAX_MESSAGE_LENGTH];
 				trans_power.set_dB( transmission_power_dB );
 				radio().set_power( trans_power );
@@ -280,6 +291,7 @@ namespace wiselib
 		uint8_t status;
 		millis_t generate_agent_period;
 		millis_t generate_agent_period_offset;
+		Node self;
 	};
 }
 #endif

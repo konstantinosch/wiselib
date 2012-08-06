@@ -12,7 +12,7 @@
 #include "algorithms/tracking/PLTT_agent.h"
 #include "algorithms/tracking/PLTT_tracker.h"
 #endif
-#ifdef CONFIG_PLTT_SECURE
+#ifdef CONFIG_PLTT_PRIVACY
 #include "algorithms/tracking/PLTT_secure_trace.h"
 #include "algorithms/privacy/privacy.h"
 #include "algorithms/privacy/privacy_message.h"
@@ -42,7 +42,7 @@ typedef wiselib::PLTT_AgentType< Os, Radio, AgentID, IntensityNumber, Debug> PLT
 typedef wiselib::PLTT_TrackerType<Os, PLTT_Agent, Node, Position, IntensityNumber, Timer, Radio, ReliableRadio, Rand, Clock, Debug> PLTT_Tracker;
 #endif
 typedef wiselib::PLTT_TraceType<Os, Radio, uint8, uint8, IntensityNumber, Node, node_id_t, Debug> PLTT_Trace;
-#ifdef CONFIG_PLTT_SECURE
+#ifdef CONFIG_PLTT_PRIVACY
 typedef wiselib::PLTT_SecureTraceType<Os, Radio, TimesNumber, SecondsNumber, IntensityNumber, Node, node_id_t, Debug> PLTT_SecureTrace;
 typedef wiselib::PrivacyMessageType<Os, Radio> PrivacyMessage;
 typedef wiselib::vector_static<Os, PrivacyMessage, 100> PrivacyMessageList;
@@ -52,7 +52,7 @@ typedef wiselib::PLTT_TargetType<Os, PLTT_SecureTrace, Node, Timer, Radio, Priva
 typedef wiselib::PLTT_TargetType<Os, PLTT_Trace, Node, Timer, Radio, Clock, Debug> PLTT_Target;
 #endif
 #ifdef CONFIG_PLTT_TARGET
-#ifdef CONFIG_PLTT_SECURE
+#ifdef CONFIG_PLTT_PRIVACY
 PLTT_Target target( PLTT_SecureTrace( PLTT_TRACE_DIMINISH_SECONDS, PLTT_TRACE_DIMINISH_AMOUNT, PLTT_TRACE_SPREAD_PENALTY, PLTT_TRACE_START_INTENSITY, 0 ), PLTT_TARGET_SPREAD_MILIS, PLTT_TARGET_TRANSMISSION_POWER );
 #else
 PLTT_Target target( PLTT_Trace( PLTT_TRACE_DIMINISH_SECONDS, PLTT_TRACE_DIMINISH_AMOUNT, PLTT_TRACE_SPREAD_PENALTY, PLTT_TRACE_START_INTENSITY, 0 ), PLTT_TARGET_SPREAD_MILIS, PLTT_TARGET_TRANSMISSION_POWER );
@@ -62,7 +62,7 @@ PLTT_Target target( PLTT_Trace( PLTT_TRACE_DIMINISH_SECONDS, PLTT_TRACE_DIMINISH
 PLTT_Tracker tracker( PLTT_TARGET_ID, PLTT_TRACE_START_INTENSITY );
 ReliableRadio reliable_radio;
 #endif
-#ifdef CONFIG_PLTT_SECURE
+#ifdef CONFIG_PLTT_PRIVACY
 Privacy privacy;
 #endif
 
@@ -78,13 +78,14 @@ void application_main( Os::AppMainParameter& value )
 #ifdef CONFIG_PLTT_TRACKER
 	reliable_radio.init(  *wiselib_radio_, *wiselib_timer_, *wiselib_debug_, *wiselib_clock_, *wiselib_rand_ );
 	tracker.init( *wiselib_radio_, reliable_radio, *wiselib_timer_, *wiselib_rand_, *wiselib_clock_, *wiselib_debug_ );
+	tracker.set_self( Node( wiselib_radio_->id(), Position( 0, 0, 0 ) ) );
 	tracker.enable();
 #endif
 #ifdef CONFIG_PLTT_TARGET
 	target.init( *wiselib_radio_, *wiselib_timer_, *wiselib_clock_, *wiselib_debug_ );
 	target.set_self( Node( wiselib_radio_->id(), Position( 0, 0, 0 ) ) );
-#ifdef CONFIG_PLTT_SECURE
-	target.set_request_id( PLTT_TARGET_SECURE_REQUEST_ID_1 );
+#ifdef CONFIG_PLTT_PRIVACY
+	target.set_request_id( PLTT_TARGET_PRIVACY_REQUEST_ID_1 );
 	Os::Uart *wiselib_uart_ = &wiselib::FacetProvider<Os, Os::Uart>::get_facet( value );
 	privacy.set_randomization();
 	privacy.init( *wiselib_radio_, *wiselib_debug_, *wiselib_uart_, *wiselib_timer_ );

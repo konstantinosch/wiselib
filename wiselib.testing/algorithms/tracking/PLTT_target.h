@@ -23,7 +23,7 @@
 #include "PLTT_default_values_config.h"
 #include "PLTT_source_config.h"
 #include "../../internal_interface/message/message.h"
-#ifdef CONFIG_PLTT_SECURE
+#ifdef CONFIG_PLTT_PRIVACY
 	#include "util/delegates/delegate.hpp"
 #endif
 
@@ -34,7 +34,7 @@ namespace wiselib
 		typename Node_P,
 		typename Timer_P,
 		typename Radio_P,
-#ifdef CONFIG_PLTT_SECURE
+#ifdef CONFIG_PLTT_PRIVACY
 		typename PrivacyMessage_P,
 #endif
 		typename Clock_P,
@@ -49,7 +49,7 @@ namespace wiselib
 		typedef PLTT_Trace_P PLTT_Trace;
 		typedef Timer_P Timer;
 		typedef Clock_P Clock;
-#ifdef CONFIG_PLTT_SECURE
+#ifdef CONFIG_PLTT_PRIVACY
 		typedef PrivacyMessage_P PrivacyMessage;
 		typedef PLTT_TargetType<Os, PLTT_Trace, Node, Timer, Radio, PrivacyMessage, Clock, Debug> self_type;
 #else
@@ -63,7 +63,7 @@ namespace wiselib
 		typedef typename PLTT_Trace::TimesNumber TimesNumber;
 		typedef typename Radio::TxPower TxPower;
 		typedef Message_Type<Os, Radio, Debug> Message;
-#ifdef CONFIG_PLTT_SECURE
+#ifdef CONFIG_PLTT_PRIVACY
 		typedef delegate3<void, node_id_t, size_t, block_data_t*> event_notifier_delegate_t;
 #endif
 		void init( Radio& _radio, Timer& _timer, Clock& _clock, Debug& _debug )
@@ -73,10 +73,12 @@ namespace wiselib
 			debug_ = &_debug;
 			clock_ = &_clock;
 		}
+		// -----------------------------------------------------------------------
 		Node* get_self()
 		{
 			return &self;
 		}
+		// -----------------------------------------------------------------------
 		void set_self( Node _n )
 		{
 			self = _n;
@@ -88,7 +90,7 @@ namespace wiselib
 #ifdef CONFIG_PLTT_TARGET_H_MINI_RUN
 			,target_mini_run_times	( PLTT_TARGET_H_MINI_RUN_TIMES )
 #endif
-#ifdef CONFIG_PLTT_SECURE
+#ifdef CONFIG_PLTT_PRIVACY
 			,has_encrypted_id		( 0 )
 #endif
 		{}
@@ -102,7 +104,7 @@ namespace wiselib
 #ifdef CONFIG_PLTT_TARGET_H_MINI_RUN
 			target_mini_run_times = PLTT_TARGET_H_MINI_RUN_TIMES;
 #endif
-#ifdef CONFIG_PLTT_SECURE
+#ifdef CONFIG_PLTT_PRIVACY
 			has_encrypted_id = 0;
 #endif
 			status = WAITING_STATUS;
@@ -118,7 +120,7 @@ namespace wiselib
 #ifdef DEBUG_PLTT_TARGET_H_ENABLE
 			debug().debug( "PLTT_Target - enable.\n" );
 #endif
-#ifdef CONFIG_PLTT_SECURE
+#ifdef CONFIG_PLTT_PRIVACY
 			radio_callback_id = radio().template reg_recv_callback<self_type, &self_type::receive>( this );
 			encryption_request_daemon();
 #else
@@ -127,7 +129,7 @@ namespace wiselib
 #endif
 		}
 		// -----------------------------------------------------------------------
-#ifdef CONFIG_PLTT_SECURE
+#ifdef CONFIG_PLTT_PRIVACY
 		void receive( node_id_t _from, size_t _len, block_data_t* _data )
 		{
 #ifdef DEBUG_PLTT_TARGET_H_RECEIVE
@@ -200,7 +202,7 @@ namespace wiselib
 #endif
 							target_trace.set_target_id( randomize_privacy_message_ptr->payload() );
 							Message message;
-							message.set_message_id( PLTT_SECURE_SPREAD_ID );
+							message.set_message_id( PLTT_PRIVACY_SPREAD_ID );
 							block_data_t buffer[Radio::MAX_MESSAGE_LENGTH];
 							block_data_t* buff = buffer;
 							message.set_payload( target_trace.serial_size(), target_trace.serialize( buff ) );
@@ -289,7 +291,7 @@ namespace wiselib
 		{
 			set_status( WAITING_STATUS );
 			radio().unreg_recv_callback( radio_callback_id );
-#ifdef CONFIG_PLTT_SECURE
+#ifdef CONFIG_PLTT_PRIVACY
 			PrivacyMessage unregister_privacy_message;
 			unregister_privacy_message.set_msg_id( PRIVACY_UNREGISTER );
 			unregister_privacy_message.set_request_id( self.id() );
@@ -299,7 +301,7 @@ namespace wiselib
 		}
 		// -----------------------------------------------------------------------
 #ifdef CONFIG_PLTT_TARGET_H_MINI_RUN
-		void set_mini_run_times( uint8 _t )
+		void set_mini_run_times( uint8_t _t )
 		{
 			target_mini_run_times = _t;
 		}
@@ -343,8 +345,8 @@ namespace wiselib
 		enum MessageIds
 		{
 			PLTT_SPREAD_ID = 11
-#ifdef CONFIG_PLTT_SECURE
-			,PLTT_SECURE_SPREAD_ID = 91,
+#ifdef CONFIG_PLTT_PRIVACY
+			,PLTT_PRIVACY_SPREAD_ID = 91,
 			PRIVACY_DECRYPTION_REQUEST_ID = 100,
 			PRIVACY_ENCRYPTION_REQUEST_ID = 110,
 			PRIVACY_RANDOMIZE_REQUEST_ID = 120,
@@ -366,7 +368,7 @@ namespace wiselib
 		TxPower trans_power;
 		Node self;
 		int8_t transmission_power_dB;
-#ifdef CONFIG_PLTT_SECURE
+#ifdef CONFIG_PLTT_PRIVACY
 		uint8_t has_encrypted_id;
 		event_notifier_delegate_t privacy_radio_callback;
 		uint16_t target_request_id;

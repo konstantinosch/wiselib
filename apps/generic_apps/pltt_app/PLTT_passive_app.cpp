@@ -11,7 +11,7 @@
 #include "algorithms/neighbor_discovery/neighbor_discovery.h"
 #include "radio/reliable/reliable_radio_simple.h"
 #include "PLTT_app_config.h"
-#ifdef CONFIG_PLTT_SECURE
+#ifdef CONFIG_PLTT_PRIVACY
 #include "algorithms/tracking/PLTT_secure_trace.h"
 #endif
 #ifdef UNIGE_TESTBED
@@ -39,9 +39,9 @@ typedef wiselib::NeighborDiscovery_Type<Os, Radio, Clock, Timer, Rand, Debug> Ne
 typedef wiselib::Position2DType<Os, Radio, CoordinatesNumber, Debug> Position;
 typedef wiselib::NodeType<Os, Radio, node_id_t, Position, Debug> Node;
 typedef wiselib::ReliableRadio_Type<Os, Radio, Clock, Timer, Rand, Debug> ReliableRadio;
-#ifdef CONFIG_PLTT_SECURE
+#ifdef CONFIG_PLTT_PRIVACY
 typedef wiselib::PLTT_SecureTraceType<Os, Radio, TimesNumber, SecondsNumber, IntensityNumber, Node, node_id_t, Debug> PLTT_SecureTrace;
-typedef wiselib::vector_static<Os, PLTT_SecureTrace, PLTT_MAX_SECURE_TRACES_SUPPORTED> PLTT_SecureTraceList;
+typedef wiselib::vector_static<Os, PLTT_SecureTrace, PLTT_MAX_PRIVACY_TRACES_SUPPORTED> PLTT_SecureTraceList;
 #endif
 typedef wiselib::PLTT_TraceType<Os, Radio, TimesNumber, SecondsNumber, IntensityNumber, Node, node_id_t, Debug> PLTT_Trace;
 typedef wiselib::vector_static<Os, PLTT_Trace, PLTT_MAX_TARGETS_SUPPORTED> PLTT_TraceList;
@@ -50,7 +50,7 @@ typedef wiselib::vector_static<Os, PLTT_NodeTarget, PLTT_MAX_TARGETS_SUPPORTED> 
 typedef wiselib::PLTT_NodeType<Os, Radio, Node, PLTT_NodeTarget, PLTT_NodeTargetList, PLTT_TraceList, Debug> PLTT_Node;
 typedef wiselib::vector_static<Os, PLTT_Node, PLTT_MAX_NEIGHBORS_SUPPORTED> PLTT_NodeList;
 typedef wiselib::PLTT_AgentType< Os, Radio, AgentID, IntensityNumber, Debug> PLTT_Agent;
-#ifdef CONFIG_PLTT_SECURE
+#ifdef CONFIG_PLTT_PRIVACY
 typedef wiselib::PLTT_PassiveType<Os, Node, PLTT_Node, PLTT_NodeList, PLTT_Trace, PLTT_TraceList, PLTT_SecureTrace, PLTT_SecureTraceList, PLTT_Agent, NeighborDiscovery, Timer, Radio, ReliableRadio, Rand, Clock, Debug> PLTT_Passive;
 #else
 typedef wiselib::PLTT_PassiveType<Os, Node, PLTT_Node, PLTT_NodeList, PLTT_Trace, PLTT_TraceList, PLTT_Agent, NeighborDiscovery, Timer, Radio, ReliableRadio, Rand, Clock, Debug> PLTT_Passive;

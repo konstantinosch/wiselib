@@ -17,8 +17,8 @@
 ** If not, see <http://www.gnu.org/licenses/>.                           **
 ***************************************************************************/
 
-#ifndef __PLTT_SECURE_TRACE_H__
-#define __PLTT_SECURE_TRACE_H__
+#ifndef __PLTT_PRIVACY_TRACE_H__
+#define __PLTT_PRIVACY_TRACE_H__
 
 #include "algorithms/privacy/privacy_config.h"
 #include "PLTT_source_config.h"
@@ -429,7 +429,7 @@ namespace wiselib
 			return PRIVACY_CIPHER_TEXT_MAX_SIZE;
 		}
 		// --------------------------------------------------------------------
-#ifdef DEBUG_PLTT_SECURE_TRACE_H
+#ifdef DEBUG_PLTT_PRIVACY_TRACE_H
 		inline void print( Debug& _debug, Radio& _radio )
 		{
 			_debug.debug( "PLTT_SecureTrace : \n" );
