@@ -155,7 +155,7 @@ namespace wiselib
 			set_status( ACTIVE_STATUS );
 			radio().enable_radio();
 			recv_callback_id_ = radio().template reg_recv_callback<self_t, &self_t::receive>( this );
-#ifdef NEIGHBOR_DISCOVERY_RAND_STARTUP
+#ifdef CONFIG_NEIGHBOR_DISCOVERY_H_RAND_STARTUP
 			debug().debug("%x:%i:%d:%d:R\n", radio().id(), transmission_power_dB, beacon_period, ND_STATS_DURATION );
 			timer().template set_timer<self_t, &self_t::beacons> ( rand()() % get_beacon_period(), this, 0 );
 #else
