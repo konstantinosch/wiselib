@@ -34,8 +34,8 @@ namespace wiselib
 			typename PLTT_NodeList_P, typename PLTT_Trace_P,
 			typename PLTT_TraceList_P,
 #ifdef CONFIG_PLTT_PRIVACY
-			typename PLTT_SecureTrace_P,
-			typename PLTT_SecureTraceList_P,
+			typename PLTT_PrivacyTrace_P,
+			typename PLTT_PrivacyTraceList_P,
 #endif
 			typename PLTT_Agent_P,
 			typename NeighborDiscovery_P, typename Timer_P,
@@ -60,9 +60,9 @@ namespace wiselib
 		typedef NeighborDiscovery_P NeighborDiscovery;
 		typedef typename PLTT_TraceList::iterator PLTT_TraceListIterator;
 #ifdef CONFIG_PLTT_PRIVACY
-		typedef PLTT_SecureTrace_P PLTT_SecureTrace;
-		typedef PLTT_SecureTraceList_P PLTT_SecureTraceList;
-		typedef typename PLTT_SecureTraceList::iterator PLTT_SecureTraceListIterator;
+		typedef PLTT_PrivacyTrace_P PLTT_PrivacyTrace;
+		typedef PLTT_PrivacyTraceList_P PLTT_PrivacyTraceList;
+		typedef typename PLTT_PrivacyTraceList::iterator PLTT_PrivacyTraceListIterator;
 #endif
 		typedef typename Node::Position Position;
 		typedef typename Node::Position::CoordinatesNumber CoordinatesNumber;
@@ -84,7 +84,7 @@ namespace wiselib
 		typedef typename NodeList::iterator NodeList_Iterator;
 		typedef Message_Type<Os, Radio, Debug> Message;
 #ifdef CONFIG_PLTT_PRIVACY
-		typedef PLTT_PassiveType<Os, Node, PLTT_Node, PLTT_NodeList, PLTT_Trace, PLTT_TraceList, PLTT_SecureTrace, PLTT_SecureTraceList, PLTT_Agent, NeighborDiscovery, Timer, Radio, ReliableRadio, Rand, Clock, Debug> self_type;
+		typedef PLTT_PassiveType<Os, Node, PLTT_Node, PLTT_NodeList, PLTT_Trace, PLTT_TraceList, PLTT_PrivacyTrace, PLTT_PrivacyTraceList, PLTT_Agent, NeighborDiscovery, Timer, Radio, ReliableRadio, Rand, Clock, Debug> self_type;
 		typedef PrivacyMessageType<Os, Radio> PrivacyMessage;
 #else
 		typedef PLTT_PassiveType<Os, Node, PLTT_Node, PLTT_NodeList, PLTT_Trace, PLTT_TraceList, PLTT_Agent, NeighborDiscovery, Timer, Radio, ReliableRadio, Rand, Clock, Debug> self_type;
@@ -233,7 +233,7 @@ namespace wiselib
 #ifdef DEBUG_PLTT_PASSIVE_H_RECEIVE
 				debug().debug( "PLTT_Passive - receive - Received encrypted trace from unknown target of size %i.\n", message->get_payload_size() );
 #endif
-				PLTT_SecureTrace privacy_trace = PLTT_SecureTrace( message->get_payload() );
+				PLTT_PrivacyTrace privacy_trace = PLTT_PrivacyTrace( message->get_payload() );
 				uint16_t request_id = rand()() % 0xffff;
 				privacy_trace.set_request_id( request_id );
 				if ( ( privacy_trace.get_recipient_1_id() == self.get_node().get_id() ) || ( privacy_trace.get_recipient_2_id() == self.get_node().get_id() ) || ( privacy_trace.get_intensity() == privacy_trace.get_max_intensity() ) )
@@ -242,7 +242,7 @@ namespace wiselib
 					debug().debug( "PLTT_Passive - receive - Received encrypted trace from unknown target %x of size %i and intensity %i vs %i - Encrypted trace is detection or direct spread - inhibition: 0.\n", _from, message->get_payload_size(), privacy_trace.get_intensity(), privacy_trace.get_max_intensity() );
 #endif
 //this here... chance of weighting the inhibition + sniffing without need of inhibition... should inhibited and sniffers request decrypts? what is the cost?
-					PLTT_SecureTrace* privacy_trace_ptr = store_inhibit_privacy_trace( privacy_trace );
+					PLTT_PrivacyTrace* privacy_trace_ptr = store_inhibit_privacy_trace( privacy_trace );
 					if ( privacy_trace_ptr != NULL )
 					{
 #ifdef DEBUG_PLTT_PASSIVE_H_RECEIVE
@@ -265,7 +265,7 @@ namespace wiselib
 #ifdef DEBUG_PLTT_PASSIVE_H_RECEIVE
 				debug().debug( "PLTT_Passive - receive - Received decryption reply from helper %x of size %i.\n", _from, pm->buffer_size() );
 #endif
-				for ( PLTT_SecureTraceListIterator i = privacy_traces.begin(); i != privacy_traces.end(); ++i )
+				for ( PLTT_PrivacyTraceListIterator i = privacy_traces.begin(); i != privacy_traces.end(); ++i )
 				{
 					if ( ( pm->request_id() == i->get_request_id() ) && ( i->get_decryption_retries() < decryption_max_retries ) )
 					{
@@ -804,12 +804,12 @@ namespace wiselib
 #endif
 		// -----------------------------------------------------------------------
 #ifdef CONFIG_PLTT_PRIVACY
-		PLTT_SecureTrace* store_inhibit_privacy_trace( PLTT_SecureTrace _privacy_trace, uint8_t _inhibition_flag = 0 )
+		PLTT_PrivacyTrace* store_inhibit_privacy_trace( PLTT_PrivacyTrace _privacy_trace, uint8_t _inhibition_flag = 0 )
 		{
 #ifdef DEBUG_PLTT_PASSIVE_H_STORE_INHIBIT_PRIVACY_TRACE
 			debug().debug( "PLTT_Passive - store_inhibit_privacy_trace - Entering.\n" );
 #endif
-			PLTT_SecureTraceListIterator privacy_traces_iterator = privacy_traces.begin();
+			PLTT_PrivacyTraceListIterator privacy_traces_iterator = privacy_traces.begin();
 			while ( privacy_traces_iterator != privacy_traces.end() )
 			{
 				if ( privacy_traces_iterator->compare_target_id( _privacy_trace.get_target_id() ) )
@@ -823,14 +823,14 @@ namespace wiselib
 							privacy_traces_iterator->set_inhibited();
 						}
 #ifdef DEBUG_PLTT_PASSIVE_H_STORE_INHIBIT_PRIVACY_TRACE
-						debug().debug( "PLTT_Passive - store_inhibit_privacy_trace - Secure Trace updated.\n" );
+						debug().debug( "PLTT_Passive - store_inhibit_privacy_trace - Privacy Trace updated.\n" );
 #endif
 						return &(*privacy_traces_iterator);
 					}
 					else
 					{
 #ifdef DEBUG_PLTT_PASSIVE_H_STORE_INHIBIT_PRIVACY_TRACE
-						debug().debug( "PLTT_Passive - store_inhibit_privacy_trace - Secure Trace not updated.\n" );
+						debug().debug( "PLTT_Passive - store_inhibit_privacy_trace - Privacy Trace not updated.\n" );
 #endif
 						return NULL;
 					}
@@ -841,7 +841,7 @@ namespace wiselib
 			privacy_traces.push_back( _privacy_trace );
 			privacy_traces_iterator = privacy_traces.end() - 1;
 #ifdef DEBUG_PLTT_PASSIVE_H_STORE_INHIBIT_PRIVACY_TRACE
-			debug().debug( "PLTT_Passive - store_inhibit_privacy_trace - Secure Trace stored with privacy traces list size %d.\n", privacy_traces.size() );
+			debug().debug( "PLTT_Passive - store_inhibit_privacy_trace - Privacy Trace stored with privacy traces list size %d.\n", privacy_traces.size() );
 #endif
 			if ( _inhibition_flag )
 			{
@@ -850,7 +850,7 @@ namespace wiselib
 			return &( *privacy_traces_iterator );
 		}
 		// -----------------------------------------------------------------------
-		void prepare_spread_privacy_trace( PLTT_SecureTrace* _t, const ExtendedData& _exdata )
+		void prepare_spread_privacy_trace( PLTT_PrivacyTrace* _t, const ExtendedData& _exdata )
 		{
 #ifdef DEBUG_PLTT_PASSIVE_H_PREPARE_SPREAD_PRIVACY_TRACE
 			debug().debug( "PLTT_Passive - prepare_spread_privacy_trace - Entering.\n" );
@@ -918,7 +918,7 @@ namespace wiselib
 #ifdef DEBUG_PASSIVE_H_SEND_DECTRYPTION_REQUEST
 			debug().debug( "PLTT_Passive - send_decryption_request - Entering.\n" );
 #endif
-				PLTT_SecureTrace* t = (PLTT_SecureTrace*) _userdata;
+				PLTT_PrivacyTrace* t = (PLTT_PrivacyTrace*) _userdata;
 				PrivacyMessage pm;
 				pm.set_request_id( t->get_request_id() );
 				pm.set_payload( t->get_target_id_size(), t->get_target_id() );
@@ -935,7 +935,7 @@ namespace wiselib
 #ifdef PLTT_PASSIVE_PROACTIVE_INHIBITION
 			debug().debug( "PLTT_Passive - spread_privacy_trace - Entering.\n" );
 #endif
-			PLTT_SecureTrace* t = (PLTT_SecureTrace*) _userdata;
+			PLTT_PrivacyTrace* t = (PLTT_PrivacyTrace*) _userdata;
 			if ( (*t).get_inhibited() == 0 )
 			{
 				NodeList recipient_candidates;
@@ -1030,7 +1030,7 @@ namespace wiselib
 #ifdef DEBUG_PLTT_PASSIVE_H_DECRYPTION_REQUEST_DAEMON
 				debug().debug( "PLTT_Passive - decryption_request_daemon - Entering with privacy_trace list of size: %i.\n", privacy_traces.size() );
 #endif
-				PLTT_SecureTraceListIterator i = privacy_traces.begin();
+				PLTT_PrivacyTraceListIterator i = privacy_traces.begin();
 				while ( i != privacy_traces.end() )
 				{
 					if ( ( i->get_decryption_retries() >= decryption_max_retries ) && ( i->get_inhibited() !=0 ) )
@@ -1068,12 +1068,12 @@ namespace wiselib
 			}
 		}
 		// -----------------------------------------------------------------------
-		void erase_privacy_trace( PLTT_SecureTrace _st )
+		void erase_privacy_trace( PLTT_PrivacyTrace _st )
 		{
 #ifdef DEBUB_PLTT_PASSIVE_H_ERASE_PRIVACY_TRACE
 			debug().debug( "PLTT_Passive - erase_privacy_trace - Entering.\n" );
 #endif
-			for ( PLTT_SecureTraceListIterator i = privacy_traces.begin(); i != privacy_traces.end(); ++i )
+			for ( PLTT_PrivacyTraceListIterator i = privacy_traces.begin(); i != privacy_traces.end(); ++i )
 			{
 #ifdef DEBUB_PLTT_PASSIVE_H_ERASE_PRIVACY_TRACE
 				debug().debug( "PLTT_Passive - erase_privacy_trace - Trace of %x with [c : %x] [p: %x] [g %x].\n", i->get_target_id(), i->get_current().get_id(), i->get_parent().get_id(), i->get_grandparent().get_id() );
@@ -1329,7 +1329,7 @@ namespace wiselib
 		uint32_t random_enable_timer_range;
 		uint8_t status;
 #ifdef CONFIG_PLTT_PRIVACY
-		PLTT_SecureTraceList privacy_traces;
+		PLTT_PrivacyTraceList privacy_traces;
 		millis_t decryption_request_timer;
 		millis_t decryption_request_offset;
 		uint8_t decryption_max_retries;

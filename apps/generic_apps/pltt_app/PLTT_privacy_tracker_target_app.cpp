@@ -13,7 +13,7 @@
 #include "algorithms/tracking/PLTT_tracker.h"
 #endif
 #ifdef CONFIG_PLTT_PRIVACY
-#include "algorithms/tracking/PLTT_secure_trace.h"
+#include "algorithms/tracking/PLTT_privacy_trace.h"
 #include "algorithms/privacy/privacy.h"
 #include "algorithms/privacy/privacy_message.h"
 #endif
@@ -43,17 +43,17 @@ typedef wiselib::PLTT_TrackerType<Os, PLTT_Agent, Node, Position, IntensityNumbe
 #endif
 typedef wiselib::PLTT_TraceType<Os, Radio, uint8, uint8, IntensityNumber, Node, node_id_t, Debug> PLTT_Trace;
 #ifdef CONFIG_PLTT_PRIVACY
-typedef wiselib::PLTT_SecureTraceType<Os, Radio, TimesNumber, SecondsNumber, IntensityNumber, Node, node_id_t, Debug> PLTT_SecureTrace;
+typedef wiselib::PLTT_PrivacyTraceType<Os, Radio, TimesNumber, SecondsNumber, IntensityNumber, Node, node_id_t, Debug> PLTT_PrivacyTrace;
 typedef wiselib::PrivacyMessageType<Os, Radio> PrivacyMessage;
 typedef wiselib::vector_static<Os, PrivacyMessage, 100> PrivacyMessageList;
 typedef wiselib::PrivacyType<Os, Radio, Timer, Uart, PrivacyMessage, PrivacyMessageList, Debug> Privacy;
-typedef wiselib::PLTT_TargetType<Os, PLTT_SecureTrace, Node, Timer, Radio, PrivacyMessage, Clock, Debug> PLTT_Target;
+typedef wiselib::PLTT_TargetType<Os, PLTT_PrivacyTrace, Node, Timer, Radio, PrivacyMessage, Clock, Debug> PLTT_Target;
 #else
 typedef wiselib::PLTT_TargetType<Os, PLTT_Trace, Node, Timer, Radio, Clock, Debug> PLTT_Target;
 #endif
 #ifdef CONFIG_PLTT_TARGET
 #ifdef CONFIG_PLTT_PRIVACY
-PLTT_Target target( PLTT_SecureTrace( PLTT_TRACE_DIMINISH_SECONDS, PLTT_TRACE_DIMINISH_AMOUNT, PLTT_TRACE_SPREAD_PENALTY, PLTT_TRACE_START_INTENSITY, 0 ), PLTT_TARGET_SPREAD_MILIS, PLTT_TARGET_TRANSMISSION_POWER );
+PLTT_Target target( PLTT_PrivacyTrace( PLTT_TRACE_DIMINISH_SECONDS, PLTT_TRACE_DIMINISH_AMOUNT, PLTT_TRACE_SPREAD_PENALTY, PLTT_TRACE_START_INTENSITY, 0 ), PLTT_TARGET_SPREAD_MILIS, PLTT_TARGET_TRANSMISSION_POWER );
 #else
 PLTT_Target target( PLTT_Trace( PLTT_TRACE_DIMINISH_SECONDS, PLTT_TRACE_DIMINISH_AMOUNT, PLTT_TRACE_SPREAD_PENALTY, PLTT_TRACE_START_INTENSITY, 0 ), PLTT_TARGET_SPREAD_MILIS, PLTT_TARGET_TRANSMISSION_POWER );
 #endif
