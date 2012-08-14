@@ -246,7 +246,6 @@ namespace wiselib
 		// --------------------------------------------------------------------
 		void set_beacon_period_update_counter( uint32_t _bpuc )
 		{
-			//TODO overflow
 			beacon_period_update_counter = _bpuc;
 		}
 		// --------------------------------------------------------------------
@@ -387,6 +386,15 @@ namespace wiselib
 						( position.get_z() - pos.get_z() ) * ( position.get_z() - pos.get_z() ) )
 #endif
 					);
+					if ( total_beacons_expected > 9000 )
+					{
+						debug.debug("PB:%x:%x:%d:%d",
+								radio.id(),
+								id,
+								total_beacons,
+								total_beacons_expected
+						);
+					}
 				}
 			}
 #endif

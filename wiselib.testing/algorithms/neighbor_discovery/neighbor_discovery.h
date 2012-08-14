@@ -310,6 +310,14 @@ namespace wiselib
 										new_neighbor = *nit;
 										new_neighbor.inc_total_beacons( 1 * pit->resolve_beacon_weight( _from ) );
 										new_neighbor.inc_total_beacons_expected( 1 * pit->resolve_beacon_weight( _from ) );
+//#ifdef DEBUG_NEIGHBOR_DISCOVERY_H_RECEIVE
+										if ( new_neighbor.get_total_beacons_expected() > 9000 )
+										{
+											debug().debug( "PB1:%x:%x:%d:%d", radio().id(), new_neighbor.get_id(), new_neighbor.get_total_beacons(), new_neighbor.get_total_beacons_expected() );
+											debug().debug( "PB1b:%d:%d:%d:%d", dead_time, sizeof(dead_time), nit->get_beacon_period(), sizeof(nit->get_beacon_period()) );
+											debug().debug( "PB1c:%d:%d:%d:%d", clock().seconds( current_time ), clock().seconds( nit->get_last_beacon() ), clock().milliseconds( current_time ), clock().milliseconds( nit->get_last_beacon() ) );
+										}
+//#endif
 										new_neighbor.update_link_stab_ratio();
 										new_neighbor.update_avg_LQI( beacon_lqi, 1 );
 										new_neighbor.set_beacon_period( beacon.get_beacon_period() );
@@ -324,6 +332,14 @@ namespace wiselib
 										new_neighbor = *nit;
 										new_neighbor.inc_total_beacons( 1 * pit->resolve_beacon_weight( _from ) );
 										new_neighbor.inc_total_beacons_expected( ( dead_time / nit->get_beacon_period() ) * ( pit->resolve_lost_beacon_weight( _from ) ) );
+//#ifdef DEBUG_NEIGHBOR_DISCOVERY_H_RECEIVE
+										if ( new_neighbor.get_total_beacons_expected() > 9000 )
+										{
+											debug().debug( "PB2a:%x:%x:%d:%d", radio().id(), new_neighbor.get_id(), new_neighbor.get_total_beacons(), new_neighbor.get_total_beacons_expected() );
+											debug().debug( "PB2b:%d:%d:%d:%d", dead_time, sizeof(dead_time), nit->get_beacon_period(), sizeof(nit->get_beacon_period()) );
+											debug().debug( "PB2c:%d:%d:%d:%d", clock().seconds( current_time ), clock().seconds( nit->get_last_beacon() ), clock().milliseconds( current_time ), clock().milliseconds( nit->get_last_beacon() ) );
+										}
+//#endif
 										new_neighbor.update_link_stab_ratio();
 										new_neighbor.update_avg_LQI( beacon_lqi, 1 );
 										new_neighbor.set_beacon_period( beacon.get_beacon_period() );
@@ -341,6 +357,14 @@ namespace wiselib
 										new_neighbor = *nit;
 										new_neighbor.inc_total_beacons( 1 * pit->resolve_beacon_weight( _from ) );
 										new_neighbor.inc_total_beacons_expected( 1 * pit->resolve_beacon_weight( _from ) );
+//#ifdef DEBUG_NEIGHBOR_DISCOVERY_H_RECEIVE
+										if ( new_neighbor.get_total_beacons_expected() > 9000 )
+										{
+											debug().debug( "PB3:%x:%x:%d:%d", radio().id(), new_neighbor.get_id(), new_neighbor.get_total_beacons(), new_neighbor.get_total_beacons_expected() );
+											debug().debug( "PB3b:%d:%d:%d:%d", dead_time, sizeof(dead_time), nit->get_beacon_period(), sizeof(nit->get_beacon_period()) );
+											debug().debug( "PB3c:%d:%d:%d:%d", clock().seconds( current_time ), clock().seconds( nit->get_last_beacon() ), clock().milliseconds( current_time ), clock().milliseconds( nit->get_last_beacon() ) );
+										}
+//#endif
 										new_neighbor.update_link_stab_ratio();
 										new_neighbor.update_avg_LQI( beacon_lqi, 1 );
 										new_neighbor.set_beacon_period( beacon.get_beacon_period() );
@@ -375,6 +399,14 @@ namespace wiselib
 										new_neighbor = *nit;
 										new_neighbor.inc_total_beacons( 1 * pit->resolve_beacon_weight( _from ) );
 										new_neighbor.inc_total_beacons_expected( ( dead_time_messages_lost + beacon.get_beacon_period_update_counter() ) * ( pit->resolve_lost_beacon_weight( _from ) ) );
+//#ifdef DEBUG_NEIGHBOR_DISCOVERY_H_RECEIVE
+										if ( new_neighbor.get_total_beacons_expected() > 9000 )
+										{
+											debug().debug( "PB4:%x:%x:%d:%d", radio().id(), new_neighbor.get_id(), new_neighbor.get_total_beacons(), new_neighbor.get_total_beacons_expected() );
+											debug().debug( "PB4b:%d:%d:%d:%d", dead_time, sizeof(dead_time), nit->get_beacon_period(), sizeof(nit->get_beacon_period()) );
+											debug().debug( "PB4c:%d:%d:%d:%d", clock().seconds( current_time ), clock().seconds( nit->get_last_beacon() ), clock().milliseconds( current_time ), clock().milliseconds( nit->get_last_beacon() ) );
+										}
+//#endif
 										new_neighbor.update_link_stab_ratio();
 										new_neighbor.update_avg_LQI( beacon_lqi, 1 );
 										new_neighbor.set_beacon_period( beacon.get_beacon_period() );
