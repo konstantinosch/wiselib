@@ -261,7 +261,7 @@ namespace wiselib
 #ifdef DEBUG_PROTOCOL_H
 		void print( Debug& _debug, Radio& _radio
 #ifdef NEIGHBOR_DISCOVERY_COORD_SUPPORT
-				,Position& _pos = Position( 0, 0, 0 )
+				,Position _pos = Position( 0, 0, 0 )
 #endif
 				)
 		{

@@ -222,6 +222,10 @@ namespace wiselib
 #ifdef DEBUG_NEIGHBOR_DISCOVERY_H_BEACONS
 					debug().debug( "NeighborDiscovery - beacons - Protocol exists.\n" );
 #endif
+#ifdef DEBUG_NEIGHBOR_DISCOVERY_H_BEACONS
+					time_t current_time = clock().time();
+					debug().debug( "Time:%d:%d", clock().seconds( current_time ), clock().milliseconds( current_time )  );
+#endif
 					millis_t bp = get_beacon_period();
 					Neighbor* n = p_ptr->get_neighbor_ref( radio().id() );
 					if ( n != NULL )
@@ -246,6 +250,12 @@ namespace wiselib
 						debug().debug( "NeighborDiscovery - beacons - Sending beacon.\n" );
 						beacon.print( debug(), radio(), position );
 #endif
+//#ifdef DEBUG_NEIGHBOR_DISCOVERY_H_BEACONS
+						if ( beacon.serial_size() > Radio::MAX_MESSAGE_LENGTH - sizeof(size_t) - sizeof(node_id_t) )
+						{
+							debug().debug( "PB_beac:%d:%d", beacon.serial_size(), sizeof(beacon.serial_size()) );
+						}
+//#endif
 						timer().template set_timer<self_t, &self_t::beacons> ( bp, this, 0 );
 					}
 					else
@@ -299,7 +309,25 @@ namespace wiselib
 #endif
 								update_neighbor_it = nit;
 								found_flag = 1;
-								uint32_t dead_time = ( clock().seconds( current_time ) - clock().seconds( nit->get_last_beacon() ) ) * 1000 + ( clock().milliseconds( current_time ) - clock().milliseconds( nit->get_last_beacon() ) );
+								wiselib::int32_t mils = clock().milliseconds( current_time ) - clock().milliseconds( nit->get_last_beacon() );
+								uint32_t secs = clock().seconds( current_time ) - clock().seconds( nit->get_last_beacon() );
+								if ( mils < 0 )
+								{
+									mils = 1000 + mils;
+									secs = secs - 1;
+#ifdef DEBUG_NEIGHBOR_DISCOVERY_H_RECEIVE
+									debug().debug("PB_neg_rec:%d:%d:%d:%d", clock().seconds( current_time ), clock().milliseconds( current_time ), clock().seconds( nit->get_last_beacon() ), clock().milliseconds( nit->get_last_beacon() ) );
+#endif
+								}
+								uint32_t dead_time = secs * 1000 + mils;
+								//uint32_t dead_time = ( clock().seconds( current_time ) - clock().seconds( nit->get_last_beacon() ) ) * 1000 + ( clock().milliseconds( current_time ) - clock().milliseconds( nit->get_last_beacon() ) );
+//#ifdef DEBUG_NEIGHBOR_DISCOVERY_H_RECEIVE
+								if ( beacon.get_beacon_period() != nit->get_beacon_period() )
+								{
+									debug().debug( "PB_init:%d:%d:%d:%d", beacon.get_beacon_period(), sizeof(beacon.get_beacon_period() ), nit->get_beacon_period(), sizeof(nit->get_beacon_period()) );
+									beacon.print( debug(), radio() );
+								}
+//#endif
 								if ( beacon.get_beacon_period() == nit->get_beacon_period() )
 								{
 									if ( dead_time < beacon.get_beacon_period() + ND_RELAX_MILLIS )
@@ -313,9 +341,10 @@ namespace wiselib
 //#ifdef DEBUG_NEIGHBOR_DISCOVERY_H_RECEIVE
 										if ( new_neighbor.get_total_beacons_expected() > 9000 )
 										{
-											debug().debug( "PB1:%x:%x:%d:%d", radio().id(), new_neighbor.get_id(), new_neighbor.get_total_beacons(), new_neighbor.get_total_beacons_expected() );
+											debug().debug( "PB1a:%x:%x:%d:%d", radio().id(), new_neighbor.get_id(), new_neighbor.get_total_beacons(), new_neighbor.get_total_beacons_expected() );
 											debug().debug( "PB1b:%d:%d:%d:%d", dead_time, sizeof(dead_time), nit->get_beacon_period(), sizeof(nit->get_beacon_period()) );
 											debug().debug( "PB1c:%d:%d:%d:%d", clock().seconds( current_time ), clock().seconds( nit->get_last_beacon() ), clock().milliseconds( current_time ), clock().milliseconds( nit->get_last_beacon() ) );
+											debug().debug( "PB1d:%d:%d:%d:%d", mils, sizeof(mils), secs, sizeof(secs) );
 										}
 //#endif
 										new_neighbor.update_link_stab_ratio();
@@ -338,6 +367,7 @@ namespace wiselib
 											debug().debug( "PB2a:%x:%x:%d:%d", radio().id(), new_neighbor.get_id(), new_neighbor.get_total_beacons(), new_neighbor.get_total_beacons_expected() );
 											debug().debug( "PB2b:%d:%d:%d:%d", dead_time, sizeof(dead_time), nit->get_beacon_period(), sizeof(nit->get_beacon_period()) );
 											debug().debug( "PB2c:%d:%d:%d:%d", clock().seconds( current_time ), clock().seconds( nit->get_last_beacon() ), clock().milliseconds( current_time ), clock().milliseconds( nit->get_last_beacon() ) );
+											debug().debug( "PB2d:%d:%d:%d:%d", mils, sizeof(mils), secs, sizeof(secs) );
 										}
 //#endif
 										new_neighbor.update_link_stab_ratio();
@@ -360,9 +390,10 @@ namespace wiselib
 //#ifdef DEBUG_NEIGHBOR_DISCOVERY_H_RECEIVE
 										if ( new_neighbor.get_total_beacons_expected() > 9000 )
 										{
-											debug().debug( "PB3:%x:%x:%d:%d", radio().id(), new_neighbor.get_id(), new_neighbor.get_total_beacons(), new_neighbor.get_total_beacons_expected() );
+											debug().debug( "PB3a:%x:%x:%d:%d", radio().id(), new_neighbor.get_id(), new_neighbor.get_total_beacons(), new_neighbor.get_total_beacons_expected() );
 											debug().debug( "PB3b:%d:%d:%d:%d", dead_time, sizeof(dead_time), nit->get_beacon_period(), sizeof(nit->get_beacon_period()) );
 											debug().debug( "PB3c:%d:%d:%d:%d", clock().seconds( current_time ), clock().seconds( nit->get_last_beacon() ), clock().milliseconds( current_time ), clock().milliseconds( nit->get_last_beacon() ) );
+											debug().debug( "PB3d:%d:%d:%d:%d", mils, sizeof(mils), secs, sizeof(secs) );
 										}
 //#endif
 										new_neighbor.update_link_stab_ratio();
@@ -402,9 +433,10 @@ namespace wiselib
 //#ifdef DEBUG_NEIGHBOR_DISCOVERY_H_RECEIVE
 										if ( new_neighbor.get_total_beacons_expected() > 9000 )
 										{
-											debug().debug( "PB4:%x:%x:%d:%d", radio().id(), new_neighbor.get_id(), new_neighbor.get_total_beacons(), new_neighbor.get_total_beacons_expected() );
+											debug().debug( "PB4a:%x:%x:%d:%d", radio().id(), new_neighbor.get_id(), new_neighbor.get_total_beacons(), new_neighbor.get_total_beacons_expected() );
 											debug().debug( "PB4b:%d:%d:%d:%d", dead_time, sizeof(dead_time), nit->get_beacon_period(), sizeof(nit->get_beacon_period()) );
 											debug().debug( "PB4c:%d:%d:%d:%d", clock().seconds( current_time ), clock().seconds( nit->get_last_beacon() ), clock().milliseconds( current_time ), clock().milliseconds( nit->get_last_beacon() ) );
+											debug().debug( "PB4d:%d:%d:%d:%d", mils, sizeof(mils), secs, sizeof(secs) );
 										}
 //#endif
 										new_neighbor.update_link_stab_ratio();
@@ -656,7 +688,18 @@ namespace wiselib
 				{
 					for ( Neighbor_vector_iterator nit = pit->get_neighborhood_ref()->begin(); nit != pit->get_neighborhood_ref()->end(); ++nit )
 					{
-						uint32_t dead_time = ( clock().seconds( current_time ) - clock().seconds( nit->get_last_beacon() ) ) * 1000 + ( clock().milliseconds( current_time ) - clock().milliseconds( nit->get_last_beacon() ) );
+						//uint32_t dead_time = ( clock().seconds( current_time ) - clock().seconds( nit->get_last_beacon() ) ) * 1000 + ( clock().milliseconds( current_time ) - clock().milliseconds( nit->get_last_beacon() ) );
+						wiselib::int32_t mils = clock().milliseconds( current_time ) - clock().milliseconds( nit->get_last_beacon() );
+						uint32_t secs = clock().seconds( current_time ) - clock().seconds( nit->get_last_beacon() );
+						if ( mils < 0 )
+						{
+							mils = 1000 + mils;
+							secs = secs - 1;
+#ifdef DEBUG_NEIGHBOR_DISCOVERY_H_ND_DAEMON
+							debug().debug("PB_neg_daemon:%d:%d:%d:%d", clock().seconds( current_time ), clock().milliseconds( current_time ), clock().seconds( nit->get_last_beacon() ), clock().milliseconds( nit->get_last_beacon() ) );
+#endif
+						}
+						uint32_t dead_time = secs * 1000 + mils;
 						if ( ( dead_time > nit->get_beacon_period() + ND_RELAX_MILLIS ) && ( nit->get_id() != radio().id() ) )
 						{
 #ifdef DEBUG_NEIGHBOR_DISCOVERY_H_ND_DAEMON
