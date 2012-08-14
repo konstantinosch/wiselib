@@ -324,7 +324,7 @@ namespace wiselib
 //#ifdef DEBUG_NEIGHBOR_DISCOVERY_H_RECEIVE
 								if ( beacon.get_beacon_period() != nit->get_beacon_period() )
 								{
-									debug().debug( "PB_init:%d:%d:%d:%d", beacon.get_beacon_period(), sizeof(beacon.get_beacon_period() ), nit->get_beacon_period(), sizeof(nit->get_beacon_period()) );
+									debug().debug( "PB_init:%x:%d:%d:%d:%d", _from, beacon.get_beacon_period(), sizeof(beacon.get_beacon_period() ), nit->get_beacon_period(), sizeof(nit->get_beacon_period()) );
 									beacon.print( debug(), radio() );
 								}
 //#endif
