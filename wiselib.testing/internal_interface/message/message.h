@@ -19,7 +19,7 @@
 
 #ifndef __MESSAGE_H__
 #define __MESSAGE_H__
-#include message_source_config.h
+#include "message_source_config.h"
 
 namespace wiselib
 {
