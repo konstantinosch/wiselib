@@ -145,7 +145,7 @@ namespace wiselib
 			{
 				for ( size_t i = 0; i < payload_size; i++ )
 				{
-					debug.debug( "%d\n", i, payload_data[i] );
+					debug.debug( "%d:%d\n", i, payload_data[i] );
 				}
 			}
 			debug.debug( "-------------------------------------------------------");

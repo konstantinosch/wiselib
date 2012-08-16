@@ -154,6 +154,7 @@ namespace wiselib
 		{
 			debug.debug( "-------------------------------------------------------\n" );
 			debug.debug( "Beacon : \n");
+			debug.debug( "serial_size : %d\n", serial_size() );
 			for ( ProtocolPayload_vector_iterator it = protocol_payloads.begin(); it != protocol_payloads.end(); ++it )
 			{
 				it->print( debug, radio );
