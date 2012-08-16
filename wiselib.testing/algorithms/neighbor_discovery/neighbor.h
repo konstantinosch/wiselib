@@ -354,8 +354,8 @@ namespace wiselib
 			debug.debug( "active (size %i) : %d\n", sizeof(active), active );
 			debug.debug( "-------------------------------------------------------\n" );
 #else
-			if ( active == 1 )
-			{
+//			if ( active == 1 )
+//			{
 				if ( radio.id() != id )
 				{
 #ifdef NEIGHBOR_DISCOVERY_COORD_SUPPORT
@@ -386,17 +386,8 @@ namespace wiselib
 						( position.get_z() - pos.get_z() ) * ( position.get_z() - pos.get_z() ) )
 #endif
 					);
-					if ( total_beacons_expected > 9000 )
-					{
-						debug.debug("PB:%x:%x:%d:%d",
-								radio.id(),
-								id,
-								total_beacons,
-								total_beacons_expected
-						);
-					}
 				}
-			}
+			//}
 #endif
 		}
 #endif

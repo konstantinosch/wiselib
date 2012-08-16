@@ -148,7 +148,7 @@ namespace wiselib
 #ifdef DEBUG_BEACON_H
 		void print( Debug& debug, Radio& radio
 #ifdef NEIGHBOR_DISCOVERY_COORD_SUPPORT
-				,Position& pos = Position( 0, 0, 0 )
+				,Position pos = Position( 0, 0, 0 )
 #endif
 				)
 		{
