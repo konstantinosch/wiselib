@@ -138,6 +138,7 @@ namespace wiselib
 		{
 			debug.debug( "-------------------------------------------------------\n" );
 			debug.debug( "ProtocolPayload : \n");
+			debug.debug( "serial_size : %d\n", serial_size() );
 			debug.debug( "protocol_id (size %i) : %d\n", sizeof(protocol_id), protocol_id );
 			debug.debug( "max_payload_size : %d\n", ND_MAX_PROTOCOL_PAYLOAD_SIZE );
 			debug.debug( "payload_size (size %i) : %d\n", sizeof(payload_size), payload_size );

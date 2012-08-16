@@ -354,40 +354,37 @@ namespace wiselib
 			debug.debug( "active (size %i) : %d\n", sizeof(active), active );
 			debug.debug( "-------------------------------------------------------\n" );
 #else
-//			if ( active == 1 )
-//			{
-				if ( radio.id() != id )
-				{
+			if ( radio.id() != id )
+			{
 #ifdef NEIGHBOR_DISCOVERY_COORD_SUPPORT
 #ifdef NEIGHBOR_DISCOVERY_COORD_SUPPORT_SHAWN
-					debug.debug( "NB:%x:%x:%d:%d:%d:%d:%d:%d:%d:%d:%d:%f:%f:%f:%f\n",
+				debug.debug( "NB:%x:%x:%d:%d:%d:%d:%d:%d:%d:%d:%d:%f:%f:%f:%f\n",
 #endif
 #ifdef NEIGHBOR_DISCOVERY_COORD_SUPPORT_ISENSE
-					debug.debug( "NB:%x:%x:%d:%d:%d:%d:%d:%d:%d:%d:%d:%d:%d:%d:%d\n",
+				debug.debug( "NB:%x:%x:%d:%d:%d:%d:%d:%d:%d:%d:%d:%d:%d:%d:%d\n",
 #endif
 #else
-					debug.debug( "NB:%x:%x:%d:%d:%d:%d:%d:%d:%d:%d:%d\n",
+				debug.debug( "NB:%x:%x:%d:%d:%d:%d:%d:%d:%d:%d:%d\n",
 #endif
-						radio.id(),
-						id,
-						total_beacons,
-						total_beacons_expected,
-						avg_LQI,
-						avg_LQI_inverse,
-						link_stab_ratio,
-						link_stab_ratio_inverse,
-						beacon_period,
-						beacon_period_update_counter,
-						active
+					radio.id(),
+					id,
+					total_beacons,
+					total_beacons_expected,
+					avg_LQI,
+					avg_LQI_inverse,
+					link_stab_ratio,
+					link_stab_ratio_inverse,
+					beacon_period,
+					beacon_period_update_counter,
+					active
 #ifdef NEIGHBOR_DISCOVERY_COORD_SUPPORT
-						,position.get_x(), position.get_y(), position.get_z(),
-						( ( position.get_x() - pos.get_x() ) * ( position.get_x() - pos.get_x() ) +
-						( position.get_y() - pos.get_y() ) * ( position.get_y() - pos.get_y() ) +
-						( position.get_z() - pos.get_z() ) * ( position.get_z() - pos.get_z() ) )
+					,position.get_x(), position.get_y(), position.get_z(),
+					( ( position.get_x() - pos.get_x() ) * ( position.get_x() - pos.get_x() ) +
+					( position.get_y() - pos.get_y() ) * ( position.get_y() - pos.get_y() ) +
+					( position.get_z() - pos.get_z() ) * ( position.get_z() - pos.get_z() ) )
 #endif
-					);
-				}
-			//}
+				);
+			}
 #endif
 		}
 #endif

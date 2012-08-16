@@ -159,6 +159,7 @@ namespace wiselib
 			{
 				it->print( debug, radio );
 			}
+			debug.debug( "neighborhood size: %d\n", neighborhood.size() );
 			for ( Neighbor_vector_iterator it = neighborhood.begin(); it != neighborhood.end(); ++it )
 			{
 #ifdef NEIGHBOR_DISCOVERY_COORD_SUPPORT

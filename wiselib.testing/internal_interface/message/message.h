@@ -19,7 +19,7 @@
 
 #ifndef __MESSAGE_H__
 #define __MESSAGE_H__
-#define MESSAGE_H_FLETCHER_CHECKSUM
+#include message_source_config.h
 
 namespace wiselib
 {
