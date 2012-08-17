@@ -7,7 +7,7 @@
 #define ND_DAEMON_PERIOD 200
 
 //benchmark settings
-#define ND_STATS_DURATION 18000000
+#define ND_STATS_DURATION 1800000
 
 //default registered protocol settings
 #define ISENSE_MAX_LQI 255

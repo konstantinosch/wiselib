@@ -288,16 +288,13 @@ namespace wiselib
 				if ( msg_id == ND_MESSAGE )
 				{
 					Message *message = (Message*) _msg;
-					Beacon beacon;
-					beacon.de_serialize( message->get_payload() );
 					if ( !message->compare_checksum() )
 					{
-#ifdef DEBUG_NEIGHBOR_DISCOVERY_H_RECEIVE
-						debug().debug( "NeighborDiscovery - receive - Problem with csum.\n");
+//#ifdef DEBUG_NEIGHBOR_DISCOVERY_H_RECEIVE
+						debug().debug( "NeighborDiscovery - receive - Problem with csum from %x.\n", _from );
 						debug().debug( "csum : %d vs comp : %d.\n", message->csum(), message->fletcher16_checksum( message->get_payload(), message->get_payload_size() ) );
-						debug().debug( "message serial size: %d.\n", message->serial_size() );
-						beacon.print( debug(), radio() );
-#endif
+						debug().debug( "message serial size: %d received len : %d.\n", message->serial_size(), _len );
+//#endif
 #ifdef DEBUG_NEIGHBOR_DISCOVERY_STATS
 						corrupted_messages_received = corrupted_messages_received + 1;
 						corrupted_bytes_received = corrupted_bytes_received + _len;
@@ -305,6 +302,8 @@ namespace wiselib
 #endif
 						return;
 					}
+					Beacon beacon;
+					beacon.de_serialize( message->get_payload() );
 #ifdef DEBUG_NEIGHBOR_DISCOVERY_H_RECEIVE
 						debug().debug( "NeighborDiscovery - receive - Received beacon message with message serial_size : %d, beacon serial_size : %d and neigh size : %d.\n", message->serial_size(), beacon.serial_size(), beacon.get_neighborhood_ref()->size() );
 #endif
@@ -1063,9 +1062,9 @@ namespace wiselib
 #ifdef DEBUG_NEIGHBOR_DISCOVERY_STATS
 		void nd_metrics_daemon( void* user_data = NULL )
 		{
-#ifdef DEBUG_NEIGHBOR_DISCOVERY_H_ND_METRICS_DAEMON
+//#ifdef DEBUG_NEIGHBOR_DISCOVERY_H_ND_METRICS_DAEMON
 			debug().debug("NeighborDiscovery - nd_metrics_daemon - Entering.\n" );
-#endif
+//#endif
 			radio().disable_radio();
 			Protocol* p;
 			p = get_protocol_ref( ND_PROTOCOL_ID );
@@ -1090,9 +1089,9 @@ namespace wiselib
 										corrupted_messages_received,
 										corrupted_bytes_received,
 										avg_corrupted_byte_size_received );
-#ifdef DEBUG_NEIGHBOR_DISCOVERY_H_ND_METRICS_DAEMON
+//#ifdef DEBUG_NEIGHBOR_DISCOVERY_H_ND_METRICS_DAEMON
 			debug().debug("NeighborDiscovery - nd_metrics_daemon - Exiting.\n" );
-#endif
+//#endif
 		}
 #endif
 		// --------------------------------------------------------------------
