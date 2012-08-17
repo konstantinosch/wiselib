@@ -120,6 +120,9 @@ namespace wiselib
 			{
 				_debug.debug( "%d", get_payload()[i] );
 			}
+#ifdef MESSAGE_H_FLETCHER_CHECKSUM
+			_debug.debug( "checksum (size %i) : %d", sizeof(uint16_t), csum() );
+#endif
 			_debug.debug( "-------------------------------------------------------\n" );
 		}
 		// --------------------------------------------------------------------
