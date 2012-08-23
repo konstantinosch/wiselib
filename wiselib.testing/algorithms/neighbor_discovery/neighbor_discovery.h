@@ -309,7 +309,8 @@ namespace wiselib
 #endif
 					time_t current_time = clock().time();
 					uint32_t dead_time = 0;
-					wiselib::int32_t dead_time_res = 0;
+					//wiselib::int32_t dead_time_res = 0;
+					int32_t dead_time_res = 0;
 					uint8_t beacon_lqi = _ex.link_metric();
 					for ( Protocol_vector_iterator pit = protocols.begin(); pit != protocols.end(); ++pit )
 					{
@@ -1062,9 +1063,9 @@ namespace wiselib
 #ifdef DEBUG_NEIGHBOR_DISCOVERY_STATS
 		void nd_metrics_daemon( void* user_data = NULL )
 		{
-//#ifdef DEBUG_NEIGHBOR_DISCOVERY_H_ND_METRICS_DAEMON
+#ifdef DEBUG_NEIGHBOR_DISCOVERY_H_ND_METRICS_DAEMON
 			debug().debug("NeighborDiscovery - nd_metrics_daemon - Entering.\n" );
-//#endif
+#endif
 			radio().disable_radio();
 			Protocol* p;
 			p = get_protocol_ref( ND_PROTOCOL_ID );
@@ -1089,9 +1090,9 @@ namespace wiselib
 										corrupted_messages_received,
 										corrupted_bytes_received,
 										avg_corrupted_byte_size_received );
-//#ifdef DEBUG_NEIGHBOR_DISCOVERY_H_ND_METRICS_DAEMON
+#ifdef DEBUG_NEIGHBOR_DISCOVERY_H_ND_METRICS_DAEMON
 			debug().debug("NeighborDiscovery - nd_metrics_daemon - Exiting.\n" );
-//#endif
+#endif
 		}
 #endif
 		// --------------------------------------------------------------------

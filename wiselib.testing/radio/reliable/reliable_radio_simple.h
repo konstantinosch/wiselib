@@ -103,7 +103,7 @@ namespace wiselib
 				if ( _from != radio().id() )
 				{
 					Message* msg = (Message*) _msg;
-					if ( msg->get_message_id() == RR_MESSAGE )
+					if ( ( msg->get_message_id() == RR_MESSAGE ) && ( msg->compare_checksum() ) )
 					{
 #ifdef DEBUG_RELIABLE_RADIO_H
 			debug().debug( "ReliableRadio - receive - Received RR_MESSAGE.\n" );

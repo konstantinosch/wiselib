@@ -132,7 +132,7 @@ namespace wiselib
 #endif
 			radio().enable_radio();
 			reliable_radio().enable_radio();
-			set_status( ACTIVE_STATUS );
+			//set_status( ACTIVE_STATUS );
 #ifndef CONFIG_PLTT_PASSIVE_RANDOM_BOOT
 			neighbor_discovery_enable_task();
 #else
@@ -1247,12 +1247,12 @@ namespace wiselib
 			return status;
 		}
 		// -----------------------------------------------------------------------
+#endif
 		void set_status( int _st )
 		{
 			status = _st;
 		}
 		// -----------------------------------------------------------------------
-#endif
 	private:
 		Radio& radio()
 		{
