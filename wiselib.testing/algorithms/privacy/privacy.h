@@ -20,7 +20,8 @@
 #define __PRIVACY_H__
 
 #include "util/delegates/delegate.hpp"
-#include "privacy_config.h"
+#include "privacy_source_config.h"
+#include "privacy_default_values_config.h"
 
 namespace wiselib
 {

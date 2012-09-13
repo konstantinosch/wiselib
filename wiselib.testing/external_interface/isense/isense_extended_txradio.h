@@ -45,16 +45,27 @@ namespace wiselib {
             ExtendedData() {
             }
 
-            uint16 link_metric() const {
+            int16 link_metric() const {
                 return link_metric_;
             };
-
-            void set_link_metric(uint16 lm) {
+            void set_link_metric( int16 lm ) {
                 link_metric_ = lm;
             };
+            int16 get_rssi() const
+			{ return rssi_; };
 
+			void set_rssi( int16 rssi )
+			{ rssi_ = rssi; };
+
+			int16 get_lqi() const
+			{ return lqi_; };
+
+			void set_lqi( int16 lqi )
+			{ lqi_ = lqi; };
         private:
-            uint16 link_metric_;
+            int16 link_metric_;
+            int16 lqi_;
+            int16 rssi_;
         };
         // --------------------------------------------------------------------
         typedef OsModel_P OsModel;
@@ -72,8 +83,7 @@ namespace wiselib {
         typedef uint8 message_id_t;
 
         typedef delegate3<void, node_id_t, size_t, block_data_t*> isense_radio_delegate_t;
-        typedef delegate4<void, node_id_t, size_t, block_data_t*,
-        const ExtendedData&> extended_radio_delegate_t;
+        typedef delegate4<void, node_id_t, size_t, block_data_t*, const ExtendedData&> extended_radio_delegate_t;
         typedef isense_radio_delegate_t radio_delegate_t;
         // --------------------------------------------------------------------
 
@@ -169,7 +179,9 @@ namespace wiselib {
                 return -1;
             }
         }
-        
+        int channel() {
+        	return os().radio().hardware_radio().channel();
+        }
         // --------------------------------------------------------------------
 
         int disable_radio() {
@@ -235,7 +247,6 @@ namespace wiselib {
                 uint16 signal_strength, uint16 signal_quality, uint8 sequence_no,
                 uint8 interface, isense::Time rx_time)
 #else
-
         virtual void receive(uint8 len, const uint8 *buf,
                 uint16 src_addr, uint16 dest_addr,
                 uint16 lqi, uint8 seq_no, uint8 interface)
@@ -248,6 +259,8 @@ namespace wiselib {
 
             ExtendedData ex;
             ex.set_link_metric(255 - signal_strength);
+            ex.set_rssi( signal_strength );
+            ex.set_lqi( signal_quality );
             for (int i = 0; i < MAX_EXTENDED_RECEIVERS; i++) {
                 if (isense_ext_radio_callbacks_[i])
                     isense_ext_radio_callbacks_[i](src_addr, len, const_cast<uint8*> (buf), ex);

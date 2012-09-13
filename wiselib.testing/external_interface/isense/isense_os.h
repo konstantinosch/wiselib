@@ -56,6 +56,12 @@ namespace wiselib
       typedef iSenseExtendedTxRadioModel<iSenseOsModel> ExtendedTxRadio;
       typedef iSenseExtendedTxRadioModel<iSenseOsModel> TxRadio;
       typedef iSenseExtendedTxRadioModel<iSenseOsModel> Radio;
+
+      //typedef iSenseExtendediSenseStyleTxRadioModel <iSenseOsModel> ExtendedRadio;
+      //typedef iSenseExtendediSenseStyleTxRadioModel <iSenseOsModel> ExtendedTxRadio;
+      //typedef iSenseExtendediSenseStyleTxRadioModel <iSenseOsModel> TxRadio;
+      //typedef iSenseExtendediSenseStyleTxRadioModel <iSenseOsModel> Radio;
+
       typedef iSensePositionModel<iSenseOsModel, Radio::block_data_t> Position;
       typedef iSenseRandModel<iSenseOsModel> Rand;
       typedef iSenseTimerModel<iSenseOsModel> Timer;

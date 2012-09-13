@@ -2,9 +2,7 @@
 #include "internal_interface/position/position_new.h"
 #include "algorithms/privacy/privacy_message.h"
 #include "algorithms/privacy/privacy.h"
-
-//#define CA
-#define HELPER
+#include "privacy_app_config.h"
 
 typedef wiselib::OSMODEL Os;
 typedef Os::Radio Radio;
@@ -13,7 +11,7 @@ typedef Os::Uart Uart;
 typedef Os::Timer Timer;
 typedef Radio::node_id_t node_id_t;
 typedef wiselib::PrivacyMessageType<Os, Radio> PrivacyMessage;
-typedef wiselib::vector_static<Os, PrivacyMessage, 100> PrivacyMessageList;
+typedef wiselib::vector_static<Os, PrivacyMessage, MAX_PRIVACY_BUFFERED_MESSAGES> PrivacyMessageList;
 typedef wiselib::PrivacyType<Os, Radio, Timer, Uart, PrivacyMessage, PrivacyMessageList, Debug> Privacy;
 
 Privacy privacy;

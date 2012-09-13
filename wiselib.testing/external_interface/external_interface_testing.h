@@ -22,7 +22,7 @@
 #include "external_interface/facet_provider.h"
 #include "external_interface/wiselib_application.h"
 
-#ifdef ISENSE
+//#ifdef ISENSE
 #include "external_interface/isense/isense_os.h"
 #include "external_interface/isense/isense_radio.h"
 #include "external_interface/isense/isense_extended_txradio.h"
@@ -35,7 +35,7 @@
 #include "external_interface/isense/isense_com_uart.h"
 #include "external_interface/isense/isense_facet_provider.h"
 #include "external_interface/isense/isense_wiselib_application.h"
-#endif
+//#endif
 
 #ifdef __SCATTERWEB__
 #include "external_interface/scw/scw_os.h"
