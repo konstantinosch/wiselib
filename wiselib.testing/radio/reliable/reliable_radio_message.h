@@ -1,5 +1,5 @@
-#ifndef __RELIABLE_RADIO_PROTOCOL_SETTING_H__
-#define	__RELIABLE_RADIO_PROTOCOL_SETTING_H__
+#ifndef __RELIABLE_RADIO_MESSAGE_H__
+#define	__RELIABLE_RADIO_MESSAGE_H__
 
 #include "reliable_radio_source_config.h"
 
@@ -51,8 +51,12 @@ namespace wiselib
 		// --------------------------------------------------------------------
 		void set_payload( size_t _len, block_data_t* _buff )
 		{
-			payload_size = _len;
-			memcpy( payload, _buff, _len );
+			size_t max_payload_size = Radio::MAX_MESSAGE_LENGTH - sizeof(message_id) - sizeof(payload_size);
+			if ( _len <= max_payload_size )
+			{
+				payload_size = _len;
+				memcpy( payload, _buff, _len );
+			}
 		}
 		// --------------------------------------------------------------------
 		block_data_t* get_payload()
