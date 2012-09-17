@@ -163,15 +163,35 @@ namespace wiselib
 			set_status( ACTIVE_STATUS );
 			radio().enable_radio();
 			recv_callback_id_ = radio().template reg_recv_callback<self_t, &self_t::receive>( this );
-#ifdef CONFIG_NEIGHBOR_DISCOVERY_H_RAND_STARTUP
-			debug().debug("%x:%i:%d:%d:%d:%d:R\n", radio().id(), transmission_power_dB, beacon_period, nd_daemon_period, relax_millis, ND_STATS_DURATION );
-			timer().template set_timer<self_t, &self_t::beacons> ( rand()() % get_beacon_period(), this, 0 );
-#else
-			debug().debug("%x:%i:%d:%d:%d:%d:N\n", radio().id(), transmission_power_dB, beacon_period, nd_daemon_period, relax_millis, ND_STATS_DURATION );
-			beacons();
-#endif
-			nd_daemon();
+			timer().template set_timer<self_t, &self_t::testing_frags> ( 5000, this, 0 );
+
+
+//#ifdef CONFIG_NEIGHBOR_DISCOVERY_H_RAND_STARTUP
+//			debug().debug("%x:%i:%d:%d:%d:%d:R\n", radio().id(), transmission_power_dB, beacon_period, nd_daemon_period, relax_millis, ND_STATS_DURATION );
+//			timer().template set_timer<self_t, &self_t::beacons> ( rand()() % get_beacon_period(), this, 0 );
+//#else
+//			debug().debug("%x:%i:%d:%d:%d:%d:N\n", radio().id(), transmission_power_dB, beacon_period, nd_daemon_period, relax_millis, ND_STATS_DURATION );
+//			beacons();
+//#endif
+//			nd_daemon();
 		};
+		// --------------------------------------------------------------------
+		void testing_frags( void* _data = NULL )
+		{
+
+			block_data_t testing_buffer_big[1000];
+			block_data_t testing_buffer_medium[250];
+			block_data_t testing_buffer_small[100];
+			memset( testing_buffer_big, 17, 1000 );
+			memset( testing_buffer_medium, 27, 240 );
+			memset( testing_buffer_small, 37, 100 );
+			Message m;
+			m.set_message_id( Radio::FR_MESSAGE );
+			m.set_payload( 240, testing_buffer_medium );
+			m.print( debug(), radio() );
+			radio().send( Radio::BROADCAST_ADDRESS, m.serial_size(), m.serialize() );
+			//radio().radio().send( Radio::BROADCAST_ADDRESS, m.serial_size(), m.serialize() );
+		}
 		// --------------------------------------------------------------------
 		void disable()
 		{
@@ -256,10 +276,6 @@ namespace wiselib
 						size_t beacon_size = beacon.serial_size();
 						block_data_t buff[Radio::MAX_MESSAGE_LENGTH];
 						beacon.serialize( buff );
-						//if ( radio().id() == 0x9708 )
-						//{
-						//	beacon.print( debug(), radio() );
-						//}
 						send( Radio::BROADCAST_ADDRESS, beacon_size, buff, ND_MESSAGE );
 #ifdef DEBUG_NEIGHBOR_DISCOVERY_H_BEACONS
 						debug().debug( "NeighborDiscovery - beacons - Sending beacon.\n" );
@@ -294,6 +310,13 @@ namespace wiselib
 			debug().debug( "NeighborDiscovery - receive - From %x Entering.\n", _from );
 #endif
 				message_id_t msg_id = *_msg;
+				if ( msg_id == Radio::FR_MESSAGE)
+				{
+					Message *message = (Message*) _msg;
+					debug().debug("entering from NB");
+					message->print( debug(), radio() );
+					debug().debug("exiting from NB");
+				}
 				if ( msg_id == ND_MESSAGE )
 				{
 					Message *message = (Message*) _msg;

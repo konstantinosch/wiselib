@@ -30,6 +30,7 @@ namespace wiselib
 		typedef typename Radio::block_data_t block_data_t;
 		typedef typename Radio::message_id_t message_id_t;
 		typedef typename Clock::time_t time_t;
+		typedef typename Radio::ExtendedData ExtendedData;
 		typedef typename Radio::ExtendedData ExData;
 		typedef typename Radio::TxPower TxPower;
 		typedef typename Timer::millis_t millis_t;
@@ -64,10 +65,11 @@ namespace wiselib
 #endif
 		};
 		// --------------------------------------------------------------------
-		void disable()
+		void disable_radio()
 		{
 			set_status( RR_WAITING_STATUS );
 			radio().template unreg_recv_callback( recv_callback_id_ );
+			radio().disable_radio();
 		};
 		// --------------------------------------------------------------------
 		void send( node_id_t _dest, size_t _len, block_data_t* _data )
@@ -317,7 +319,8 @@ namespace wiselib
         // --------------------------------------------------------------------
         size_t reserved_bytes()
         {
-        	return radio().reserved_bytes() + sizeof(message_id_t) + sizeof(message_id_t) + sizeof(size_t);
+        	ReliableRadioMessage rrm;
+        	return radio().reserved_bytes() + rrm.serial_size();
         };
 		// --------------------------------------------------------------------
 		uint8_t get_status()
@@ -384,6 +387,31 @@ namespace wiselib
 			return *rand_;
 		}
 		// --------------------------------------------------------------------
+		node_id_t id()
+		{
+			return radio().id();
+		}
+		// --------------------------------------------------------------------
+		int set_channel( int _channel )
+		{
+			return radio().set_channel( _channel );
+		}
+		// --------------------------------------------------------------------
+		int channel()
+		{
+			return radio().channel();
+		}
+		// --------------------------------------------------------------------
+		int set_power(TxPower _p )
+		{
+			return radio().set_power( _p );
+		}
+		// --------------------------------------------------------------------
+		TxPower power()
+		{
+			return radio().power();
+		}
+		// --------------------------------------------------------------------
 		enum reliable_radio_status
 		{
 			RR_ACTIVE_STATUS,
@@ -405,7 +433,12 @@ namespace wiselib
 		};
         enum Restrictions
         {
-            MAX_MESSAGE_LENGTH = 112
+            MAX_MESSAGE_LENGTH = Radio::MAX_MESSAGE_LENGTH
+        };
+        enum SpecialNodeIds
+        {
+        	BROADCAST_ADDRESS = Radio::BROADCAST_ADDRESS,
+        	NULL_NODE_ID = Radio::NULL_NODE_ID
         };
 	private:
 		uint32_t recv_callback_id_;

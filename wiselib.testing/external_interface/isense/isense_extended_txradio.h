@@ -28,6 +28,7 @@
 #include <isense/dispatcher.h>
 #include <isense/time.h>
 
+
 namespace wiselib {
 
     template<typename OsModel_P>
@@ -236,7 +237,7 @@ namespace wiselib {
         // --------------------------------------------------------------------
         size_t reserved_bytes()
         {
-        	return sizeof(message_id_t);
+        	return sizeof(message_id_t) + sizeof(size_t) + sizeof(uint16_t);
         };
         // --------------------------------------------------------------------
 

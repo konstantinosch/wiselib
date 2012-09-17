@@ -19,6 +19,7 @@ namespace wiselib
 		typedef typename Radio::message_id_t message_id_t;
 		typedef typename Radio::block_data_t block_data_t;
 		typedef typename Radio::node_id_t node_id_t;
+		typedef typename Radio::size_t size_t;
 		typedef Fragment_Type<Os, Radio, Debug> Fragment;
 		typedef vector_static<Os, Fragment, FR_MAX_FRAGMENTS> Fragment_vector;
 		typedef typename Fragment_vector::iterator Fragment_vector_iterator;
@@ -36,18 +37,18 @@ namespace wiselib
 			return *this;
 		}
 		// --------------------------------------------------------------------
-		void vectorize( block_data_t _buff, uint16_t _len, message_id_t _mid, size_t _mr_len, size_t _offset )
+		void vectorize( block_data_t* _buff, size_t _len, size_t _mr_len, message_id_t _mid, size_t _offset )
 		{
-			uint16_t number_of_fragments = _len / _mr_len;
-			uint16_t last_fragment_bytes = _len % _mr_len;
-			uint16_t i;
+			size_t number_of_fragments = _len / _mr_len;
+			size_t last_fragment_bytes = _len % _mr_len;
+			size_t i;
 			for ( i = 0; i < number_of_fragments; i++ )
 			{
 				Fragment f;
 				f.set_message_id( _mid );
 				f.set_seq_fragment( i );
 				f.set_total_fragments( number_of_fragments );
-				f.set_payload( _buff + _offset + i *_mr_len, _mr_len );
+				f.set_payload( _mr_len, _buff + _offset + ( i *_mr_len ) );
 				fragmenting_message.push_back( f );
 			}
 			if ( last_fragment_bytes != 0 )
@@ -56,7 +57,7 @@ namespace wiselib
 				f.set_message_id( _mid );
 				f.set_seq_fragment( i );
 				f.set_total_fragments( number_of_fragments );
-				f.set_payload( _buff + _offset + i * _mr_len, last_fragment_bytes );
+				f.set_payload( last_fragment_bytes, _buff + _offset + ( i * _mr_len ) );
 				fragmenting_message.push_back( f );
 			}
 		}

@@ -31,18 +31,21 @@ namespace wiselib
 		typedef typename Radio::block_data_t block_data_t;
 		typedef typename Radio::message_id_t message_id_t;
 		typedef typename Clock::time_t time_t;
+		typedef typename Radio::ExtendedData ExtendedData;
 		typedef typename Radio::ExtendedData ExData;
 		typedef typename Radio::TxPower TxPower;
 		typedef typename Timer::millis_t millis_t;
 		typedef delegate4<void, node_id_t, size_t, uint8_t*, ExData const&> event_notifier_delegate_t;
 		typedef vector_static<Os, event_notifier_delegate_t, FR_MAX_REGISTERED_PROTOCOLS> RegisteredCallbacks_vector;
 		typedef typename RegisteredCallbacks_vector::iterator RegisteredCallbacks_vector_iterator;
-		typedef Message_Type<Os, Radio, Debug> Message;
-		typedef Fragment_Type<Os, Radio, Debug> Fragment;
-		typedef vector_static<Os, Fragment, FR_MAX_FRAGMENTS> Fragment_vector;
-		typedef typename Fragment_vector::iterator Fragment_vector_iterator;
-
+		typedef FragmentingMessage_Type<Os, Radio, Debug> FragmentingMessage;
+		typedef vector_static<Os, FragmentingMessage, FR_MAX_FRAGMENED_MESSAGES_BUFFERED> FragmentingMessage_vector;
+		typedef typename FragmentingMessage_vector::iterator FragmentingMessage_vector_iterator;
+		typedef typename FragmentingMessage::Fragment Fragment;
+		typedef typename FragmentingMessage::Fragment_vector Fragment_vector;
+		typedef typename FragmentingMessage::Fragment_vector_iterator Fragment_vector_iterator;
 		typedef FragmentingRadio_Type<Os, Radio, Clock, Timer, Rand, Debug> self_t;
+		typedef Message_Type<Os, self_t, Debug> Message;
 		// --------------------------------------------------------------------
 		FragmentingRadio_Type()
 		{};
@@ -63,10 +66,11 @@ namespace wiselib
 #endif
 		};
 		// --------------------------------------------------------------------
-		void disable()
+		void disable_radio()
 		{
 			set_status( FR_WAITING_STATUS );
 			radio().template unreg_recv_callback( recv_callback_id_ );
+			radio().disable_radio();
 		};
 		// --------------------------------------------------------------------
 		void send( node_id_t _dest, size_t _len, block_data_t* _data )
@@ -76,9 +80,29 @@ namespace wiselib
 #endif
 			if ( status == FR_ACTIVE_STATUS )
 			{
-				if ( _len > Radio::MAX_MESSAGE_LENGTH )
+				if ( Radio::MAX_MESSAGE_LENGTH >= _len )
 				{
-
+					radio().send( _dest, _len, _data );
+				}
+				else
+				{
+					if ( Radio::MAX_MESSAGE_LENGTH > reserved_bytes() )
+					{
+						FragmentingMessage fm;
+						Message m;
+						m.de_serialize( _data );
+						size_t pure_payload = _len - radio().reserved_bytes();
+						size_t pure_fragment_payload = Radio::MAX_MESSAGE_LENGTH - reserved_bytes();
+						//fm.vectorize( _data, _len, pure_payload, pure_fragment_payload, ( rand()() % 0xffff ) );
+						fm.print( debug(), radio() );
+						debug().debug( " %d - %d - %d - %d - %d", m.get_payload_size(), pure_payload, pure_fragment_payload, Radio::MAX_MESSAGE_LENGTH, reserved_bytes() );
+					}
+					else
+					{
+#ifdef DEBUG_FRAGMENTING_RADIO_H
+						debug().debug( "FragmentingRadio - send - Message headers exceed maximum payload!\n" );
+#endif
+					}
 				}
 			}
 #ifdef DEBUG_FRAGMENTING_RADIO_H
@@ -95,6 +119,27 @@ namespace wiselib
 			{
 				if ( _from != radio().id() )
 				{
+					Message message;
+					message.de_serialize( _msg );
+					if ( message.get_message_id() == FR_MESSAGE )
+					{
+						if ( Radio::MAX_MESSAGE_LENGTH >= _len )
+						{
+							for ( RegisteredCallbacks_vector_iterator i = callbacks.begin(); i != callbacks.end(); ++i )
+							{
+								(*i)( _from, message.get_payload_size(), message.serialize(), _ex);
+							}
+						}
+						else
+						{
+							//TODO de_vectorization management
+							// -store
+							// -check completion
+								//-callback if yes
+								//-wait if no
+							// -purge on timeout
+						}
+					}
 				}
 			}
 #ifdef DEBUG_FRAGMENTING_RADIO_H
@@ -134,7 +179,10 @@ namespace wiselib
         // --------------------------------------------------------------------
         size_t reserved_bytes()
         {
-        	return radio().reserved_bytes() + sizeof(message_id_t) + sizeof(uint16_t) + sizeof(uint16_t) + sizeof(size_t);
+        	Fragment f;
+        	debug().debug( "fragmenting_reserved_bytes - radio().reserved_bytes() : %d - f.serial_size() : %d", radio().reserved_bytes(), f.serial_size() );
+        	f.print( debug(), radio() );
+        	return ( radio().reserved_bytes() + f.serial_size() );
         };
 		// --------------------------------------------------------------------
 		uint8_t get_status()
@@ -154,6 +202,26 @@ namespace wiselib
 			debug_ = &_debug;
 			clock_ = &_clock;
 			rand_ = &_rand;
+		}
+		// --------------------------------------------------------------------
+		int set_channel( int _channel )
+		{
+			return radio().set_channel( _channel );
+		}
+		// --------------------------------------------------------------------
+		int channel()
+		{
+			return radio().channel();
+		}
+		// --------------------------------------------------------------------
+		int set_power( TxPower _p )
+		{
+			return radio().set_power( _p );
+		}
+		// --------------------------------------------------------------------
+		TxPower power()
+		{
+			return radio().power();
 		}
 		// --------------------------------------------------------------------
 		Radio& radio()
@@ -181,6 +249,11 @@ namespace wiselib
 			return *rand_;
 		}
 		// --------------------------------------------------------------------
+		node_id_t id()
+		{
+			return radio().id();
+		}
+		// --------------------------------------------------------------------
 		enum reliable_radio_status
 		{
 			FR_ACTIVE_STATUS,
@@ -202,7 +275,12 @@ namespace wiselib
 		};
         enum Restrictions
         {
-            MAX_MESSAGE_LENGTH = 112
+            MAX_MESSAGE_LENGTH = 255
+        };
+        enum SpecialNodeIds
+        {
+        	BROADCAST_ADDRESS = Radio::BROADCAST_ADDRESS,
+        	NULL_NODE_ID = Radio::NULL_NODE_ID
         };
 	private:
 		uint32_t recv_callback_id_;

@@ -20,6 +20,7 @@
 #ifndef __MESSAGE_H__
 #define __MESSAGE_H__
 #include "message_source_config.h"
+#include "util/serialization/simple_types.h"
 
 namespace wiselib
 {
@@ -99,6 +100,11 @@ namespace wiselib
 		inline block_data_t* serialize( block_data_t* _buff = NULL )
 		{
 			return buffer;
+		}
+		// --------------------------------------------------------------------
+		inline void de_serialize( block_data_t* _buff )
+		{
+			memcpy( buffer, _buff, Radio::MAX_MESSAGE_LENGTH );
 		}
 		// --------------------------------------------------------------------
 		Message_Type& operator=( const Message_Type& _msg )

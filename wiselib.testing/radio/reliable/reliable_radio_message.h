@@ -17,6 +17,7 @@ namespace wiselib
 		typedef typename Radio::message_id_t message_id_t;
 		typedef typename Radio::block_data_t block_data_t;
 		typedef typename Radio::node_id_t node_id_t;
+		typedef typename Radio::size_t size_t;
 		typedef ReliableRadioMessage_Type<Os, Radio, Debug> self_t;
 		// --------------------------------------------------------------------
 		ReliableRadioMessage_Type() :
