@@ -3,7 +3,9 @@
 #include "internal_interface/position/position_new.h"
 #include "algorithms/neighbor_discovery/neighbor_discovery.h"
 #include "nd_app_config.h"
-
+//******
+#include "radio/fragmenting/fragmenting_radio_simple.h"
+//******
 #ifdef UNIGE_TESTBED
 #include "../topologies/UNIGE_ISENSE_topology.h"
 #endif
@@ -19,6 +21,9 @@ typedef Os::Timer Timer;
 typedef Os::Rand Rand;
 typedef wiselib::Position2DType<Os, Radio, uint8_t, Debug> Position;
 typedef wiselib::NeighborDiscovery_Type<Os, Radio, Clock, Timer, Rand, Debug> NeighborDiscovery;
+//*****
+typedef wiselib::FragmentingRadio_Type<Os, Radio, Clock, Timer, Rand, Debug> FragmentingRadio;
+//*****
 
 NeighborDiscovery neighbor_discovery;
 

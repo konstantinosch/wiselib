@@ -314,6 +314,11 @@ namespace wiselib
 				return RR_INACTIVE;
 			}
 		}
+        // --------------------------------------------------------------------
+        size_t reserved_bytes()
+        {
+        	return radio().reserved_bytes() + sizeof(message_id_t) + sizeof(message_id_t) + sizeof(size_t);
+        };
 		// --------------------------------------------------------------------
 		uint8_t get_status()
 		{

@@ -51,12 +51,8 @@ namespace wiselib
 		// --------------------------------------------------------------------
 		void set_payload( size_t _len, block_data_t* _buff )
 		{
-			size_t max_payload_size = Radio::MAX_MESSAGE_LENGTH - sizeof(message_id) - sizeof(payload_size);
-			if ( _len <= max_payload_size )
-			{
-				payload_size = _len;
-				memcpy( payload, _buff, _len );
-			}
+			payload_size = _len;
+			memcpy( payload, _buff, _len );
 		}
 		// --------------------------------------------------------------------
 		block_data_t* get_payload()

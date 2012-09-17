@@ -4,9 +4,10 @@
 #include "util/pstl/vector_static.h"
 #include "util/delegates/delegate.hpp"
 #include "../../internal_interface/message/message.h"
-#include "fragmenting_radio_message.h"
+#include "fragment.h"
+#include "fragmenting_message.h"
 #include "fragmenting_radio_source_config.h"
-#include "fragmenging_radio_default_values_config.h"
+#include "fragmenting_radio_default_values_config.h"
 
 namespace wiselib
 {
@@ -37,10 +38,11 @@ namespace wiselib
 		typedef vector_static<Os, event_notifier_delegate_t, FR_MAX_REGISTERED_PROTOCOLS> RegisteredCallbacks_vector;
 		typedef typename RegisteredCallbacks_vector::iterator RegisteredCallbacks_vector_iterator;
 		typedef Message_Type<Os, Radio, Debug> Message;
-		typedef FragmentingRadioMessage_Type<Os, Radio, Debug> FragmentingRadioMessage;
-		typedef vector_static<Os, FragmentingRadioMessage, FR_MAX_BUFFERED_MESSAGES> ReliableRadioMessage_vector;
-		typedef typename ReliableRadioMessage_vector::iterator ReliableRadioMessage_vector_iterator;
-		typedef ReliableRadio_Type<Os, Radio, Clock, Timer, Rand, Debug> self_t;
+		typedef Fragment_Type<Os, Radio, Debug> Fragment;
+		typedef vector_static<Os, Fragment, FR_MAX_FRAGMENTS> Fragment_vector;
+		typedef typename Fragment_vector::iterator Fragment_vector_iterator;
+
+		typedef FragmentingRadio_Type<Os, Radio, Clock, Timer, Rand, Debug> self_t;
 		// --------------------------------------------------------------------
 		FragmentingRadio_Type()
 		{};
@@ -74,15 +76,19 @@ namespace wiselib
 #endif
 			if ( status == FR_ACTIVE_STATUS )
 			{
+				if ( _len > Radio::MAX_MESSAGE_LENGTH )
+				{
+
+				}
 			}
-#ifdef DEBUG_RELIABLE_RADIO_H
+#ifdef DEBUG_FRAGMENTING_RADIO_H
 			debug().debug( "FragmentingRadio - send - Exiting.\n" );
 #endif
 		}
 		// --------------------------------------------------------------------
 		void receive( node_id_t _from, size_t _len, block_data_t * _msg, ExData const &_ex )
 		{
-#ifdef DEBUG_RELIABLE_RADIO_H
+#ifdef DEBUG_FRAGMENTING_RADIO_H
 			debug().debug( "FragmentingRadio - receive - Entering.\n"  );
 #endif
 			if ( status == FR_ACTIVE_STATUS )
@@ -91,7 +97,7 @@ namespace wiselib
 				{
 				}
 			}
-#ifdef DEBUG_RELIABLE_RADIO_H
+#ifdef DEBUG_FRAGMENTING_RADIO_H
 			debug().debug( "FragmentingRadio - receive - Exiting.\n" );
 #endif
 		}
@@ -99,32 +105,37 @@ namespace wiselib
 		template<class T, void(T::*TMethod)( node_id_t, size_t, block_data_t*, ExData const& ) >
 		uint32_t reg_recv_callback( T *_obj_pnt )
 		{
-#ifdef DEBUG_RELIABLE_RADIO_H
+#ifdef DEBUG_FRAGMENTING_RADIO_H
 			debug().debug( "FragmentingRadio - reg_recv_callback - Entering.\n" );
 #endif
 			if ( status == FR_ACTIVE_STATUS )
 			{
 				if ( callbacks.max_size() == callbacks.size() )
 				{
-#ifdef DEBUG_RELIABLE_RADIO_H
+#ifdef DEBUG_FRAGMENTING_RADIO_H
 			debug().debug( "FragmentingRadio - reg_recv_callback - Exiting FULL.\n" );
 #endif
 					return FR_PROT_LIST_FULL;
 				}
 				callbacks.push_back( event_notifier_delegate_t::template from_method<T, TMethod > ( _obj_pnt ) );
-#ifdef DEBUG_RELIABLE_RADIO_H
+#ifdef DEBUG_FRAGMENTING_RADIO_H
 			debug().debug( "FragmentingRadio - reg_recv_callback - Exiting SUCCESS.\n" );
 #endif
 				return FR_SUCCESS;
 			}
 			else
 			{
-#ifdef DEBUG_RELIABLE_RADIO_H
+#ifdef DEBUG_FRAGMENTING_RADIO_H
 			debug().debug( "FragmentingRadio - reg_recv_callback - Exiting INACTIVE.\n" );
 #endif
 				return FR_INACTIVE;
 			}
 		}
+        // --------------------------------------------------------------------
+        size_t reserved_bytes()
+        {
+        	return radio().reserved_bytes() + sizeof(message_id_t) + sizeof(uint16_t) + sizeof(uint16_t) + sizeof(size_t);
+        };
 		// --------------------------------------------------------------------
 		uint8_t get_status()
 		{

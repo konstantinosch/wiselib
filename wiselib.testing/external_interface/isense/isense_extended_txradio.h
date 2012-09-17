@@ -234,6 +234,11 @@ namespace wiselib {
             return -1;
         }
         // --------------------------------------------------------------------
+        size_t reserved_bytes()
+        {
+        	return sizeof(message_id_t);
+        };
+        // --------------------------------------------------------------------
 
         int unreg_recv_callback(int idx) {
             // TODO: Implement unregister - thereby different ids for receive
