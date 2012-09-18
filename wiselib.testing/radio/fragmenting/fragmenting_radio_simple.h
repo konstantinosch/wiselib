@@ -93,9 +93,29 @@ namespace wiselib
 						m.de_serialize( _data );
 						size_t pure_payload = _len - radio().reserved_bytes();
 						size_t pure_fragment_payload = Radio::MAX_MESSAGE_LENGTH - reserved_bytes();
-						//fm.vectorize( _data, _len, pure_payload, pure_fragment_payload, ( rand()() % 0xffff ) );
-						fm.print( debug(), radio() );
-						debug().debug( " %d - %d - %d - %d - %d", m.get_payload_size(), pure_payload, pure_fragment_payload, Radio::MAX_MESSAGE_LENGTH, reserved_bytes() );
+						fm.set_id( ( rand()() % 0xffff ) );
+						fm.vectorize( _data, pure_payload, pure_fragment_payload, debug(), radio().reserved_bytes() );
+						size_t i = 0;
+						for ( Fragment_vector_iterator it = fm.get_fragmenting_message_ref()->begin(); it != fm.get_fragmenting_message_ref()->end(); ++it )
+						{
+
+							Message mf;
+							mf.set_message_id( FR_MESSAGE );
+							block_data_t buff[Radio::MAX_MESSAGE_LENGTH];
+							mf.set_payload( it->serial_size(), it->serialize( buff ) );
+							debug().debug(" sending fragment %d", i);
+							i++;
+							radio().send( _dest, mf.serial_size(), mf.serialize() );
+						}
+						//fm.print( debug(), radio() );
+						//block_data_t buff[255];
+						//debug().debug( "M2" );
+						//Message m2;
+						//m2.set_message_id( m.get_message_id() );
+						//m2.set_payload( fm.serial_size(), fm.de_vectorize( buff ) );
+						//m2.print( debug(), *this );
+						//debug().debug( "M2 end %d vs %d", m2.csum(), m.csum() );
+						//debug().debug( " %d - %d - %d - %d - %d", m.get_payload_size(), pure_payload, pure_fragment_payload, Radio::MAX_MESSAGE_LENGTH, reserved_bytes() );
 					}
 					else
 					{
@@ -123,22 +143,35 @@ namespace wiselib
 					message.de_serialize( _msg );
 					if ( message.get_message_id() == FR_MESSAGE )
 					{
-						if ( Radio::MAX_MESSAGE_LENGTH >= _len )
+						Fragment f;
+						f.de_serialize( message.get_payload() );
+						uint8_t flag = 0;
+						for ( FragmentingMessage_vector_iterator it = fragmenting_messages.begin(); it != fragmenting_messages.end(); ++it )
 						{
-							for ( RegisteredCallbacks_vector_iterator i = callbacks.begin(); i != callbacks.end(); ++i )
+							if ( it->get_id() == f.get_id() )
 							{
-								(*i)( _from, message.get_payload_size(), message.serialize(), _ex);
+#ifdef DEBUG_FRAGMENTING_RADIO_H
+								debug().debug( "FragmentingRadio - receive - Found matching fragment vector.\n"  );
+#endif
+								//TODO
+								//-robustness in any case agnostic to reliability radio...
+								//-insert unique
+								//-dont mind the order
+								//-order should be handled on de_vectorize, so implement there a bit
+								//-concept of purge daemon, include a timer value
+								//check for completion, if so:
+								//for ( RegisteredCallbacks_vector_iterator i = callbacks.begin(); i != callbacks.end(); ++i )
+								//{
+								//	(*i)( _from, message.get_payload_size(), message.serialize(), _ex);
+								//}
+								flag = 1;
 							}
 						}
-						else
+						if ( flag == 0 )
 						{
-							//TODO de_vectorization management
-							// -store
-							// -check completion
-								//-callback if yes
-								//-wait if no
-							// -purge on timeout
+							//-new vector insertion if no match (usual stuff)...
 						}
+
 					}
 				}
 			}
@@ -180,8 +213,6 @@ namespace wiselib
         size_t reserved_bytes()
         {
         	Fragment f;
-        	debug().debug( "fragmenting_reserved_bytes - radio().reserved_bytes() : %d - f.serial_size() : %d", radio().reserved_bytes(), f.serial_size() );
-        	f.print( debug(), radio() );
         	return ( radio().reserved_bytes() + f.serial_size() );
         };
 		// --------------------------------------------------------------------
@@ -286,6 +317,7 @@ namespace wiselib
 		uint32_t recv_callback_id_;
         uint8_t status;
         RegisteredCallbacks_vector callbacks;
+        FragmentingMessage_vector fragmenting_messages;
         Radio * radio_;
         Clock * clock_;
         Timer * timer_;

@@ -21,7 +21,7 @@ namespace wiselib
 		typedef Fragment_Type<Os, Radio, Debug> self_t;
 		// --------------------------------------------------------------------
 		Fragment_Type() :
-			message_id				( 0 ),
+			id						( 0 ),
 			seq_fragment			( 0 ),
 			total_fragments			( 0 ),
 			payload_size			( 0 )
@@ -32,7 +32,7 @@ namespace wiselib
 		// --------------------------------------------------------------------
 		self_t& operator=( const self_t& _frm )
 		{
-			message_id = _frm.message_id;
+			id = _frm.id;
 			seq_fragment = _frm.seq_fragment;
 			payload_size = _frm.payload_size;
 			total_fragments = _frm.total_fragments;
@@ -40,14 +40,14 @@ namespace wiselib
 			return *this;
 		}
 		// --------------------------------------------------------------------
-		message_id_t get_message_id()
+		message_id_t get_id()
 		{
-			return message_id;
+			return id;
 		}
 		// --------------------------------------------------------------------
-		void set_message_id( message_id_t _msg_id )
+		void set_id( uint16_t _id )
 		{
-			message_id = _msg_id;
+			id = _id;
 		}
 		// --------------------------------------------------------------------
 		void set_payload( size_t _len, block_data_t* _buff )
@@ -88,14 +88,14 @@ namespace wiselib
 		// --------------------------------------------------------------------
 		block_data_t* serialize( block_data_t* _buff, size_t _offset = 0 )
 		{
-			size_t MESSAGE_ID_POS = 0;
-			size_t SEQ_FRAGMENT_POS = MESSAGE_ID_POS + sizeof(message_id_t);
+			size_t ID_POS = 0;
+			size_t SEQ_FRAGMENT_POS = ID_POS + sizeof(uint16_t);
 			size_t TOTAL_FRAGMENTS_POS = SEQ_FRAGMENT_POS + sizeof(size_t);
 			size_t PAYLOAD_SIZE_POS = TOTAL_FRAGMENTS_POS + sizeof(size_t);
 			size_t PAYLOAD_POS = PAYLOAD_SIZE_POS + sizeof(size_t);
-			write<Os, block_data_t, message_id_t>( _buff + MESSAGE_ID_POS + _offset, message_id );
-			write<Os, block_data_t, uint16_t>( _buff + SEQ_FRAGMENT_POS + _offset, seq_fragment );
-			write<Os, block_data_t, uint16_t>( _buff + TOTAL_FRAGMENTS_POS + _offset, total_fragments );
+			write<Os, block_data_t, uint16_t>( _buff + ID_POS + _offset, id );
+			write<Os, block_data_t, size_t>( _buff + SEQ_FRAGMENT_POS + _offset, seq_fragment );
+			write<Os, block_data_t, size_t>( _buff + TOTAL_FRAGMENTS_POS + _offset, total_fragments );
 			write<Os, block_data_t, size_t>( _buff + PAYLOAD_SIZE_POS + _offset, payload_size );
 			memcpy( _buff + PAYLOAD_POS + _offset, payload, payload_size );
 			return _buff;
@@ -103,22 +103,22 @@ namespace wiselib
 		// --------------------------------------------------------------------
 		void de_serialize( block_data_t* _buff, size_t _offset = 0 )
 		{
-			size_t MESSAGE_ID_POS = 0;
-			size_t SEQ_FRAGMENT_POS = MESSAGE_ID_POS + sizeof(message_id_t);
+			size_t ID_POS = 0;
+			size_t SEQ_FRAGMENT_POS = ID_POS + sizeof(uint16_t);
 			size_t TOTAL_FRAGMENTS_POS = SEQ_FRAGMENT_POS + sizeof(size_t);
 			size_t PAYLOAD_SIZE_POS = TOTAL_FRAGMENTS_POS + sizeof(size_t);
 			size_t PAYLOAD_POS = PAYLOAD_SIZE_POS + sizeof(size_t);
-			message_id = read<Os, block_data_t, message_id_t>( _buff + MESSAGE_ID_POS + _offset );
-			seq_fragment = read<Os, block_data_t, uint16_t>( _buff + SEQ_FRAGMENT_POS + _offset );
-			total_fragments = read<Os, block_data_t, uint16_t>( _buff + TOTAL_FRAGMENTS_POS + _offset );
+			id = read<Os, block_data_t, uint16_t>( _buff + ID_POS + _offset );
+			seq_fragment = read<Os, block_data_t, size_t>( _buff + SEQ_FRAGMENT_POS + _offset );
+			total_fragments = read<Os, block_data_t, size_t>( _buff + TOTAL_FRAGMENTS_POS + _offset );
 			payload_size = read<Os, block_data_t, size_t>( _buff + PAYLOAD_SIZE_POS + _offset );
 			memcpy( payload, _buff + PAYLOAD_POS + _offset, payload_size );
 		}
 		// --------------------------------------------------------------------
 		size_t serial_size()
 		{
-			size_t MESSAGE_ID_POS = 0;
-			size_t SEQ_FRAGMENT_POS = MESSAGE_ID_POS + sizeof(message_id_t);
+			size_t ID_POS = 0;
+			size_t SEQ_FRAGMENT_POS = ID_POS + sizeof(uint16_t);
 			size_t TOTAL_FRAGMENTS_POS = SEQ_FRAGMENT_POS + sizeof(size_t);
 			size_t PAYLOAD_SIZE_POS = TOTAL_FRAGMENTS_POS + sizeof(size_t);
 			size_t PAYLOAD_POS = PAYLOAD_SIZE_POS + sizeof(size_t);
@@ -130,7 +130,7 @@ namespace wiselib
 		{
 			_debug.debug( "-------------------------------------------------------\n");
 			_debug.debug( "Fragment : \n" );
-			_debug.debug( "message_id (size %i) : %d\n", sizeof(message_id_t), message_id );
+			_debug.debug( "id (size %i) : %d\n", sizeof(uint16_t), id );
 			_debug.debug( "seq_fragment (size %i) : %d\n", sizeof(size_t), seq_fragment );
 			_debug.debug( "total_fragments (size %i) : %d\n", sizeof(size_t), total_fragments );
 			_debug.debug( "payload_size (size %i) : %d\n", sizeof(size_t), payload_size );
@@ -144,7 +144,7 @@ namespace wiselib
 #endif
 		// --------------------------------------------------------------------
 	private:
-		message_id_t message_id;
+		uint16_t id;
 		size_t seq_fragment;
 		size_t total_fragments;
 		block_data_t payload[Radio::MAX_MESSAGE_LENGTH];

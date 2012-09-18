@@ -58,43 +58,55 @@ namespace wiselib
 		inline size_t get_payload_size()
 		{
 			size_t MESSAGE_ID_POS = 0;
+#ifdef MESSAGE_H_FLETCHER_CHECKSUM
+			size_t CSUM_POS = MESSAGE_ID_POS + sizeof(message_id_t);
+			size_t PAYLOAD_SIZE_POS = CSUM_POS + sizeof(uint16_t);
+#else
 			size_t PAYLOAD_SIZE_POS = MESSAGE_ID_POS + sizeof(message_id_t);
+#endif
 			return read<OsModel, block_data_t, size_t> (buffer + PAYLOAD_SIZE_POS );
 		}
 		// --------------------------------------------------------------------
 		inline block_data_t* get_payload()
 		{
 			size_t MESSAGE_ID_POS = 0;
+#ifdef MESSAGE_H_FLETCHER_CHECKSUM
+			size_t CSUM_POS = MESSAGE_ID_POS + sizeof(message_id_t);
+			size_t PAYLOAD_SIZE_POS = CSUM_POS + sizeof(uint16_t);
+#else
 			size_t PAYLOAD_SIZE_POS = MESSAGE_ID_POS + sizeof(message_id_t);
+#endif
 			size_t PAYLOAD_POS = PAYLOAD_SIZE_POS + sizeof(size_t);
 			return buffer + PAYLOAD_POS;
 		}
 		// --------------------------------------------------------------------
-		inline void set_payload( size_t _len, block_data_t* _buf )
+		inline void set_payload( size_t _len, block_data_t* _buff, size_t _offset = 0 )
 		{
 			size_t MESSAGE_ID_POS = 0;
-			size_t PAYLOAD_SIZE_POS = MESSAGE_ID_POS + sizeof(message_id_t);
-			size_t PAYLOAD_POS = PAYLOAD_SIZE_POS + sizeof(size_t);
-			write<OsModel, block_data_t, size_t> ( buffer + PAYLOAD_SIZE_POS, _len );
-			memcpy( buffer + PAYLOAD_POS, _buf, _len );
 #ifdef MESSAGE_H_FLETCHER_CHECKSUM
-			uint16_t csum = fletcher16_checksum( buffer + PAYLOAD_POS, _len);
-			size_t CSUM_POS = PAYLOAD_POS + get_payload_size();
-			write<OsModel, block_data_t, uint16_t> ( buffer + CSUM_POS, csum );
+			size_t CSUM_POS = MESSAGE_ID_POS + sizeof(message_id_t);
+			size_t PAYLOAD_SIZE_POS = CSUM_POS + sizeof(uint16_t);
+			uint16_t csum = fletcher16_checksum( _buff + _offset, _len);
+			write<OsModel, block_data_t, uint16_t> ( buffer + _offset + CSUM_POS, csum );
+#else
+			size_t PAYLOAD_SIZE_POS = MESSAGE_ID_POS + sizeof(message_id_t);
 #endif
+			size_t PAYLOAD_POS = PAYLOAD_SIZE_POS + sizeof(size_t);
+			write<OsModel, block_data_t, size_t> ( buffer + _offset + PAYLOAD_SIZE_POS, _len );
+			memcpy( buffer + PAYLOAD_POS, _buff, _len );
 		}
 		// --------------------------------------------------------------------
 		inline size_t serial_size()
 		{
 			size_t MESSAGE_ID_POS = 0;
-			size_t PAYLOAD_SIZE_POS = MESSAGE_ID_POS + sizeof(message_id_t);
-			size_t PAYLOAD_POS = PAYLOAD_SIZE_POS + sizeof(size_t);
 #ifdef MESSAGE_H_FLETCHER_CHECKSUM
-			size_t CSUM_POS = PAYLOAD_POS + get_payload_size();
-			return CSUM_POS + sizeof(uint16_t);
+			size_t CSUM_POS = MESSAGE_ID_POS + sizeof(message_id_t);
+			size_t PAYLOAD_SIZE_POS = CSUM_POS + sizeof(uint16_t);
 #else
-			return PAYLOAD_POS + get_payload_size();
+			size_t PAYLOAD_SIZE_POS = MESSAGE_ID_POS + sizeof(message_id_t);
 #endif
+			size_t PAYLOAD_POS = PAYLOAD_SIZE_POS + sizeof(size_t);
+			return PAYLOAD_POS + get_payload_size();
 		}
 		// --------------------------------------------------------------------
 		inline block_data_t* serialize( block_data_t* _buff = NULL )
@@ -102,9 +114,9 @@ namespace wiselib
 			return buffer;
 		}
 		// --------------------------------------------------------------------
-		inline void de_serialize( block_data_t* _buff )
+		inline void de_serialize( block_data_t* _buff, size_t _offset = 0 )
 		{
-			memcpy( buffer, _buff, Radio::MAX_MESSAGE_LENGTH );
+			memcpy( buffer + _offset, _buff, serial_size() );
 		}
 		// --------------------------------------------------------------------
 		Message_Type& operator=( const Message_Type& _msg )
@@ -119,6 +131,9 @@ namespace wiselib
 			_debug.debug( "-------------------------------------------------------\n" );
 			_debug.debug( "Message : \n" );
 			_debug.debug( "message_id (size %i) : %d\n", sizeof(message_id_t), get_message_id() );
+#ifdef MESSAGE_H_FLETCHER_CHECKSUM
+			_debug.debug( "checksum (size %i) : %d", sizeof(uint16_t), csum() );
+#endif
 			_debug.debug( "payload_size: %d\n", get_payload_size() );
 			_debug.debug( "serial_size: %d\n", serial_size() );
 			_debug.debug( "payload : \n");
@@ -126,9 +141,6 @@ namespace wiselib
 			{
 				_debug.debug( "%d", get_payload()[i] );
 			}
-#ifdef MESSAGE_H_FLETCHER_CHECKSUM
-			_debug.debug( "checksum (size %i) : %d", sizeof(uint16_t), csum() );
-#endif
 			_debug.debug( "-------------------------------------------------------\n" );
 		}
 		// --------------------------------------------------------------------
@@ -156,9 +168,9 @@ namespace wiselib
 		inline uint8_t compare_checksum()
 		{
 			size_t MESSAGE_ID_POS = 0;
-			size_t PAYLOAD_SIZE_POS = MESSAGE_ID_POS + sizeof(message_id_t);
+			size_t CSUM_POS = MESSAGE_ID_POS + sizeof(message_id_t);
+			size_t PAYLOAD_SIZE_POS = CSUM_POS + sizeof(uint16_t);
 			size_t PAYLOAD_POS = PAYLOAD_SIZE_POS + sizeof(size_t);
-			size_t CSUM_POS = PAYLOAD_POS + get_payload_size();
 			uint16_t csum_transmitted = read<OsModel, block_data_t, uint16_t> ( buffer + CSUM_POS );
 			uint16_t csum_actual = fletcher16_checksum( buffer + PAYLOAD_POS, get_payload_size() );
 			return ( csum_transmitted == csum_actual );
@@ -167,9 +179,7 @@ namespace wiselib
 		inline uint16_t csum()
 		{
 			size_t MESSAGE_ID_POS = 0;
-			size_t PAYLOAD_SIZE_POS = MESSAGE_ID_POS + sizeof(message_id_t);
-			size_t PAYLOAD_POS = PAYLOAD_SIZE_POS + sizeof(size_t);
-			size_t CSUM_POS = PAYLOAD_POS + get_payload_size();
+			size_t CSUM_POS = MESSAGE_ID_POS + sizeof(message_id_t);
 			return read<OsModel, block_data_t, uint16_t> ( buffer + CSUM_POS );
 		}
 #endif
