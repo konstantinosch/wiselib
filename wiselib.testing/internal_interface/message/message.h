@@ -116,7 +116,7 @@ namespace wiselib
 		// --------------------------------------------------------------------
 		inline void de_serialize( block_data_t* _buff, size_t _offset = 0 )
 		{
-			memcpy( buffer + _offset, _buff, serial_size() );
+			memcpy( buffer + _offset, _buff, Radio::MAX_MESSAGE_LENGTH );
 		}
 		// --------------------------------------------------------------------
 		Message_Type& operator=( const Message_Type& _msg )

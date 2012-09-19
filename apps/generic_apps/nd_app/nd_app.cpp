@@ -4,7 +4,7 @@
 #include "algorithms/neighbor_discovery/neighbor_discovery.h"
 #include "nd_app_config.h"
 //******
-#include "radio/fragmenting/fragmenting_radio_simple.h"
+#include "radio/fragmenting/fragmenting_radio.h"
 //******
 #ifdef UNIGE_TESTBED
 #include "../topologies/UNIGE_ISENSE_topology.h"

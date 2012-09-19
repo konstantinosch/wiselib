@@ -178,23 +178,25 @@ namespace wiselib
 		// --------------------------------------------------------------------
 		void testing_frags( void* _data = NULL )
 		{
-
-			block_data_t testing_buffer_big[1000];
-			block_data_t testing_buffer_medium[240];
-			block_data_t testing_buffer_small[100];
-			memset( testing_buffer_big, 17, 1000 );
-			//memset( testing_buffer_medium, 27, 240 );
-			for ( size_t i = 0; i < 240; i++ )
+			if ( radio().id() == 0x1b7f )
 			{
-				testing_buffer_medium[i] = i;
+				block_data_t testing_buffer_big[1000];
+				block_data_t testing_buffer_medium[240];
+				block_data_t testing_buffer_small[100];
+				memset( testing_buffer_big, 17, 1000 );
+				//memset( testing_buffer_medium, 27, 240 );
+				for ( size_t i = 0; i < 240; i++ )
+				{
+					testing_buffer_medium[i] = i;
+				}
+				memset( testing_buffer_small, 37, 100 );
+				Message m;
+				m.set_message_id( 55 );
+				m.set_payload( 240, testing_buffer_medium );
+				//m.print( debug(), radio() );
+				radio().send( Radio::BROADCAST_ADDRESS, m.serial_size(), m.serialize() );
+				//radio().radio().send( Radio::BROADCAST_ADDRESS, m.serial_size(), m.serialize() );
 			}
-			memset( testing_buffer_small, 37, 100 );
-			Message m;
-			m.set_message_id( 55 );
-			m.set_payload( 240, testing_buffer_medium );
-			m.print( debug(), radio() );
-			radio().send( Radio::BROADCAST_ADDRESS, m.serial_size(), m.serialize() );
-			//radio().radio().send( Radio::BROADCAST_ADDRESS, m.serial_size(), m.serialize() );
 		}
 		// --------------------------------------------------------------------
 		void disable()
@@ -314,7 +316,7 @@ namespace wiselib
 			debug().debug( "NeighborDiscovery - receive - From %x Entering.\n", _from );
 #endif
 				message_id_t msg_id = *_msg;
-				if ( msg_id == Radio::FR_MESSAGE)
+				if ( msg_id == 55 )
 				{
 					Message *message = (Message*) _msg;
 					debug().debug("entering from NB");
