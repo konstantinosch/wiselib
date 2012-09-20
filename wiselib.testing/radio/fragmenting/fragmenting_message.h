@@ -29,9 +29,9 @@ namespace wiselib
 		typedef FragmentingMessage_Type<Os, Radio, Timer, Debug> self_t;
 		// --------------------------------------------------------------------
 		FragmentingMessage_Type() :
-			id			( 0 ),
-			timeout		( 0 ),
-			active		( 0 )
+			id				( 0 ),
+			timestamp		( 0 ),
+			active			( 0 )
 		{};
 		// --------------------------------------------------------------------
 		~FragmentingMessage_Type()
@@ -40,7 +40,7 @@ namespace wiselib
 		self_t& operator=( const self_t& _fm )
 		{
 			id = _fm.id;
-			timeout = _fm.timeout;
+			timestamp = _fm.timestamp;
 			active = _fm.active;
 			fragmenting_message = _fm.fragmenting_message;
 			return *this;
@@ -56,14 +56,14 @@ namespace wiselib
 			id = _id;
 		}
 		// --------------------------------------------------------------------
-		uint16_t get_timeout()
+		uint16_t get_timestamp()
 		{
-			return timeout;
+			return timestamp;
 		}
 		// --------------------------------------------------------------------
-		void set_timeout( millis_t _m )
+		void set_timestamp( millis_t _t )
 		{
-			timeout = _m;
+			timestamp = _t;
 		}
 		// --------------------------------------------------------------------
 		uint8_t get_active()
@@ -181,7 +181,7 @@ namespace wiselib
 			_debug.debug( "-------------------------------------------------------\n");
 			_debug.debug( "FragmentingMessage : \n" );
 			_debug.debug( "id (size %i) : %d\n", sizeof(id), id );
-			_debug.debug( "timeout (size %i) : %d\n", sizeof(millis_t), timeout );
+			_debug.debug( "timestamp (size %i) : %d\n", sizeof(millis_t), timestamp );
 			for ( Fragment_vector_iterator i = fragmenting_message.begin(); i != fragmenting_message.end(); ++i )
 			{
 				i->print( _debug, _radio );
@@ -192,7 +192,7 @@ namespace wiselib
 		// --------------------------------------------------------------------
 	private:
 		uint16_t id;
-		millis_t timeout;
+		millis_t timestamp;
 		uint8_t active;
 		Fragment_vector fragmenting_message;
     };

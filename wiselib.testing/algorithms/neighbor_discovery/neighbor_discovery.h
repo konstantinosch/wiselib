@@ -163,41 +163,39 @@ namespace wiselib
 			set_status( ACTIVE_STATUS );
 			radio().enable_radio();
 			recv_callback_id_ = radio().template reg_recv_callback<self_t, &self_t::receive>( this );
-			timer().template set_timer<self_t, &self_t::testing_frags> ( 5000, this, 0 );
-
-
-//#ifdef CONFIG_NEIGHBOR_DISCOVERY_H_RAND_STARTUP
-//			debug().debug("%x:%i:%d:%d:%d:%d:R\n", radio().id(), transmission_power_dB, beacon_period, nd_daemon_period, relax_millis, ND_STATS_DURATION );
-//			timer().template set_timer<self_t, &self_t::beacons> ( rand()() % get_beacon_period(), this, 0 );
-//#else
-//			debug().debug("%x:%i:%d:%d:%d:%d:N\n", radio().id(), transmission_power_dB, beacon_period, nd_daemon_period, relax_millis, ND_STATS_DURATION );
-//			beacons();
-//#endif
-//			nd_daemon();
+#ifdef CONFIG_NEIGHBOR_DISCOVERY_H_RAND_STARTUP
+			debug().debug("%x:%i:%d:%d:%d:%d:R\n", radio().id(), transmission_power_dB, beacon_period, nd_daemon_period, relax_millis, ND_STATS_DURATION );
+			timer().template set_timer<self_t, &self_t::beacons> ( rand()() % get_beacon_period(), this, 0 );
+#else
+			debug().debug("%x:%i:%d:%d:%d:%d:N\n", radio().id(), transmission_power_dB, beacon_period, nd_daemon_period, relax_millis, ND_STATS_DURATION );
+			beacons();
+#endif
+			nd_daemon();
 		};
 		// --------------------------------------------------------------------
-		void testing_frags( void* _data = NULL )
-		{
-			if ( radio().id() == 0x1b7f )
-			{
-				block_data_t testing_buffer_big[1000];
-				block_data_t testing_buffer_medium[240];
-				block_data_t testing_buffer_small[100];
-				memset( testing_buffer_big, 17, 1000 );
-				//memset( testing_buffer_medium, 27, 240 );
-				for ( size_t i = 0; i < 240; i++ )
-				{
-					testing_buffer_medium[i] = i;
-				}
-				memset( testing_buffer_small, 37, 100 );
-				Message m;
-				m.set_message_id( 55 );
-				m.set_payload( 240, testing_buffer_medium );
-				//m.print( debug(), radio() );
-				radio().send( Radio::BROADCAST_ADDRESS, m.serial_size(), m.serialize() );
-				//radio().radio().send( Radio::BROADCAST_ADDRESS, m.serial_size(), m.serialize() );
-			}
-		}
+//		void testing_frags( void* _data = NULL )
+//		{
+//			//timer().template set_timer<self_t, &self_t::testing_frags> ( 5000, this, 0 );
+//			if ( radio().id() == 0x1b7f )
+//			{
+//				block_data_t testing_buffer_big[1000];
+//				block_data_t testing_buffer_medium[240];
+//				block_data_t testing_buffer_small[100];
+//				memset( testing_buffer_big, 17, 1000 );
+//				//memset( testing_buffer_medium, 27, 240 );
+//				for ( size_t i = 0; i < 240; i++ )
+//				{
+//					testing_buffer_medium[i] = i;
+//				}
+//				memset( testing_buffer_small, 37, 100 );
+//				Message m;
+//				m.set_message_id( 55 );
+//				m.set_payload( 240, testing_buffer_medium );
+//				//m.print( debug(), radio() );
+//				radio().send( Radio::BROADCAST_ADDRESS, m.serial_size(), m.serialize() );
+//				//radio().radio().send( Radio::BROADCAST_ADDRESS, m.serial_size(), m.serialize() );
+//			}
+//		}
 		// --------------------------------------------------------------------
 		void disable()
 		{
@@ -277,12 +275,17 @@ namespace wiselib
 						beacon.set_protocol_payloads( protocols );
 						beacon.set_beacon_period( bp );
 						beacon.set_beacon_period_update_counter( n->get_beacon_period_update_counter() );
-						Neighbor_vector nv = p_ptr->get_best_neighborhood( ( Radio::MAX_MESSAGE_LENGTH - beacon.serial_size() ) / n->serial_size()/*, debug(), radio()*/ );
+						Neighbor_vector nv = p_ptr->get_neighborhood();
+						//Neighbor_vector nv = p_ptr->get_best_neighborhood( ( Radio::MAX_MESSAGE_LENGTH - beacon.serial_size() ) / n->serial_size()/*, debug(), radio()*/ );
 						beacon.set_neighborhood( nv, radio().id() );
-						size_t beacon_size = beacon.serial_size();
+						//size_t beacon_size = beacon.serial_size();
+						//beacon.serialize( buff );
+						if ( radio().id() == 0x9710 )
+						{
+							beacon.print( debug(), radio(), position );
+						}
 						block_data_t buff[Radio::MAX_MESSAGE_LENGTH];
-						beacon.serialize( buff );
-						send( Radio::BROADCAST_ADDRESS, beacon_size, buff, ND_MESSAGE );
+						send( Radio::BROADCAST_ADDRESS, beacon.serial_size(), beacon.serialize( buff ), ND_MESSAGE );
 #ifdef DEBUG_NEIGHBOR_DISCOVERY_H_BEACONS
 						debug().debug( "NeighborDiscovery - beacons - Sending beacon.\n" );
 						beacon.print( debug(), radio(), position );
@@ -316,34 +319,31 @@ namespace wiselib
 			debug().debug( "NeighborDiscovery - receive - From %x Entering.\n", _from );
 #endif
 				message_id_t msg_id = *_msg;
-				if ( msg_id == 55 )
+				Message *message = (Message*) _msg;
+				if ( !message->compare_checksum() )
 				{
-					Message *message = (Message*) _msg;
-					debug().debug("entering from NB");
-					message->print( debug(), radio() );
-					debug().debug("exiting from NB");
+#ifdef DEBUG_NEIGHBOR_DISCOVERY_H_RECEIVE
+					debug().debug( "NeighborDiscovery - receive - Problem with csum from %x.\n", _from );
+					debug().debug( "csum : %d vs comp : %d.\n", message->csum(), message->fletcher16_checksum( message->get_payload(), message->get_payload_size() ) );
+					debug().debug( "message serial size: %d received len : %d.\n", message->serial_size(), _len );
+#endif
+#ifdef DEBUG_NEIGHBOR_DISCOVERY_STATS
+					corrupted_messages_received = corrupted_messages_received + 1;
+					corrupted_bytes_received = corrupted_bytes_received + _len;
+					avg_corrupted_byte_size_received = corrupted_bytes_received / corrupted_messages_received;
+#endif
+					return;
 				}
 				if ( msg_id == ND_MESSAGE )
 				{
-					Message *message = (Message*) _msg;
-					if ( !message->compare_checksum() )
-					{
-#ifdef DEBUG_NEIGHBOR_DISCOVERY_H_RECEIVE
-						debug().debug( "NeighborDiscovery - receive - Problem with csum from %x.\n", _from );
-						debug().debug( "csum : %d vs comp : %d.\n", message->csum(), message->fletcher16_checksum( message->get_payload(), message->get_payload_size() ) );
-						debug().debug( "message serial size: %d received len : %d.\n", message->serial_size(), _len );
-#endif
-#ifdef DEBUG_NEIGHBOR_DISCOVERY_STATS
-						corrupted_messages_received = corrupted_messages_received + 1;
-						corrupted_bytes_received = corrupted_bytes_received + _len;
-						avg_corrupted_byte_size_received = corrupted_bytes_received / corrupted_messages_received;
-#endif
-						return;
-					}
 					Beacon beacon;
 					beacon.de_serialize( message->get_payload() );
+					if ( radio().id() == 0x9710 )
+					{
+						beacon.print( debug(), radio(), position );
+					}
 #ifdef DEBUG_NEIGHBOR_DISCOVERY_H_RECEIVE
-						debug().debug( "NeighborDiscovery - receive - Received beacon message with message serial_size : %d, beacon serial_size : %d and neigh size : %d.\n", message->serial_size(), beacon.serial_size(), beacon.get_neighborhood_ref()->size() );
+					debug().debug( "NeighborDiscovery - receive - Received beacon message with message serial_size : %d, beacon serial_size : %d and neigh size : %d.\n", message->serial_size(), beacon.serial_size(), beacon.get_neighborhood_ref()->size() );
 #endif
 					time_t current_time = clock().time();
 					uint32_t dead_time = 0;
