@@ -120,6 +120,24 @@ namespace wiselib
 			pp.set_protocol_id( ND_PROTOCOL_ID );
 			pp.set_payload_size( 0 );
 #endif
+
+			Protocol p2;
+			p2.set_protocol_id( 33 );
+			ProtocolSettings ps2;
+			block_data_t buff2[600];
+			for ( size_t i = 0; i < 600; i++ )
+			{
+				buff2[i] = 131;
+			}
+			ProtocolPayload pp2( 33, 600, buff2 );
+			ps2.set_protocol_payload( pp2 );
+			p2.set_protocol_settings( ps2 );
+			Neighbor_vector nnvv;
+			//p2.set_event_notifier_callback( event_notifier_delegate_t::template from_method<NeighborDiscovery_Type, &NeighborDiscovery_Type::events_callback > ( this ) );
+			p2.set_neighborhood( nnvv );
+			protocols.push_back( p2 );
+
+
 			uint8_t events_flag = 	ProtocolSettings::NEW_NB|
 									ProtocolSettings::UPDATE_NB|
 									ProtocolSettings::NEW_PAYLOAD|
@@ -263,6 +281,9 @@ namespace wiselib
 #endif
 					millis_t bp = get_beacon_period();
 					Neighbor* n = p_ptr->get_neighbor_ref( radio().id() );
+#ifdef DEBUG_NEIGHBOR_DISCOVERY_H_BEACONS
+					debug().debug( "beacon_period:%d", bp );
+#endif
 					if ( n != NULL )
 					{
 #ifdef DEBUG_NEIGHBOR_DISCOVERY_H_BEACONS
@@ -276,14 +297,11 @@ namespace wiselib
 						beacon.set_beacon_period( bp );
 						beacon.set_beacon_period_update_counter( n->get_beacon_period_update_counter() );
 						Neighbor_vector nv = p_ptr->get_neighborhood();
-						//Neighbor_vector nv = p_ptr->get_best_neighborhood( ( Radio::MAX_MESSAGE_LENGTH - beacon.serial_size() ) / n->serial_size()/*, debug(), radio()*/ );
 						beacon.set_neighborhood( nv, radio().id() );
-						//size_t beacon_size = beacon.serial_size();
-						//beacon.serialize( buff );
-						if ( radio().id() == 0x9710 )
-						{
-							beacon.print( debug(), radio(), position );
-						}
+//						if ( radio().id() == 0x9710 )
+//						{
+//							beacon.print( debug(), radio(), position );
+//						}
 						block_data_t buff[Radio::MAX_MESSAGE_LENGTH];
 						send( Radio::BROADCAST_ADDRESS, beacon.serial_size(), beacon.serialize( buff ), ND_MESSAGE );
 #ifdef DEBUG_NEIGHBOR_DISCOVERY_H_BEACONS
@@ -338,10 +356,7 @@ namespace wiselib
 				{
 					Beacon beacon;
 					beacon.de_serialize( message->get_payload() );
-					if ( radio().id() == 0x9710 )
-					{
-						beacon.print( debug(), radio(), position );
-					}
+					beacon.print( debug(), radio() );
 #ifdef DEBUG_NEIGHBOR_DISCOVERY_H_RECEIVE
 					debug().debug( "NeighborDiscovery - receive - Received beacon message with message serial_size : %d, beacon serial_size : %d and neigh size : %d.\n", message->serial_size(), beacon.serial_size(), beacon.get_neighborhood_ref()->size() );
 #endif

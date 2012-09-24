@@ -40,7 +40,7 @@ namespace wiselib
 			return *this;
 		}
 		// --------------------------------------------------------------------
-		message_id_t get_id()
+		uint16_t get_id()
 		{
 			return id;
 		}

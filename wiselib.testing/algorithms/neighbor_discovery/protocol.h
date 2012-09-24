@@ -120,39 +120,6 @@ namespace wiselib
 			return neighborhood;
 		}
 		// --------------------------------------------------------------------
-		Neighbor_vector get_best_neighborhood( uint32_t _mn/*, Debug& debug_, Radio& radio_*/ )
-		{
-			Neighbor_vector best_neighborhood;
-			uint32_t i = 0;
-			//if ( radio_.id() == 0x9708 )
-			//{
-			//	debug_.debug( "_max_neighs : %d", _mn );
-			//}
-			for ( Neighbor_vector_iterator it1 = neighborhood.begin(); it1 != neighborhood.end(); ++it1 )
-			{
-				if ( i == _mn )
-				{
-					for ( Neighbor_vector_iterator it2 = best_neighborhood.begin(); it2 != best_neighborhood.end(); ++it2 )
-					{
-						if ( ( it1->get_link_stab_ratio() > it2->get_link_stab_ratio() ) && ( it1->get_link_stab_ratio_inverse() > it2->get_link_stab_ratio_inverse() ) )
-						{
-							*it2 = *it1;
-						}
-					}
-				}
-				else
-				{
-					i++;
-					best_neighborhood.push_back( *it1 );
-				}
-				//if ( radio_.id() == 0x9708 )
-				//{
-				//	debug_.debug( "size of best neigh vector : %d", best_neighborhood.size() );
-				//}
-			}
-			return best_neighborhood;
-		}
-		// --------------------------------------------------------------------
 		Neighbor_vector fill_active_neighborhood( Neighbor_vector& _nv )
 		{
 			_nv.clear();

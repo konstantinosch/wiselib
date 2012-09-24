@@ -37,7 +37,7 @@ void application_main( Os::AppMainParameter& value )
 	Debug *wiselib_debug_ = &wiselib::FacetProvider<Os, Debug>::get_facet( value );
 	Clock *wiselib_clock_ = &wiselib::FacetProvider<Os, Clock>::get_facet( value );
 	Rand *wiselib_rand_ = &wiselib::FacetProvider<Os, Rand>::get_facet( value );
-
+	wiselib_rand_->srand( wiselib_radio_->id() );
 	//*****
 	fragmenting_radio.init( *wiselib_radio_, *wiselib_timer_, *wiselib_debug_, *wiselib_clock_, *wiselib_rand_ );
 	//fragmenting_radio.enable_radio();

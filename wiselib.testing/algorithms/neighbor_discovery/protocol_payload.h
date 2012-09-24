@@ -37,25 +37,19 @@ namespace wiselib
 		typedef typename Radio::block_data_t block_data_t;
 		typedef ProtocolPayload_Type<Os, Radio, Debug> self_type;
 	public:
-		ProtocolPayload_Type() :
-			payload_size		( ND_MAX_PROTOCOL_PAYLOAD_SIZE )
-		{
-			for ( size_t i = 0; i < ND_MAX_PROTOCOL_PAYLOAD_SIZE; i++ )
-			{
-				payload_data[i] = 0;
-			}
-		}
+		ProtocolPayload_Type()
+		{}
 		// --------------------------------------------------------------------
 		ProtocolPayload_Type( uint8_t _pid, size_t _ps, block_data_t* _pd, size_t _offset = 0 )
 		{
-			protocol_id = _pid;
-			payload_size = _ps;
-			for ( size_t i = 0; i < ND_MAX_PROTOCOL_PAYLOAD_SIZE; i++ )
+			if ( _ps <= ND_MAX_PROTOCOL_PAYLOAD_SIZE )
 			{
-				payload_data[i] = 0;
-			}
-			if ( payload_size <= ND_MAX_PROTOCOL_PAYLOAD_SIZE )
-			{
+				protocol_id = _pid;
+				payload_size = _ps;
+				for ( size_t i = 0; i < ND_MAX_PROTOCOL_PAYLOAD_SIZE; i++ )
+				{
+					payload_data[i] = 0;
+				}
 				for ( size_t i = 0; i < payload_size; i++ )
 				{
 					payload_data[i] = _pd[i + _offset];
