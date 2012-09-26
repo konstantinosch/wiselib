@@ -33,6 +33,7 @@ namespace wiselib
 		// --------------------------------------------------------------------
 		FragmentingMessage_Type() :
 			id				( 0 ),
+			orig_id			( 0 ),
 			timestamp		( 0 ),
 			active			( 0 )
 		{};
@@ -43,6 +44,7 @@ namespace wiselib
 		self_t& operator=( const self_t& _fm )
 		{
 			id = _fm.id;
+			orig_id = _fm.orig_id;
 			timestamp = _fm.timestamp;
 			active = _fm.active;
 			fragmenting_message = _fm.fragmenting_message;
@@ -57,6 +59,16 @@ namespace wiselib
 		void set_id( uint16_t _id )
 		{
 			id = _id;
+		}
+		// --------------------------------------------------------------------
+		message_id_t get_orig_id()
+		{
+			return orig_id;
+		}
+		// --------------------------------------------------------------------
+		void set_orig_id( message_id_t o_id )
+		{
+			orig_id = o_id;
 		}
 		// --------------------------------------------------------------------
 		uint32_t get_timestamp()
@@ -128,15 +140,10 @@ namespace wiselib
 			}
 		}
 		// --------------------------------------------------------------------
-		void vectorize( block_data_t* _buff, size_t _len, size_t_normal _mr_len, Debug& _debug, Radio& _radio, size_t _offset = 0 )
+		void vectorize( block_data_t* _buff, size_t _len, size_t_normal _mr_len, size_t _offset = 0 )
 		{
 			size_t number_of_fragments = _len / _mr_len;
 			size_t_normal last_fragment_bytes = _len % _mr_len;
-
-			_debug.debug( "initial parameters %d %d ", _len, _mr_len );
-			_debug.debug( "number of full fragments : %d ", number_of_fragments );
-			_debug.debug( "number of bytes for last fragments : %d", last_fragment_bytes );
-
 			if ( last_fragment_bytes != 0 )
 			{
 				number_of_fragments = number_of_fragments + 1;
@@ -147,6 +154,7 @@ namespace wiselib
 			{
 				Fragment f;
 				f.set_id( id );
+				f.set_orig_id( orig_id );
 				f.set_seq_fragment( i );
 				f.set_total_fragments( number_of_fragments );
 				f.set_payload( _mr_len, _buff + _offset + ( i *_mr_len ) );
@@ -156,6 +164,7 @@ namespace wiselib
 			{
 				Fragment f;
 				f.set_id( id );
+				f.set_orig_id( orig_id );
 				f.set_seq_fragment( i );
 				f.set_total_fragments( number_of_fragments );
 				f.set_payload( last_fragment_bytes, _buff + _offset + ( i * _mr_len ) );
@@ -165,8 +174,6 @@ namespace wiselib
 		// --------------------------------------------------------------------
 		block_data_t* de_vectorize( block_data_t* _buff, size_t _offset = 0 )
 		{
-			//TODO debug here check how message (or the buffer tha is payload ends in the callbacks...)
-			//nothing was debugging etc...
 			size_t i = 0;
 			for ( Fragment_vector_iterator it = fragmenting_message.begin(); it != fragmenting_message.end(); ++it )
 			{
@@ -187,15 +194,16 @@ namespace wiselib
 		}
 		// --------------------------------------------------------------------
 #ifdef DEBUG_FRAGMENTING_MESSAGE_H
-		void print( Debug& _debug, Radio& _radio )
+		void print( Debug& _debug, FragmentingRadio& _radio )
 		{
 			_debug.debug( "-------------------------------------------------------\n");
 			_debug.debug( "FragmentingMessage : \n" );
 			_debug.debug( "id (size %i) : %d\n", sizeof(uint16_t), id );
-			_debug.debug( "timestamp (size %i) : %d\n", sizeof(uint_32_t), timestamp );
+			_debug.debug( "orig_id (size %i) : %d\n", sizeof(message_id_t), orig_id );
+			_debug.debug( "timestamp (size %i) : %d\n", sizeof(uint32_t), timestamp );
 			for ( Fragment_vector_iterator i = fragmenting_message.begin(); i != fragmenting_message.end(); ++i )
 			{
-				i->print( _debug, _radio );
+				i->print( _debug, _radio.radio() );
 			}
 			_debug.debug( "-------------------------------------------------------\n");
 		}
@@ -203,6 +211,7 @@ namespace wiselib
 		// --------------------------------------------------------------------
 	private:
 		uint16_t id;
+		message_id_t orig_id;
 		uint32_t timestamp;
 		uint8_t active;
 		Fragment_vector fragmenting_message;

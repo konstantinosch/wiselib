@@ -316,6 +316,11 @@ namespace wiselib
 				return RR_INACTIVE;
 			}
 		}
+		// --------------------------------------------------------------------
+        int unreg_recv_callback( uint32_t idx )
+        {
+            return 0;
+        }
         // --------------------------------------------------------------------
         size_t reserved_bytes()
         {

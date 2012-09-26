@@ -394,7 +394,7 @@ namespace wiselib
 			debug.debug( "active (size %i) : %d\n", sizeof(active), active );
 			debug.debug( "-------------------------------------------------------\n" );
 #else
-			//if ( radio.id() != id )
+			if ( radio.id() != id )
 			{
 #ifdef NEIGHBOR_DISCOVERY_COORD_SUPPORT
 #ifdef NEIGHBOR_DISCOVERY_COORD_SUPPORT_SHAWN

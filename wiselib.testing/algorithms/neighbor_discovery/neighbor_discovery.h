@@ -121,22 +121,23 @@ namespace wiselib
 			pp.set_payload_size( 0 );
 #endif
 
-			Protocol p2;
-			p2.set_protocol_id( 33 );
-			ProtocolSettings ps2;
-			block_data_t buff2[600];
-			for ( size_t i = 0; i < 600; i++ )
-			{
-				buff2[i] = 131;
-			}
-			ProtocolPayload pp2( 33, 600, buff2 );
-			ps2.set_protocol_payload( pp2 );
-			p2.set_protocol_settings( ps2 );
-			Neighbor_vector nnvv;
-			//p2.set_event_notifier_callback( event_notifier_delegate_t::template from_method<NeighborDiscovery_Type, &NeighborDiscovery_Type::events_callback > ( this ) );
-			p2.set_neighborhood( nnvv );
-			protocols.push_back( p2 );
-
+//			//artificial padding!
+//			//****
+//			Protocol p2;
+//			p2.set_protocol_id( 33 );
+//			ProtocolSettings ps2;
+//			block_data_t buff2[600];
+//			for ( size_t i = 0; i < 200; i++ )
+//			{
+//				buff2[i] = 131;
+//			}
+//			ProtocolPayload pp2( 33, 200, buff2 );
+//			ps2.set_protocol_payload( pp2 );
+//			p2.set_protocol_settings( ps2 );
+//			Neighbor_vector nnvv;
+//			p2.set_neighborhood( nnvv );
+//			protocols.push_back( p2 );
+//			//****
 
 			uint8_t events_flag = 	ProtocolSettings::NEW_NB|
 									ProtocolSettings::UPDATE_NB|
@@ -191,34 +192,10 @@ namespace wiselib
 			nd_daemon();
 		};
 		// --------------------------------------------------------------------
-//		void testing_frags( void* _data = NULL )
-//		{
-//			//timer().template set_timer<self_t, &self_t::testing_frags> ( 5000, this, 0 );
-//			if ( radio().id() == 0x1b7f )
-//			{
-//				block_data_t testing_buffer_big[1000];
-//				block_data_t testing_buffer_medium[240];
-//				block_data_t testing_buffer_small[100];
-//				memset( testing_buffer_big, 17, 1000 );
-//				//memset( testing_buffer_medium, 27, 240 );
-//				for ( size_t i = 0; i < 240; i++ )
-//				{
-//					testing_buffer_medium[i] = i;
-//				}
-//				memset( testing_buffer_small, 37, 100 );
-//				Message m;
-//				m.set_message_id( 55 );
-//				m.set_payload( 240, testing_buffer_medium );
-//				//m.print( debug(), radio() );
-//				radio().send( Radio::BROADCAST_ADDRESS, m.serial_size(), m.serialize() );
-//				//radio().radio().send( Radio::BROADCAST_ADDRESS, m.serial_size(), m.serialize() );
-//			}
-//		}
-		// --------------------------------------------------------------------
 		void disable()
 		{
 			set_status( WAITING_STATUS );
-			radio().template unreg_recv_callback( recv_callback_id_ );
+			radio().unreg_recv_callback( recv_callback_id_ );
 		};
 		// --------------------------------------------------------------------
 		void events_callback( uint8_t _event, node_id_t _node_id, size_t _len, uint8_t* _data )
@@ -226,7 +203,6 @@ namespace wiselib
 #ifdef NEIGHBOR_DISCOVERY_COORD_SUPPORT
 			if ( _event & ProtocolSettings::NEW_PAYLOAD )
 			{
-
 				Neighbor_vector_iterator i = get_protocol_ref( ND_PROTOCOL_ID )->get_neighborhood_ref()->begin();
 				while ( i != get_protocol_ref( ND_PROTOCOL_ID )->get_neighborhood_ref()->end() )
 				{
@@ -298,10 +274,6 @@ namespace wiselib
 						beacon.set_beacon_period_update_counter( n->get_beacon_period_update_counter() );
 						Neighbor_vector nv = p_ptr->get_neighborhood();
 						beacon.set_neighborhood( nv, radio().id() );
-//						if ( radio().id() == 0x9710 )
-//						{
-//							beacon.print( debug(), radio(), position );
-//						}
 						block_data_t buff[Radio::MAX_MESSAGE_LENGTH];
 						send( Radio::BROADCAST_ADDRESS, beacon.serial_size(), beacon.serialize( buff ), ND_MESSAGE );
 #ifdef DEBUG_NEIGHBOR_DISCOVERY_H_BEACONS
@@ -356,9 +328,8 @@ namespace wiselib
 				{
 					Beacon beacon;
 					beacon.de_serialize( message->get_payload() );
-					beacon.print( debug(), radio() );
 #ifdef DEBUG_NEIGHBOR_DISCOVERY_H_RECEIVE
-					debug().debug( "NeighborDiscovery - receive - Received beacon message with message serial_size : %d, beacon serial_size : %d and neigh size : %d.\n", message->serial_size(), beacon.serial_size(), beacon.get_neighborhood_ref()->size() );
+						debug().debug( "NeighborDiscovery - receive - Received beacon message from %x with message serial_size : %d, beacon serial_size : %d and neigh size : %d.\n", _from, message->serial_size(), beacon.serial_size(), beacon.get_neighborhood_ref()->size() );
 #endif
 					time_t current_time = clock().time();
 					uint32_t dead_time = 0;
@@ -1183,7 +1154,7 @@ namespace wiselib
 #ifdef DEBUG_NEIGHBOR_DISCOVERY_H_ND_METRICS_DAEMON
 			debug().debug("NeighborDiscovery - nd_metrics_daemon - Exiting.\n" );
 #endif
-			radio().disable_radio();
+			disable();
 		}
 #endif
 		// --------------------------------------------------------------------

@@ -130,12 +130,12 @@ namespace wiselib
 		{
 			_debug.debug( "-------------------------------------------------------\n" );
 			_debug.debug( "Message : \n" );
+			_debug.debug( "serial_size: %d\n", serial_size() );
 			_debug.debug( "message_id (size %i) : %d\n", sizeof(message_id_t), get_message_id() );
 #ifdef MESSAGE_H_FLETCHER_CHECKSUM
 			_debug.debug( "checksum (size %i) : %d\n", sizeof(uint16_t), csum() );
 #endif
-			_debug.debug( "payload_size: %d\n", get_payload_size() );
-			_debug.debug( "serial_size: %d\n", serial_size() );
+			_debug.debug( "payload_size (size %i): %d\n", sizeof(size_t), get_payload_size() );
 			_debug.debug( "payload : \n");
 			for (size_t i = 0; i < get_payload_size(); i++ )
 			{

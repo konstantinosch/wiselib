@@ -37,25 +37,17 @@ namespace wiselib
 		typedef typename Radio::ExtendedData ExData;
 		typedef typename Radio::TxPower TxPower;
 		typedef typename Timer::millis_t millis_t;
-
 		typedef FragmentingRadio_Type<Os, Radio, Clock, Timer, Rand, Debug> FragmentingRadio;
-
 		typedef delegate4<void, node_id_t, size_t, uint8_t*, ExData const&> event_notifier_delegate_t;
 		typedef vector_static<Os, event_notifier_delegate_t, FR_MAX_REGISTERED_PROTOCOLS> RegisteredCallbacks_vector;
 		typedef typename RegisteredCallbacks_vector::iterator RegisteredCallbacks_vector_iterator;
-
-
-
 		typedef FragmentingMessage_Type<Os, Radio, FragmentingRadio, Timer, Debug> FragmentingMessage;
 		typedef vector_static<Os, FragmentingMessage, FR_MAX_FRAGMENED_MESSAGES_BUFFERED> FragmentingMessage_vector;
-
-
 		typedef typename FragmentingMessage_vector::iterator FragmentingMessage_vector_iterator;
 		typedef typename FragmentingMessage::Fragment Fragment;
 		typedef typename FragmentingMessage::Fragment_vector Fragment_vector;
 		typedef typename FragmentingMessage::Fragment_vector_iterator Fragment_vector_iterator;
 		typedef FragmentingRadio_Type<Os, Radio, Clock, Timer, Rand, Debug> self_t;
-
 		typedef Message_Type<Os, FragmentingRadio, Debug> Message;
 		typedef Message_Type<Os, Radio, Debug> Message_normal;
 		// --------------------------------------------------------------------
@@ -63,7 +55,6 @@ namespace wiselib
 			status							( FR_WAITING_STATUS ),
 			daemon_period					( FR_DAEMON_MILLIS ),
 			fragmenting_message_timeout		( FR_FRAGMENTING_MESSAGE_TIMEOUT )
-
 		{};
 		// --------------------------------------------------------------------
 		~FragmentingRadio_Type()
@@ -118,14 +109,16 @@ namespace wiselib
 					{
 						FragmentingMessage fm;
 						Message m;
+						size_t internal_reserved_bytes = m.serial_size();
 						m.de_serialize( _data );
-						size_t pure_payload = _len - radio().reserved_bytes();
+						size_t pure_payload = _len - internal_reserved_bytes;
 						size_t pure_fragment_payload = Radio::MAX_MESSAGE_LENGTH - reserved_bytes();
 #ifdef DEBUG_FRAGMENTING_RADIO_H
-						debug().debug( "FragmentingRadio - send - Sending fragmenting message - Pure payload %d, pure_fragment_payload %d, reserved_bytes %d, radio().reserved_bytes %d, _len %d.\n", pure_payload, pure_fragment_payload, reserved_bytes(), radio().reserved_bytes(), _len );
+						debug().debug( "FragmentingRadio - send - Sending fragmenting message - Pure payload %d, pure_fragment_payload %d, reserved_bytes %d, radio().reserved_bytes %d, internal_reserved_bytes %d,  _len %d.\n", pure_payload, pure_fragment_payload, reserved_bytes(), radio().reserved_bytes(), internal_reserved_bytes, _len );
 #endif
 						fm.set_id( ( rand()() % 0xffff ) );
-						fm.vectorize( _data, pure_payload, pure_fragment_payload, debug(), radio(), radio().reserved_bytes() );
+						fm.set_orig_id( m.get_message_id() );
+						fm.vectorize( _data, pure_payload, pure_fragment_payload, internal_reserved_bytes );
 #ifdef DEBUG_FRAGMENTING_RADIO_H
 						debug().debug( "FragmentingRadio - send - Sending fragmenting message of %d fragments.\n", fm.get_fragmenting_message_ref()->size() );
 #endif
@@ -188,7 +181,7 @@ namespace wiselib
 									debug().debug( "FragmentingRadio - receive - Found matching fragment vector - Complete!.\n"  );
 #endif
 									Message m;
-									m.set_message_id( message.get_message_id() );
+									m.set_message_id( it->get_orig_id() );
 									block_data_t buff[MAX_MESSAGE_LENGTH];
 									m.set_payload( it->serial_size(), it->de_vectorize( buff ) );
 									for ( RegisteredCallbacks_vector_iterator i = callbacks.begin(); i != callbacks.end(); ++i )
@@ -211,6 +204,7 @@ namespace wiselib
 #endif
 							FragmentingMessage fm;
 							fm.set_id( f.get_id() );
+							fm.set_orig_id( f.get_orig_id() );
 							fm.insert_unique( f );
 							fm.set_active();
 							fm.set_timestamp( clock().seconds( clock().time() ) * 1000 + clock().milliseconds( clock().time() ) );
@@ -237,6 +231,12 @@ namespace wiselib
 					}
 					else
 					{
+#ifdef DEBUG_FRAGMENTING_RADIO_H
+						if ( radio().id() == 0x9710 )
+						{
+							debug().debug( "FragmentingRadio - receive - Other type of ID pushing forward as it is.\n"  );
+						}
+#endif
 						for ( RegisteredCallbacks_vector_iterator i = callbacks.begin(); i != callbacks.end(); ++i )
 						{
 							Message_normal mn;
@@ -283,6 +283,11 @@ namespace wiselib
 				return FR_INACTIVE;
 			}
 		}
+		// --------------------------------------------------------------------
+        int unreg_recv_callback( uint32_t idx )
+        {
+            return 0;
+        }
 		// --------------------------------------------------------------------
 		void daemon( void* _user_data = NULL )
 		{
