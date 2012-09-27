@@ -103,7 +103,7 @@ namespace wiselib
 		{};
 		void enable()
 		{
-#ifdef DEBUG_NEIGHBOR_DISCOVERY_STATS
+#ifdef DEBUG_NEIGHBOR_DISCOVERY_STATS_DAEMON
 			timer().template set_timer<self_t, &self_t::nd_metrics_daemon> ( ND_STATS_DURATION, this, 0 );
 #endif
 			Protocol p;
@@ -120,25 +120,6 @@ namespace wiselib
 			pp.set_protocol_id( ND_PROTOCOL_ID );
 			pp.set_payload_size( 0 );
 #endif
-
-//			//artificial padding!
-//			//****
-//			Protocol p2;
-//			p2.set_protocol_id( 33 );
-//			ProtocolSettings ps2;
-//			block_data_t buff2[600];
-//			for ( size_t i = 0; i < 200; i++ )
-//			{
-//				buff2[i] = 131;
-//			}
-//			ProtocolPayload pp2( 33, 200, buff2 );
-//			ps2.set_protocol_payload( pp2 );
-//			p2.set_protocol_settings( ps2 );
-//			Neighbor_vector nnvv;
-//			p2.set_neighborhood( nnvv );
-//			protocols.push_back( p2 );
-//			//****
-
 			uint8_t events_flag = 	ProtocolSettings::NEW_NB|
 									ProtocolSettings::UPDATE_NB|
 									ProtocolSettings::NEW_PAYLOAD|
@@ -278,7 +259,6 @@ namespace wiselib
 						send( Radio::BROADCAST_ADDRESS, beacon.serial_size(), beacon.serialize( buff ), ND_MESSAGE );
 #ifdef DEBUG_NEIGHBOR_DISCOVERY_H_BEACONS
 						debug().debug( "NeighborDiscovery - beacons - Sending beacon.\n" );
-						beacon.print( debug(), radio(), position );
 #endif
 						timer().template set_timer<self_t, &self_t::beacons> ( bp, this, 0 );
 					}
@@ -977,13 +957,11 @@ namespace wiselib
 		// --------------------------------------------------------------------
 		int8_t get_transmission_power_dB()
 		{
-#ifndef ND_LIGHTWEIGHT
 			int8_t old_transmission_power_dB = transmission_power_dB;
 			if ( transmission_power_dB_strategy == FIXED_TRANSM )
 			{
 				return transmission_power_dB;
 			}
-
 			else if ( transmission_power_dB_strategy == LEAST_TRANSM )
 			{
 				int8_t least = 128;
@@ -1030,7 +1008,6 @@ namespace wiselib
 					}
 				}
 			}
-#endif
 			return transmission_power_dB;
 		}
 		// --------------------------------------------------------------------
@@ -1115,7 +1092,7 @@ namespace wiselib
 			relax_millis = _nbdp;
 		}
 		// --------------------------------------------------------------------
-#ifdef DEBUG_NEIGHBOR_DISCOVERY_STATS
+#ifdef DEBUG_NEIGHBOR_DISCOVERY_STATS_DAEMON
 		void nd_metrics_daemon( void* user_data = NULL )
 		{
 #ifdef DEBUG_NEIGHBOR_DISCOVERY_H_ND_METRICS_DAEMON

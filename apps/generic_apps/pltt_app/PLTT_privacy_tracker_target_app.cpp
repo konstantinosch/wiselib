@@ -4,7 +4,7 @@
 #include "internal_interface/position/position_new.h"
 #include "internal_interface/node/node_new.h"
 #include "algorithms/tracking/PLTT_trace.h"
-#include "radio/reliable/reliable_radio_simple.h"
+#include "radio/reliable/reliable_radio.h"
 #ifdef CONFIG_PLTT_TARGET
 #include "algorithms/tracking/PLTT_target.h"
 #endif

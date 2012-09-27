@@ -132,7 +132,7 @@ namespace wiselib
 #endif
 			radio().enable_radio();
 			reliable_radio().enable_radio();
-			//set_status( ACTIVE_STATUS );
+			set_status( ACTIVE_STATUS );
 #ifndef CONFIG_PLTT_PASSIVE_RANDOM_BOOT
 			neighbor_discovery_enable_task();
 #else
@@ -152,7 +152,7 @@ namespace wiselib
 			block_data_t buff[100];
 			ProtocolPayload pp( NeighborDiscovery::TRACKING_PROTOCOL_ID, self.get_node().get_position().serial_size(), self.get_node().get_position().serialize( buff ) );
 			uint8_t ef = ProtocolSettings::NEW_PAYLOAD|ProtocolSettings::LOST_NB|ProtocolSettings::NB_REMOVED|ProtocolSettings::NEW_PAYLOAD;
-			ProtocolSettings ps( 255, 0, 255, 0, 100, 75, 100, 75, ef, -18, 100, 3000, 100, ProtocolSettings::RATIO_DIVIDER, 2, ProtocolSettings::MEAN_DEAD_TIME_PERIOD, 100, 100, ProtocolSettings::R_NR_WEIGHTED, 10, 10, pp );
+			ProtocolSettings ps( 255, 0, 255, 0, 255, 0, 255, 0, 100, 75, 100, 75, ef, -18, 100, 3000, 100, ProtocolSettings::RATIO_DIVIDER, 2, ProtocolSettings::MEAN_DEAD_TIME_PERIOD, 100, 100, ProtocolSettings::R_NR_WEIGHTED, 1, 1, pp );
 			neighbor_discovery().set_transmission_power_dB( transmission_power_dB );
 			uint8_t result = 0;
 			result = neighbor_discovery(). template register_protocol<self_type, &self_type::sync_neighbors>( NeighborDiscovery::TRACKING_PROTOCOL_ID, ps, this  );
@@ -185,6 +185,10 @@ namespace wiselib
 #ifdef CONFIG_PLTT_PRIVACY
 			decryption_request_daemon();
 #endif
+			for ( PLTT_NodeListIterator it = neighbors.begin(); it != neighbors.end(); ++it )
+			{
+				it->print( debug(), radio() );
+			}
 #ifdef DEBUG_PLTT_PASSIVE_H_NEIGHBOR_DISCOVERY_DISABLE_TASK
 			debug().debug( "PLTT_Passive - neighbor_discovery_unregister_task - Exiting.\n" );
 #endif

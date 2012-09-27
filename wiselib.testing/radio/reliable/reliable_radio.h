@@ -201,7 +201,7 @@ namespace wiselib
 				for ( ReliableRadioMessage_vector_iterator i = reliable_radio_replies.begin(); i != reliable_radio_replies.end(); ++i )
 				{
 #ifdef DEBUG_RELIABLE_RADIO_H
-					debug().debug( "ReliableRadio - daemon -Inside replies vector updating counters...\n" );
+					debug().debug( "ReliableRadio - daemon - Inside replies vector updating counters...\n" );
 #endif
 					if ( i->get_counter() <= ( max_retries + 1 ) )
 					{
