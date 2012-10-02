@@ -61,10 +61,14 @@ namespace wiselib
 			id								( 0 ),
 			total_beacons					( 0 ),
 			total_beacons_expected			( 0 ),
+#ifdef CONFIG_NEIBHBOR_DISCOVERY_H_LQI_FILTERING
 			avg_LQI							( ND_MAX_AVG_LQI_THRESHOLD / 2 ),
 			avg_LQI_inverse					( ND_MAX_AVG_LQI_INVERSE_THRESHOLD / 2 ),
+#endif
+#ifdef CONFIG_NEIBHBOR_DISCOVERY_H_RSSI_FILTERING
 			avg_RSSI						( ND_MAX_AVG_RSSI_THRESHOLD / 2 ),
 			avg_RSSI_inverse				( ND_MAX_AVG_RSSI_INVERSE_THRESHOLD / 2 ),
+#endif
 			link_stab_ratio					( 0 ),
 			link_stab_ratio_inverse			( 0 ),
 			beacon_period					( 0 ),
@@ -75,10 +79,14 @@ namespace wiselib
 		Neighbor_Type(	node_id_t _id,
 						uint32_t _tbeac,
 						uint32_t _tbeac_exp,
+#ifdef CONFIG_NEIBHBOR_DISCOVERY_H_LQI_FILTERING
 						uint8_t _alqi,
 						uint8_t _alqi_in,
+#endif
+#ifdef CONFIG_NEIBHBOR_DISCOVERY_H_RSSI_FILTERING
 						uint8_t _arssi,
 						uint8_t	_arssi_in,
+#endif
 						uint8_t _lsratio,
 						uint8_t _lsratio_in,
 						millis_t _bp,
@@ -89,10 +97,14 @@ namespace wiselib
 			id = _id;
 			total_beacons = _tbeac;
 			total_beacons_expected = _tbeac_exp;
+#ifdef CONFIG_NEIBHBOR_DISCOVERY_H_LQI_FILTERING
 			avg_LQI = _alqi;
 			avg_LQI_inverse = _alqi_in;
+#endif
+#ifdef CONFIG_NEIBHBOR_DISCOVERY_H_RSSI_FILTERING
 			avg_RSSI = _arssi;
 			avg_RSSI_inverse = _arssi_in;
+#endif
 			link_stab_ratio = _lsratio;
 			link_stab_ratio_inverse = _lsratio_in;
 			beacon_period = _bp;
@@ -150,6 +162,7 @@ namespace wiselib
 			total_beacons_expected = _tbeac_exp;
 		}
 		// --------------------------------------------------------------------
+#ifdef CONFIG_NEIBHBOR_DISCOVERY_H_LQI_FILTERING
 		uint8_t get_avg_LQI()
 		{
 			return avg_LQI;
@@ -174,7 +187,9 @@ namespace wiselib
 		{
 			avg_LQI_inverse = _alqi_in;
 		}
+#endif
 		// --------------------------------------------------------------------
+#ifdef CONFIG_NEIBHBOR_DISCOVERY_H_RSSI_FILTERING
 		uint8_t get_avg_RSSI()
 		{
 			return avg_RSSI;
@@ -199,6 +214,7 @@ namespace wiselib
 		{
 			avg_RSSI_inverse = _arssi_in;
 		}
+#endif
 		// --------------------------------------------------------------------
 		uint8_t get_link_stab_ratio()
 		{
@@ -320,10 +336,14 @@ namespace wiselib
 			id = _n.id;
 			total_beacons = _n.total_beacons;
 			total_beacons_expected = _n.total_beacons_expected;
+#ifdef CONFIG_NEIBHBOR_DISCOVERY_H_LQI_FILTERING
 			avg_LQI = _n.avg_LQI;
 			avg_LQI_inverse = _n.avg_LQI_inverse;
+#endif
+#ifdef CONFIG_NEIBHBOR_DISCOVERY_H_RSSI_FILTERING
 			avg_RSSI = _n.avg_RSSI;
 			avg_RSSI_inverse = _n.avg_RSSI_inverse;
+#endif
 			link_stab_ratio = _n.link_stab_ratio;
 			link_stab_ratio_inverse = _n.link_stab_ratio_inverse;
 			beacon_period = _n.beacon_period;
@@ -339,12 +359,30 @@ namespace wiselib
 		block_data_t* serialize( block_data_t* _buff, size_t _offset = 0 )
 		{
 			size_t ID_POS = 0;
+#ifdef CONFIG_NEIBHBOR_DISCOVERY_H_LQI_FILTERING
+#ifdef CONFIG_NEIBHBOR_DISCOVERY_H_RSSI_FILTERING
 			size_t AVG_LQI_POS = ID_POS + sizeof(node_id_t);
 			size_t AVG_RSSI_POS = AVG_LQI_POS + sizeof( uint8_t);
 			size_t LINK_STAB_RATIO_POS = AVG_RSSI_POS + sizeof(uint8_t);
+#else
+			size_t AVG_LQI_POS = ID_POS + sizeof(node_id_t);
+			size_t LINK_STAB_RATIO_POS = AVG_LQI_POS + sizeof(uint8_t);
+#endif
+#else
+#ifdef CONFIG_NEIBHBOR_DISCOVERY_H_RSSI_FILTERING
+			size_t AVG_RSSI_POS = ID_POS + sizeof( node_id_t);
+			size_t LINK_STAB_RATIO_POS = AVG_RSSI_POS + sizeof(uint8_t);
+#else
+			size_t LINK_STAB_RATIO_POS = ID_POS + sizeof(node_id_t);
+#endif
+#endif
 			write<Os, block_data_t, node_id_t> ( _buff + ID_POS + _offset, id );
+#ifdef CONFIG_NEIBHBOR_DISCOVERY_H_LQI_FILTERING
 			write<Os, block_data_t, uint8_t> ( _buff + AVG_LQI_POS + _offset, avg_LQI );
+#endif
+#ifdef CONFIG_NEIBHBOR_DISCOVERY_H_RSSI_FILTERING
 			write<Os, block_data_t, uint8_t> ( _buff + AVG_RSSI_POS + _offset, avg_RSSI );
+#endif
 			write<Os, block_data_t, uint8_t> ( _buff + LINK_STAB_RATIO_POS + _offset, link_stab_ratio );
 			return _buff;
 		}
@@ -352,22 +390,56 @@ namespace wiselib
 		void de_serialize( block_data_t* _buff, size_t _offset = 0 )
 		{
 			size_t ID_POS = 0;
+#ifdef CONFIG_NEIBHBOR_DISCOVERY_H_LQI_FILTERING
+#ifdef CONFIG_NEIBHBOR_DISCOVERY_H_RSSI_FILTERING
 			size_t AVG_LQI_POS = ID_POS + sizeof(node_id_t);
 			size_t AVG_RSSI_POS = AVG_LQI_POS + sizeof( uint8_t);
 			size_t LINK_STAB_RATIO_POS = AVG_RSSI_POS + sizeof(uint8_t);
+#else
+			size_t AVG_LQI_POS = ID_POS + sizeof(node_id_t);
+			size_t LINK_STAB_RATIO_POS = AVG_LQI_POS + sizeof(uint8_t);
+#endif
+#else
+#ifdef CONFIG_NEIBHBOR_DISCOVERY_H_RSSI_FILTERING
+			size_t AVG_RSSI_POS = ID_POS + sizeof( node_id_t);
+			size_t LINK_STAB_RATIO_POS = AVG_RSSI_POS + sizeof(uint8_t);
+#else
+			size_t LINK_STAB_RATIO_POS = ID_POS + sizeof(node_id_t);
+#endif
+#endif
 			id = read<Os, block_data_t, node_id_t> ( _buff + ID_POS + _offset );
+#ifdef CONFIG_NEIBHBOR_DISCOVERY_H_LQI_FILTERING
 			avg_LQI = read<Os, block_data_t, uint8_t> ( _buff + AVG_LQI_POS + _offset );
+#endif
+#ifdef CONFIG_NEIBHBOR_DISCOVERY_H_RSSI_FILTERING
 			avg_RSSI = read<Os, block_data_t, uint8_t> ( _buff + AVG_RSSI_POS + _offset );
+#endif
 			link_stab_ratio = read<Os, block_data_t, uint8_t> ( _buff + LINK_STAB_RATIO_POS + _offset );
 		}
 		// --------------------------------------------------------------------
 		size_t serial_size()
 		{
 			size_t ID_POS = 0;
+#ifdef CONFIG_NEIBHBOR_DISCOVERY_H_LQI_FILTERING
+#ifdef CONFIG_NEIBHBOR_DISCOVERY_H_RSSI_FILTERING
 			size_t AVG_LQI_POS = ID_POS + sizeof(node_id_t);
 			size_t AVG_RSSI_POS = AVG_LQI_POS + sizeof( uint8_t);
 			size_t LINK_STAB_RATIO_POS = AVG_RSSI_POS + sizeof(uint8_t);
 			return LINK_STAB_RATIO_POS + sizeof( uint8_t );
+#else
+			size_t AVG_LQI_POS = ID_POS + sizeof(node_id_t);
+			size_t LINK_STAB_RATIO_POS = AVG_LQI_POS + sizeof(uint8_t);
+#endif
+#else
+#ifdef CONFIG_NEIBHBOR_DISCOVERY_H_RSSI_FILTERING
+			size_t AVG_RSSI_POS = ID_POS + sizeof( node_id_t);
+			size_t LINK_STAB_RATIO_POS = AVG_RSSI_POS + sizeof(uint8_t);
+#else
+			size_t LINK_STAB_RATIO_POS = ID_POS + sizeof(node_id_t);
+#endif
+#endif
+			return LINK_STAB_RATIO_POS + sizeof( uint8_t );
+
 		}
 		// --------------------------------------------------------------------
 #ifdef DEBUG_NEIGHBOR_H
@@ -383,10 +455,14 @@ namespace wiselib
 			debug.debug( "id (size %i) : %x\n", sizeof(node_id_t), id );
 			debug.debug( "total_beacons (size %i) : %d\n", sizeof(total_beacons), total_beacons );
 			debug.debug( "total_beacons_expected (size %i) : %d\n", sizeof(total_beacons_expected), total_beacons_expected );
+#ifdef CONFIG_NEIBHBOR_DISCOVERY_H_LQI_FILTERING
 			debug.debug( "avg_LQI (size %i) : %d\n", sizeof(avg_LQI), avg_LQI );
 			debug.debug( "avg_LQI_inverse (size %i) : %i\n", sizeof(avg_LQI_inverse), avg_LQI_inverse );
+#endif
+#ifdef CONFIG_NEIBHBOR_DISCOVERY_H_RSSI_FILTERING
 			debug.debug( "avg_RSSI (size %i) : %d\n", sizeof(avg_RSSI), avg_RSSI );
 			debug.debug( "avg_RSSI_inverse (size %i) : %i\n", sizeof(avg_RSSI_inverse), avg_RSSI_inverse );
+#endif
 			debug.debug( "link_stab_ratio (size %i) : %i\n", sizeof(link_stab_ratio), link_stab_ratio );
 			debug.debug( "link_stab_ratio_inverse (size %i) : %i\n", sizeof(link_stab_ratio_inverse), link_stab_ratio_inverse );
 			debug.debug( "beacon_period (size %i) : %d\n", sizeof(beacon_period), beacon_period );
@@ -410,10 +486,18 @@ namespace wiselib
 					id,
 					total_beacons,
 					total_beacons_expected,
+#ifdef CONFIG_NEIBHBOR_DISCOVERY_H_LQI_FILTERING
 					avg_LQI,
 					avg_LQI_inverse,
+#else
+					0,0,
+#endif
+#ifdef CONFIG_NEIBHBOR_DISCOVERY_H_RSSI_FILTERING
 					avg_RSSI,
 					avg_RSSI_inverse,
+#else
+					0,0,
+#endif
 					link_stab_ratio,
 					link_stab_ratio_inverse,
 					beacon_period,
@@ -435,10 +519,14 @@ namespace wiselib
 		node_id_t id;
 		uint32_t total_beacons;
 		uint32_t total_beacons_expected;
+#ifdef CONFIG_NEIBHBOR_DISCOVERY_H_LQI_FILTERING
 		uint8_t avg_LQI;
 		uint8_t avg_LQI_inverse;
+#endif
+#ifdef CONFIG_NEIBHBOR_DISCOVERY_H_RSSI_FILTERING
 		uint8_t avg_RSSI;
 		uint8_t avg_RSSI_inverse;
+#endif
 		uint8_t link_stab_ratio;
 		uint8_t link_stab_ratio_inverse;
 		millis_t beacon_period;
