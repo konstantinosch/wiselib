@@ -149,7 +149,7 @@ namespace wiselib
 				trans_power.set_dB( transmission_power_dB );
 				radio().set_power( trans_power );
 				Message message;
-				message.set_message_id( PLTT_QUERY_ID );
+				message.set_message_id( PLTT_AGENT_QUERY_ID );
 				message.set_payload(  agent.serial_size(), agent.serialize( buff ) );
 				reliable_radio().send( current_query_destination, message.serial_size(), message.serialize() );
 				current_link_metric = 255;
@@ -181,7 +181,7 @@ namespace wiselib
 			block_data_t buf[Radio::MAX_MESSAGE_LENGTH];
 			block_data_t* buff = buf;
 			write<Os, block_data_t, AgentID> ( buff, current_agent_id );
-			send( Radio::BROADCAST_ADDRESS, len, buff, PLTT_TRACK_ECHO_ID );
+			send( Radio::BROADCAST_ADDRESS, len, buff, PLTT_TRACKER_ECHO_ID );
 			timer().template set_timer<self_type, &self_type::send_echo> ( generate_agent_period, this, 0);
 			timer().template set_timer<self_type, &self_type::send_query> ( generate_agent_period_offset, this, 0);
 #ifdef DEBUG_PLTT_TRACKER_H_SEND_ECHO
@@ -193,7 +193,7 @@ namespace wiselib
 		{
 			message_id_t msg_id = *_data;
 			Message *message = (Message*)_data;
-			if ( msg_id == PLTT_QUERY_REPORT_ID )
+			if ( msg_id == PLTT_AGENT_REPORT_ID )
 			{
 
 #ifdef DEBUG_PLTT_TRACKER_H_RECEIVE
@@ -201,7 +201,7 @@ namespace wiselib
 				agent.print( debug(), radio() );
 #endif
 			}
-			else if( msg_id == PLTT_TRACK_ECHO_REPLY_ID )
+			else if( msg_id == PLTT_TRACKER_ECHO_REPLY_ID )
 			{
 #ifdef DEBUG_PLTT_TRACKER_H_RECEIVE
 				debug().debug( "PLTT_Tracker - receive - Received echo reply from %x.\n", _from );
@@ -267,10 +267,10 @@ namespace wiselib
 		Debug* debug_;
 		enum MessageIds
 		{
-			PLTT_QUERY_ID = 31,
-			PLTT_QUERY_REPORT_ID = 41,
-			PLTT_TRACK_ECHO_ID = 51,
-			PLTT_TRACK_ECHO_REPLY_ID = 61
+			PLTT_TRACKER_ECHO_ID = 21,
+			PLTT_TRACKER_ECHO_REPLY_ID = 31,
+			PLTT_AGENT_QUERY_ID = 41,
+			PLTT_AGENT_REPORT_ID = 51
 		};
 		enum pltt_tracker_status
 		{

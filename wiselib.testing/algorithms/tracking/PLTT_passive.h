@@ -70,6 +70,7 @@ namespace wiselib
 		typedef typename PLTT_NodeTarget::IntensityNumber IntensityNumber;
 		typedef typename PLTT_Node::PLTT_NodeTargetList PLTT_NodeTargetList;
 		typedef typename PLTT_Node::PLTT_NodeTargetListIterator PLTT_NodeTargetListIterator;
+		typedef typename PLTT_Agent::AgentID AgentID;
 		typedef Timer_P Timer;
 		typedef Clock_P Clock;
 		typedef typename Radio::node_id_t node_id_t;
@@ -178,16 +179,20 @@ namespace wiselib
 #ifdef DEBUG_PLTT_PASSIVE_H_NEIGHBOR_DISCOVERY_DISABLE_TASK
 			debug().debug( "PLTT_Passive - neighbor_discovery_unregister_task - Entering.\n" );
 #endif
-			neighbor_discovery().disable();
+
 			radio_callback_id = radio().template reg_recv_callback<self_type, &self_type::receive> (this);
 			reliable_radio_callback_id = reliable_radio().template reg_recv_callback<self_type, &self_type::receive> (this);
 			update_traces();
 #ifdef CONFIG_PLTT_PRIVACY
 			decryption_request_daemon();
 #endif
-			//Protocol* prot_ref = neighbor_discovery().get_protocol_ref( NeighborDiscovery::TRACKING_PROTOCOL_ID );
-			//prot_ref->print( debug(), radio() );
-			debug().debug("connectivity : %d", neighbors.size() );
+#ifdef CONFIG_PLTT_PASSIVE_H_DISABLE_NEIGHBOR_DISCOVERY
+			neighbor_discovery().disable();
+#endif
+#ifdef CONFIG_PLTT_PASSIVE_H_DYNAMIC_NEIGHBOR_DISCOVERY
+			delete _neighbor_discovery;
+#endif
+			//debug().debug("connectivity : %d", neighbors.size() );
 			//for ( PLTT_NodeListIterator it = neighbors.begin(); it != neighbors.end(); ++it )
 			//{
 			//	it->print( debug(), radio() );
@@ -307,13 +312,18 @@ namespace wiselib
 				}
 			}
 #endif
-			else if ( msg_id == PLTT_AGENT_QUERY_MESSAGE_ID )
+			else if ( msg_id == PLTT_TRACKER_ECHO_ID )
+			{
+				size_t len = sizeof( AgentID );
+				send( _from, len, message->get_payload(), PLTT_TRACKER_ECHO_REPLY_ID );
+			}
+			else if ( msg_id == PLTT_AGENT_QUERY_ID )
 			{
 				PLTT_Agent a;
 				a.de_serialize( message->get_payload() );
 				process_query( a );
 			}
-			else if ( msg_id == PLTT_AGENT_REPORT_MESSAGE_ID )
+			else if ( msg_id == PLTT_AGENT_REPORT_ID )
 			{
 				PLTT_Agent a;
 				a.de_serialize( message->get_payload() );
@@ -323,12 +333,12 @@ namespace wiselib
 			{
 				block_data_t* buff = message->get_payload();
 				Message *message_inner = (Message*) buff;
-				if ( message_inner->get_message_id() == PLTT_AGENT_QUERY_MESSAGE_ID )
+				if ( message_inner->get_message_id() == PLTT_AGENT_QUERY_ID )
 				{
 					PLTT_Agent a;
 					a.de_serialize( message_inner->get_payload() );
 				}
-				else if ( message_inner->get_message_id() == PLTT_AGENT_REPORT_MESSAGE_ID )
+				else if ( message_inner->get_message_id() == PLTT_AGENT_REPORT_ID )
 				{
 					PLTT_Agent a;
 					a.de_serialize( message_inner->get_payload() );
@@ -1306,11 +1316,12 @@ namespace wiselib
 		enum MessageIds
 		{
 			PLTT_SPREAD_ID = 11,
-			PLTT_AGENT_QUERY_MESSAGE_ID = 21,
-			PLTT_AGENT_REPORT_MESSAGE_ID = 31
+			PLTT_TRACKER_ECHO_ID = 21,
+			PLTT_TRACKER_ECHO_REPLY_ID = 31,
+			PLTT_AGENT_QUERY_ID = 41,
+			PLTT_AGENT_REPORT_ID = 51
 #ifdef CONFIG_PLTT_PRIVACY
 			,PLTT_PRIVACY_SPREAD_ID = 91
-			,PLTT_PRIVACY_HELPER_REPLY_ID = 101
 			,PRIVACY_DECRYPTION_REQUEST_ID = 100
 			,PRIVACY_DECRYPTION_REPLY_ID = 130
 #endif

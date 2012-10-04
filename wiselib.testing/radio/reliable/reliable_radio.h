@@ -432,9 +432,9 @@ namespace wiselib
 		};
 		enum reliable_radio_message_ids
 		{
-			RR_MESSAGE = 112,
-			RR_REPLY = 113,
-			RR_UNDELIVERED = 114
+			RR_MESSAGE = 14,
+			RR_REPLY = 24,
+			RR_UNDELIVERED = 34
 		};
         enum Restrictions
         {
