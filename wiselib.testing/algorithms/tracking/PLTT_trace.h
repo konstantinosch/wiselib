@@ -367,9 +367,9 @@ namespace wiselib
 			_debug.debug( "diminish_amount (size %i) : %i\n", sizeof(diminish_amount), diminish_amount );
 			_debug.debug( "spread_penalty (size %i) : %i\n", sizeof(spread_penalty), spread_penalty );
 			_debug.debug( "intensity (size %i) : %i\n", sizeof(intensity), intensity );
-			_debug.debug( "max_intensity (size %ud) : %ud\n", sizeof(max_intensity), max_intensity );
+			_debug.debug( "max_intensity (size %d) : %d\n", sizeof(max_intensity), max_intensity );
 			_debug.debug( "start_time (size %i) : %i\n", sizeof(start_time), start_time );
-			_debug.debug( "target_id (size %i) : %x", sizeof(target_id), target_id );
+			_debug.debug( "target_id (size %i) : %x\n", sizeof(target_id), target_id );
 			_debug.debug( "recipient_1_id (size %i) : %i\n", sizeof(recipient_1_id), recipient_1_id );
 			_debug.debug( "recipient_2_id (size %i) : %i\n", sizeof(recipient_2_id), recipient_2_id );
 			_debug.debug( "inhibited (size %i) : %i\n", sizeof(inhibited), inhibited );

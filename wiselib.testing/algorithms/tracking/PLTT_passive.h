@@ -192,7 +192,9 @@ namespace wiselib
 #ifdef CONFIG_PLTT_PASSIVE_H_DYNAMIC_NEIGHBOR_DISCOVERY
 			delete _neighbor_discovery;
 #endif
-			//debug().debug("connectivity : %d", neighbors.size() );
+			//Protocol* prot_ref = neighbor_discovery().get_protocol_ref( NeighborDiscovery::TRACKING_PROTOCOL_ID );
+			//prot_ref->print( debug(), radio() );
+			debug().debug("connectivity : %d", neighbors.size() );
 			//for ( PLTT_NodeListIterator it = neighbors.begin(); it != neighbors.end(); ++it )
 			//{
 			//	it->print( debug(), radio() );
@@ -226,16 +228,29 @@ namespace wiselib
 #ifndef CONFIG_PLTT_PRIVACY
 			if ( msg_id == PLTT_SPREAD_ID )
 			{
-#ifdef DEBUG_PLTT_PASSIVE_H_RECEIVE
-				debug().debug( "PLTT_Passive - receive - Received spread message from %x of link metric %i and size %i.\n", _from, _exdata.link_metric(), _len );
-#endif
 				PLTT_Trace trace = PLTT_Trace( message->get_payload() );
-				if ( ( trace.get_recipient_1_id() == self.get_node().get_id() ) || ( trace.get_recipient_2_id() == self.get_node().get_id() ) || (  ( trace.get_recipient_1_id() == 0 ) && (  trace.get_recipient_2_id() == 0 ) ) )
+#ifdef DEBUG_PLTT_PASSIVE_H_RECEIVE
+				debug().debug( "PLTT_Passive - receive - Received spread message from %x of rssi %i and lqi %i and size %i.\n", _from, _exdata.get_rssi(), _exdata.get_lqi(), _len );
+				debug().debug( "PLTT_Passive - receive - Received spread message %x vs [%x, %x] ", self.get_node().get_id(), trace.get_recipient_1_id(), trace.get_recipient_2_id() );
+#endif
+//				if ( self.get_node().get_id() == 0x1b3b )
+//				{
+//					//trace.print( debug(), radio() );
+//					message->print( debug(), radio() );
+//				}
+				if 		( ( trace.get_recipient_1_id() == self.get_node().get_id() ) || ( trace.get_recipient_2_id() == self.get_node().get_id() ) ||
+						( ( trace.get_recipient_1_id() == 0 ) && (  trace.get_recipient_2_id() == 0 ) ) )
 				{
+#ifdef DEBUG_PLTT_PASSIVE_H_RECEIVE
+					debug().debug( "PLTT_Passive - receive - Spread message from %x.\n", _from );
+#endif
 					prepare_spread_trace( store_inhibit_trace( trace ) , _exdata );
 				}
 				else if ( ( trace.get_recipient_1_id() != self.get_node().get_id() ) && ( trace.get_recipient_2_id() != self.get_node().get_id() ) && ( trace.get_recipient_1_id() != 0 ) && ( trace.get_recipient_2_id() != 0 ) )
 				{
+#ifdef DEBUG_PLTT_PASSIVE_H_RECEIVE
+					debug().debug( "PLTT_Passive - receive - Inhibition message from %x.\n", _from );
+#endif
 					store_inhibit_trace( trace, 1 );
 				}
 			}
@@ -314,32 +329,50 @@ namespace wiselib
 #endif
 			else if ( msg_id == PLTT_TRACKER_ECHO_ID )
 			{
+#ifdef DEBUG_PLTT_PASSIVE_H_RECEIVE
+				debug().debug( "PLTT_Passive - receive - Received *****.\n" );
+#endif
 				size_t len = sizeof( AgentID );
 				send( _from, len, message->get_payload(), PLTT_TRACKER_ECHO_REPLY_ID );
 			}
 			else if ( msg_id == PLTT_AGENT_QUERY_ID )
 			{
+#ifdef DEBUG_PLTT_PASSIVE_H_RECEIVE
+				debug().debug( "PLTT_Passive - receive - Received *****.\n" );
+#endif
 				PLTT_Agent a;
 				a.de_serialize( message->get_payload() );
 				process_query( a );
 			}
 			else if ( msg_id == PLTT_AGENT_REPORT_ID )
 			{
+#ifdef DEBUG_PLTT_PASSIVE_H_RECEIVE
+				debug().debug( "PLTT_Passive - receive - Received *****.\n" );
+#endif
 				PLTT_Agent a;
 				a.de_serialize( message->get_payload() );
 				process_report( a );
 			}
 			else if ( msg_id == ReliableRadio::RR_UNDELIVERED)
 			{
+#ifdef DEBUG_PLTT_PASSIVE_H_RECEIVE
+				debug().debug( "PLTT_Passive - receive - Received *****.\n" );
+#endif
 				block_data_t* buff = message->get_payload();
 				Message *message_inner = (Message*) buff;
 				if ( message_inner->get_message_id() == PLTT_AGENT_QUERY_ID )
 				{
+#ifdef DEBUG_PLTT_PASSIVE_H_RECEIVE
+				debug().debug( "PLTT_Passive - receive - Received *****.\n" );
+#endif
 					PLTT_Agent a;
 					a.de_serialize( message_inner->get_payload() );
 				}
 				else if ( message_inner->get_message_id() == PLTT_AGENT_REPORT_ID )
 				{
+#ifdef DEBUG_PLTT_PASSIVE_H_RECEIVE
+				debug().debug( "PLTT_Passive - receive - Received *****.\n" );
+#endif
 					PLTT_Agent a;
 					a.de_serialize( message_inner->get_payload() );
 				}
@@ -715,7 +748,7 @@ namespace wiselib
 #ifdef DEBUG_PLTT_PASSIVE_H_PREPARE_SPREAD_TRACE
 					debug().debug( "PLTT_Passive - prepare_spread_trace - Has lqi of %i.\n", _exdata.link_metric() );
 #endif
-					r = backoff_lqi_weight * _exdata.link_metric() + r;
+					r = backoff_lqi_weight * _exdata.link_metric() + r; //this needs fixing due to rssi + lqi
 				}
 				if ( neighbors.size() )
 				{

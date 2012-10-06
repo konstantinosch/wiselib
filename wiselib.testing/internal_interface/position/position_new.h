@@ -35,7 +35,10 @@ namespace wiselib
 		typedef typename Radio::block_data_t block_data_t;
 		typedef typename Radio::size_t size_t;
 		typedef Position3DType<Os, Radio, CoordinatesNumber, Debug> self_type;
-		Position3DType()
+		Position3DType() :
+			x	( 0 ),
+			y	( 0 ),
+			z	( 0 )
 		{}
 		Position3DType( CoordinatesNumber _x, CoordinatesNumber _y, CoordinatesNumber _z)
 		{
@@ -142,7 +145,9 @@ namespace wiselib
 		typedef typename Radio_P::block_data_t block_data_t;
 		typedef typename Radio_P::size_t size_t;
 		typedef Position2DType<Os, Radio, CoordinatesNumber, Debug> self_type;
-		Position2DType()
+		Position2DType() :
+			x	( 0 ),
+			y	( 0 )
 		{}
 		Position2DType( const CoordinatesNumber& _x, const CoordinatesNumber _y, const CoordinatesNumber _z = 1)
 		{

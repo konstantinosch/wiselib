@@ -33,7 +33,6 @@ typedef Os::Timer Timer;
 typedef Os::Clock Clock;
 typedef uint8 TimesNumber;
 typedef uint8 SecondsNumber;
-typedef uint32 Integer;
 typedef uint32 AgentID;
 typedef wiselib::NeighborDiscovery_Type<Os, Radio, Clock, Timer, Rand, Debug> NeighborDiscovery;
 typedef wiselib::Position2DType<Os, Radio, CoordinatesNumber, Debug> Position;
