@@ -233,6 +233,9 @@ namespace wiselib
 				debug().debug( "PLTT_Passive - receive - Received spread message from %x of rssi %i and lqi %i and size %i.\n", _from, _exdata.get_rssi(), _exdata.get_lqi(), _len );
 				debug().debug( "PLTT_Passive - receive - Received spread message %x vs [%x, %x] ", self.get_node().get_id(), trace.get_recipient_1_id(), trace.get_recipient_2_id() );
 #endif
+//#ifdef DEBUG_PLTT_PASSIVE_H_RECEIVE
+//				debug().debug("->%x->%x\n", _from, self.get_node().get_id() );
+//#endif
 //				if ( self.get_node().get_id() == 0x1b3b )
 //				{
 //					//trace.print( debug(), radio() );
@@ -643,7 +646,10 @@ namespace wiselib
 #ifdef DEBUG_PLTT_PASSIVE_H_STORE_INHIBIT_TRACE
 							debug().debug( "PLTT_Passive - store_inhibit_trace - Inhibited %x\n", traces_iterator->get_target_id() );
 #endif
-						}
+//#ifdef DEBUG_PLTT_PASSIVE_H_STORE_INHIBIT_TRACE
+							debug().debug( "%x->| from %x\n", self.get_node().get_id(), traces_iterator->get_parent().get_id() );
+//#endif
+							}
 						return &(*traces_iterator);
 					}
 					else
@@ -791,9 +797,20 @@ namespace wiselib
 				{
 					if (rep_point.get_id() != 0)
 					{
-						if (rep_point.get_position().distsq( self.get_node().get_position() ) <= rep_point.get_position().distsq( neighbors_iterator->get_node().get_position() ) )
+						if ( rep_point.get_position().distsq( self.get_node().get_position() ) <= rep_point.get_position().distsq( neighbors_iterator->get_node().get_position() ) )
 						{
-							recipient_candidates.push_back(	neighbors_iterator->get_node() );
+							uint8_t d1 = direction_processing( rep_point, self.get_node() );
+							uint8_t d2 = direction_processing( self.get_node(), neighbors_iterator->get_node() );
+							if ( ( ( d1 == d2 ) || ( ( d1 != d2 ) && !( ( d1 | d2 == 11 ) && ( d1 & d2 == 00 ) ) && ( rep_point.get_position().distsq( self.get_node().get_position() ) > self.get_node().get_position().distsq( neighbors_iterator->get_node().get_position() ) ) ) )
+								//&& ( self.get_node().get_id() != (*t).get_parent().get_id() ) && ( self.get_node().get_id() != (*t).get_current().get_id() ) && ( self.get_node().get_id() != (*t).get_grandparent().get_id() )
+									)
+							{
+								debug().debug(" nodeR=[%d, %d] : node1=[%d, %d] : node2=[%d, %d] : d1=%x, : d2=%x", rep_point.get_position().get_x(), rep_point.get_position().get_y(),
+																													self.get_node().get_position().get_x(), self.get_node().get_position().get_y(),
+																													neighbors_iterator->get_node().get_position().get_x(), neighbors_iterator->get_node().get_position().get_y(),
+																													d1, d2 );
+								recipient_candidates.push_back(	neighbors_iterator->get_node() );
+							}
 						}
 					}
 				}
@@ -840,6 +857,10 @@ namespace wiselib
 #ifdef DEBUG_PLTT_PASSIVE_H_SPREAD_TRACE
 					debug().debug( "PLTT_Passive - spread_trace - Trace was spread\n." );
 #endif
+//#ifdef DEBUG_PLTT_PASSIVE_H_SPREAD_TRACE
+					debug().debug("%x->%x\n", self.get_node().get_id(), (*t).get_recipient_1_id() );
+					debug().debug("%x->%x\n", self.get_node().get_id(), (*t).get_recipient_2_id() );
+//#endif
 					send( Radio::BROADCAST_ADDRESS, len, (uint8_t*) buff, PLTT_SPREAD_ID );
 				}
 				(*t).set_inhibited();
@@ -1298,6 +1319,28 @@ namespace wiselib
 		}
 		// -----------------------------------------------------------------------
 #endif
+		uint8_t direction_processing( Node _node1, Node _node2 )
+		{
+			if ( ( _node1.get_position().get_x() >= _node2.get_position().get_x() ) && ( _node1.get_position().get_y() >= _node2.get_position().get_y() ) )
+			{
+				return 0x00;
+			}
+			else if ( ( _node1.get_position().get_x() >= _node2.get_position().get_x() ) && ( _node1.get_position().get_y() < _node2.get_position().get_y() ) )
+			{
+				return 0x01;
+			}
+			else if ( ( _node1.get_position().get_x() < _node2.get_position().get_x() ) && ( _node1.get_position().get_y() >= _node2.get_position().get_y() ) )
+			{
+				return 0x10;
+			}
+			else //if ( ( _node1.get_x() < _node2.get_x() ) && ( _node1.get_y() < _node2.get_y() ) )
+			{
+				return 0x11;
+			}
+		}
+		// -----------------------------------------------------------------------
+
+		// -----------------------------------------------------------------------
 		void set_status( int _st )
 		{
 			status = _st;
