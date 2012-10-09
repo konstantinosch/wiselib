@@ -153,7 +153,7 @@ namespace wiselib
 			block_data_t buff[100];
 			ProtocolPayload pp( NeighborDiscovery::TRACKING_PROTOCOL_ID, self.get_node().get_position().serial_size(), self.get_node().get_position().serialize( buff ) );
 			uint8_t ef = ProtocolSettings::NEW_PAYLOAD|ProtocolSettings::LOST_NB|ProtocolSettings::NB_REMOVED|ProtocolSettings::NEW_PAYLOAD;
-			ProtocolSettings ps( 100, 50, 100, 50, ef, -18, 100, 3000, 100, ProtocolSettings::RATIO_DIVIDER, 2, ProtocolSettings::MEAN_DEAD_TIME_PERIOD, 100, 100, ProtocolSettings::R_NR_WEIGHTED, 1, 1, pp );
+			ProtocolSettings ps( 100, 70, 100, 70, ef, -18, 100, 3000, 100, ProtocolSettings::RATIO_DIVIDER, 2, ProtocolSettings::MEAN_DEAD_TIME_PERIOD, 100, 100, ProtocolSettings::R_NR_WEIGHTED, 1, 1, pp );
 			neighbor_discovery().set_transmission_power_dB( transmission_power_dB );
 			uint8_t result = 0;
 			result = neighbor_discovery(). template register_protocol<self_type, &self_type::sync_neighbors>( NeighborDiscovery::TRACKING_PROTOCOL_ID, ps, this  );
@@ -647,9 +647,9 @@ namespace wiselib
 							debug().debug( "PLTT_Passive - store_inhibit_trace - Inhibited %x\n", traces_iterator->get_target_id() );
 #endif
 //#ifdef DEBUG_PLTT_PASSIVE_H_STORE_INHIBIT_TRACE
-							debug().debug( "%x->| from %x\n", self.get_node().get_id(), traces_iterator->get_parent().get_id() );
+							debug().debug( "%x->''|'' from %x\n", self.get_node().get_id(), traces_iterator->get_parent().get_id() );
 //#endif
-							}
+						}
 						return &(*traces_iterator);
 					}
 					else
@@ -663,6 +663,9 @@ namespace wiselib
 			traces.push_back( _trace );
 			if ( _inhibition_flag )
 			{
+//#ifdef DEBUG_PLTT_PASSIVE_H_STORE_INHIBIT_TRACE
+				debug().debug( "%x->| from %x\n", self.get_node().get_id(), traces_iterator->get_parent().get_id() );
+//#endif
 				traces_iterator->set_inhibited();
 #ifdef DEBUG_PLTT_PASSIVE_H_STORE_INHIBIT_TRACE
 				debug().debug( "PLTT_Passive - store_inhibit_trace - Exiting.\n" );
@@ -716,6 +719,15 @@ namespace wiselib
 #endif
 			if ( ( _t != NULL ) && ( (*_t).get_inhibited() == 0 ) )
 			{
+				node_id_t recipient_other_id = 0;
+				if ( _t->get_recipient_1_id() == self.get_node().get_id() )
+				{
+					recipient_other_id = _t->get_recipient_2_id();
+				}
+				else
+				{
+					recipient_other_id = _t->get_recipient_1_id();
+				}
 				NodeList recipient_candidates;
 				NodeList_Iterator recipient_candidates_iterator;
 				Node rep_point = (*_t).get_repulsion_point();
@@ -723,17 +735,30 @@ namespace wiselib
 			 	{
 					for (PLTT_NodeListIterator neighbors_iterator = neighbors.begin(); neighbors_iterator != neighbors.end(); ++neighbors_iterator )
 					{
+						uint8_t d1 = direction_processing( rep_point, self.get_node() );
+						uint8_t d2 = direction_processing( self.get_node(), neighbors_iterator->get_node() );
+//#ifdef DEBUG_PLTT_PASSIVE_H_PREPARE_SPREAD_TRACE
+						debug().debug(" nodeR=%x[%d, %d] : node1=%x[%d, %d] : node2=%x[%d, %d] : d1=%x, : d2=%x : eu_d1 = %d : eu_d2 = %d \n",
+									rep_point.get_id(), rep_point.get_position().get_x(), rep_point.get_position().get_y(),
+									self.get_node().get_id(), self.get_node().get_position().get_x(), self.get_node().get_position().get_y(),
+									neighbors_iterator->get_node().get_id(), neighbors_iterator->get_node().get_position().get_x(), neighbors_iterator->get_node().get_position().get_y(), d1, d2,
+									rep_point.get_position().distsq( self.get_node().get_position() ), self.get_node().get_position().distsq( neighbors_iterator->get_node().get_position() ) );
 						if ( rep_point.get_position().distsq( self.get_node().get_position() ) <= rep_point.get_position().distsq( neighbors_iterator->get_node().get_position() ) )
+//#endif
 						{
-							uint8_t d1 = direction_processing( rep_point, self.get_node() );
-							uint8_t d2 = direction_processing( self.get_node(), neighbors_iterator->get_node() );
-							if ( ( ( d1 == d2 ) ||
-									( ( d1 != d2 ) && !( ( d1 | d2 == 0x11 ) && ( d1 & d2 == 0x00 ) ) && ( rep_point.get_position().distsq( self.get_node().get_position() ) > self.get_node().get_position().distsq( neighbors_iterator->get_node().get_position() ) ) ) )
-									&& ( self.get_node().get_id() != _t->get_parent().get_id() ) && ( self.get_node().get_id() != _t->get_current().get_id() ) && ( self.get_node().get_id() != _t->get_grandparent().get_id() ) )
+
+							if (
+									(
+										( neighbors_iterator->get_node().get_id() != _t->get_parent().get_id() ) &&
+										( neighbors_iterator->get_node().get_id() != _t->get_current().get_id() ) &&
+										( neighbors_iterator->get_node().get_id() != _t->get_grandparent().get_id() ) &&
+										( neighbors_iterator->get_node().get_id() != self.get_node().get_id() ) &&
+										( neighbors_iterator->get_node().get_id() != recipient_other_id )
+									) &&
+									( ( ( d1 == d2 ) ||
+									( ( d1 != d2 ) && !( ( d1 | d2 == 0x11 ) && ( d1 & d2 == 0x00 ) ) && ( rep_point.get_position().distsq( self.get_node().get_position() ) > self.get_node().get_position().distsq( neighbors_iterator->get_node().get_position() ) ) ) ) )
+								)
 							{
-								debug().debug(" nodeR=[%d, %d] : node1=[%d, %d] : node2=[%d, %d] : d1=%x, : d2=%x", rep_point.get_position().get_x(), rep_point.get_position().get_y(),
-								self.get_node().get_position().get_x(), self.get_node().get_position().get_y(),
-								neighbors_iterator->get_node().get_position().get_x(), neighbors_iterator->get_node().get_position().get_y(), d1, d2 );
 								recipient_candidates.push_back(	neighbors_iterator->get_node() );
 							}
 						}
@@ -746,7 +771,9 @@ namespace wiselib
 						recipient_candidates.push_back( neighbors_iterator->get_node() );
 					}
 				}
-
+//#ifdef DEBUG_PLTT_PASSIVE_H_PREPARE_SPREAD_TRACE
+				debug().debug( "%x : cl : %d", self.get_node().get_id(), recipient_candidates.size() );
+//#endif
 				millis_t r = 0;
 				if ( !recipient_candidates.size() )
 				{
@@ -840,18 +867,30 @@ namespace wiselib
 			debug().debug( "PLTT_Passive - spread_trace - Entering.\n" );
 #endif
 			PLTT_Trace* t = (PLTT_Trace*) _userdata;
-			size_t len = (*t).serial_size();
-			block_data_t buf[Radio::MAX_MESSAGE_LENGTH];
-			block_data_t* buff = buf;
-			buff = (*t).serialize(buff);
+			if ( t->get_inhibited()!= 0 )
+			{
+				size_t len = (*t).serial_size();
+				block_data_t buf[Radio::MAX_MESSAGE_LENGTH];
+				block_data_t* buff = buf;
+				buff = (*t).serialize(buff);
 #ifdef DEBUG_PLTT_PASSIVE_H_SPREAD_TRACE
-			debug().debug( "PLTT_Passive - spread_trace - Trace was spread\n." );
+				debug().debug( "PLTT_Passive - spread_trace - Trace was spread\n." );
 #endif
 //#ifdef DEBUG_PLTT_PASSIVE_H_SPREAD_TRACE
-			debug().debug("%x->%x\n", self.get_node().get_id(), (*t).get_recipient_1_id() );
-			debug().debug("%x->%x\n", self.get_node().get_id(), (*t).get_recipient_2_id() );
+				debug().debug("%x->%x\n", self.get_node().get_id(), (*t).get_recipient_1_id() );
+				debug().debug("%x->%x\n", self.get_node().get_id(), (*t).get_recipient_2_id() );
 //#endif
-			send( Radio::BROADCAST_ADDRESS, len, (uint8_t*) buff, PLTT_SPREAD_ID );
+				send( Radio::BROADCAST_ADDRESS, len, (uint8_t*) buff, PLTT_SPREAD_ID );
+			}
+			else
+			{
+#ifdef DEBUG_PLTT_PASSIVE_H_SPREAD_TRACE
+				debug().debug( "PLTT_Passive - spread_trace - Trace was not spread due to inhibition.\n." );
+#endif
+//#ifdef DEBUG_PLTT_PASSIVE_H_SPREAD_TRACE
+				debug().debug("%x->|| \n", self.get_node().get_id() );
+//#endif
+			}
 		}
 #endif
 		// -----------------------------------------------------------------------

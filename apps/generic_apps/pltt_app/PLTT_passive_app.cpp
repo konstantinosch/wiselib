@@ -24,7 +24,7 @@
 typedef wiselib::OSMODEL Os;
 typedef Os::TxRadio Radio;
 typedef Radio::node_id_t node_id_t;
-typedef uint8 CoordinatesNumber;
+typedef uint16 CoordinatesNumber;
 typedef uint8 IntensityNumber;
 typedef Radio::ExtendedData ExtendedData;
 typedef Os::Debug Debug;
