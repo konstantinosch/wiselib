@@ -277,6 +277,7 @@ namespace wiselib
 					radio().send( Radio::BROADCAST_ADDRESS, message.serial_size(), (block_data_t*)&message );
 					message.print( debug(), radio() );
 					//target_trace.print( debug(), radio() );
+					debug().debug("channel : %d", radio().channel() );
 					target_trace.update_start_time();
 					timer().template set_timer<self_type, &self_type::send_trace>( spread_milis, this, 0 );
 #ifdef CONFIG_PLTT_TARGET_H_MINI_RUN
