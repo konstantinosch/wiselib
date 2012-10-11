@@ -88,6 +88,7 @@ namespace wiselib
       //---------- From concept VariablePowerRadio ------------
       int set_power(TxPower p);
       void set_channel(int c);
+      int channel();
       // --------------------------------------------------------------------
       TxPower power();
       //-------------------------------------------------------
@@ -302,6 +303,11 @@ namespace wiselib
    //------------------------------------------------------------------------
    template<typename OsModel_P>
    void ShawnTxRadioModel<OsModel_P>::set_channel(int c){
+   }
+   //------------------------------------------------------------------------
+   template<typename OsModel_P>
+   int ShawnTxRadioModel<OsModel_P>::channel(){
+	   return 0;
    }
    //------------------------------------------------------------------------
 }

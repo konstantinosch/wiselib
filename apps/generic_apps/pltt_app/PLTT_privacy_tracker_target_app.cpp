@@ -40,11 +40,11 @@ typedef uint32 AgentID;
 typedef wiselib::PLTT_AgentType< Os, Radio, AgentID, IntensityNumber, Debug> PLTT_Agent;
 typedef wiselib::PLTT_TrackerType<Os, PLTT_Agent, Node, Position, IntensityNumber, Timer, Radio, ReliableRadio, Rand, Clock, Debug> PLTT_Tracker;
 #endif
-typedef wiselib::PLTT_TraceType<Os, Radio, uint8, uint8, IntensityNumber, Node, node_id_t, Debug> PLTT_Trace;
+typedef wiselib::PLTT_TraceType<Os, Radio, TimesNumber, SecondsNumber, IntensityNumber, Node, node_id_t, Debug> PLTT_Trace;
 #ifdef CONFIG_PLTT_PRIVACY
 typedef wiselib::PLTT_PrivacyTraceType<Os, Radio, TimesNumber, SecondsNumber, IntensityNumber, Node, node_id_t, Debug> PLTT_PrivacyTrace;
 typedef wiselib::PrivacyMessageType<Os, Radio> PrivacyMessage;
-typedef wiselib::vector_static<Os, PrivacyMessage, 100> PrivacyMessageList;
+typedef wiselib::vector_static<Os, PrivacyMessage, PLTT_MAX_PRIVACY_MESSAGES_SUPPORTED> PrivacyMessageList;
 typedef wiselib::PrivacyType<Os, Radio, Timer, Uart, PrivacyMessage, PrivacyMessageList, Debug> Privacy;
 typedef wiselib::PLTT_TargetType<Os, PLTT_PrivacyTrace, Node, Timer, Radio, PrivacyMessage, Clock, Debug> PLTT_Target;
 #else
