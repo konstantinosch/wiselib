@@ -743,8 +743,8 @@ namespace wiselib
 									self.get_node().get_id(), self.get_node().get_position().get_x(), self.get_node().get_position().get_y(),
 									neighbors_iterator->get_node().get_id(), neighbors_iterator->get_node().get_position().get_x(), neighbors_iterator->get_node().get_position().get_y(), d1, d2,
 									rep_point.get_position().distsq( self.get_node().get_position() ), self.get_node().get_position().distsq( neighbors_iterator->get_node().get_position() ) );
-						if ( rep_point.get_position().distsq( self.get_node().get_position() ) <= rep_point.get_position().distsq( neighbors_iterator->get_node().get_position() ) )
 //#endif
+						if ( rep_point.get_position().distsq( self.get_node().get_position() ) <= rep_point.get_position().distsq( neighbors_iterator->get_node().get_position() ) )
 						{
 
 							if (
