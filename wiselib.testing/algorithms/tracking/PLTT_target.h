@@ -376,7 +376,7 @@ namespace wiselib
 		PrivacyMessage randomize_privacy_message;
 #endif
 #ifdef CONFIG_PLTT_TARGET_H_MINI_RUN
-		uint8_t target_mini_run_times;
+		uint32_t target_mini_run_times;
 #endif
 		uint8_t status;
 	};

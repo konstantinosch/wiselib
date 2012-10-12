@@ -127,7 +127,12 @@ namespace wiselib
       // --------------------------------------------------------------------
       int unreg_recv_callback( int idx )
       { return ERR_NOTIMPL; }
-
+      // --------------------------------------------------------------------
+      size_t reserved_bytes()
+      {
+      	return sizeof(message_id_t) + sizeof(size_t) + sizeof(uint16_t);
+      };
+      // --------------------------------------------------------------------
    private:
       ShawnOs& os()
       { return os_; }
