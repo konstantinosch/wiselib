@@ -194,7 +194,7 @@ namespace wiselib
 #endif
 			//Protocol* prot_ref = neighbor_discovery().get_protocol_ref( NeighborDiscovery::TRACKING_PROTOCOL_ID );
 			//prot_ref->print( debug(), radio() );
-			debug().debug("connectivity : %d, channel : %d\n", neighbors.size(), radio().channel() );
+			//debug().debug("connectivity : %d, channel : %d\n", neighbors.size(), radio().channel() );
 			//for ( PLTT_NodeListIterator it = neighbors.begin(); it != neighbors.end(); ++it )
 			//{
 			//	it->print( debug(), radio() );
@@ -217,8 +217,8 @@ namespace wiselib
 			message.set_payload( _len, _data );
 			TxPower power;
 			power.set_dB( transmission_power_dB );
-			radio().set_power( power );
-			radio().send( _destination, message.serial_size(), (uint8_t*) &message );
+			reliable_radio().set_power( power );
+			reliable_radio().send( _destination, message.serial_size(), (uint8_t*) &message );
 		}
 		// -----------------------------------------------------------------------
 		void receive( node_id_t _from, size_t _len, block_data_t* _data, const ExtendedData& _exdata )
@@ -638,9 +638,9 @@ namespace wiselib
 #ifdef DEBUG_PLTT_PASSIVE_H_STORE_INHIBIT_TRACE
 							debug().debug( "PLTT_Passive - store_inhibit_trace - Inhibited %x\n", traces_iterator->get_target_id() );
 #endif
-//#ifdef DEBUG_PLTT_PASSIVE_H_STORE_INHIBIT_TRACE
+#ifdef DEBUG_PLTT_PASSIVE_H_STORE_INHIBIT_TRACE
 							debug().debug( "%x->''|'' from %x\n", self.get_node().get_id(), traces_iterator->get_parent().get_id() );
-//#endif
+#endif
 						}
 						return &(*traces_iterator);
 					}
@@ -655,9 +655,9 @@ namespace wiselib
 			traces.push_back( _trace );
 			if ( _inhibition_flag )
 			{
-//#ifdef DEBUG_PLTT_PASSIVE_H_STORE_INHIBIT_TRACE
+#ifdef DEBUG_PLTT_PASSIVE_H_STORE_INHIBIT_TRACE
 				debug().debug( "%x->| from %x\n", self.get_node().get_id(), traces_iterator->get_parent().get_id() );
-//#endif
+#endif
 				traces_iterator->set_inhibited();
 #ifdef DEBUG_PLTT_PASSIVE_H_STORE_INHIBIT_TRACE
 				debug().debug( "PLTT_Passive - store_inhibit_trace - Exiting.\n" );
@@ -872,11 +872,13 @@ namespace wiselib
 #ifdef DEBUG_PLTT_PASSIVE_H_SPREAD_TRACE
 				debug().debug( "PLTT_Passive - spread_trace - Trace was spread\n." );
 #endif
-//#ifdef DEBUG_PLTT_PASSIVE_H_SPREAD_TRACE
+#ifdef DEBUG_PLTT_PASSIVE_H_SPREAD_TRACE
 				debug().debug("%x->%x\n", self.get_node().get_id(), (*t).get_recipient_1_id() );
 				debug().debug("%x->%x\n", self.get_node().get_id(), (*t).get_recipient_2_id() );
-//#endif
-				send( Radio::BROADCAST_ADDRESS, len, (uint8_t*) buff, PLTT_SPREAD_ID );
+#endif
+				//send( Radio::BROADCAST_ADDRESS, len, (uint8_t*) buff, PLTT_SPREAD_ID );
+				send( (*t).get_recipient_1_id(), len, (uint8_t*) buff, PLTT_SPREAD_ID );
+				send( (*t).get_recipient_2_id(), len, (uint8_t*) buff, PLTT_SPREAD_ID );
 				t->set_inhibited();
 			}
 			else
@@ -884,9 +886,9 @@ namespace wiselib
 #ifdef DEBUG_PLTT_PASSIVE_H_SPREAD_TRACE
 				debug().debug( "PLTT_Passive - spread_trace - Trace was not spread due to inhibition.\n." );
 #endif
-//#ifdef DEBUG_PLTT_PASSIVE_H_SPREAD_TRACE
+#ifdef DEBUG_PLTT_PASSIVE_H_SPREAD_TRACE
 				debug().debug("%x->|| \n", self.get_node().get_id() );
-//#endif
+#endif
 			}
 		}
 #endif

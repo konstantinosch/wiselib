@@ -104,6 +104,11 @@ namespace wiselib
           return os().proc->template reg_recv_callback<T, TMethod>( obj_pnt );
       }
       // --------------------------------------------------------------------
+      size_t reserved_bytes()
+      {
+      	return sizeof(message_id_t) + sizeof(size_t) + sizeof(uint16_t);
+      };
+      // --------------------------------------------------------------------
       int unreg_recv_callback( int idx )
       { return ERR_NOTIMPL; }
 
