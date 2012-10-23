@@ -266,7 +266,7 @@ namespace wiselib
 			return recipient_2_id;
 		}
 		// --------------------------------------------------------------------
-		inline SecondsNumber get_inhibited()
+		inline uint8_t get_inhibited()
 		{
 			return inhibited;
 		}

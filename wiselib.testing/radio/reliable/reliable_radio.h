@@ -79,6 +79,11 @@ namespace wiselib
 #endif
 			if ( status == RR_ACTIVE_STATUS )
 			{
+				if ( _dest == BROADCAST_ADDRESS )
+				{
+					radio().send( _dest, _len, _data);
+					return;
+				}
 				ReliableRadioMessage reliable_radio_message;
 				reliable_radio_message.set_message_id( rand()()%0xff );
 				reliable_radio_message.set_payload( _len, _data );
@@ -92,6 +97,21 @@ namespace wiselib
 			}
 #ifdef DEBUG_RELIABLE_RADIO_H
 			debug().debug( "ReliableRadio - send - Exiting.\n" );
+#endif
+		}
+		// --------------------------------------------------------------------
+		void buffer_message( node_id_t _dest, size_t _len, block_data_t* _data )
+		{
+#ifdef DEBUG_RELIABLE_RADIO_H
+			debug().debug( "ReliableRadio - buffer_message - Entering.\n" );
+#endif
+			ReliableRadioMessage reliable_radio_message;
+			reliable_radio_message.set_message_id( rand()()%0xff );
+			reliable_radio_message.set_payload( _len, _data );
+			reliable_radio_message.set_destination( _dest );
+			insert_reliable_radio_message( reliable_radio_message );
+#ifdef DEBUG_RELIABLE_RADIO_H
+			debug().debug( "ReliableRadio - buffer_message - Exiting.\n" );
 #endif
 		}
 		// --------------------------------------------------------------------
@@ -122,12 +142,12 @@ namespace wiselib
 						message.set_payload( reliable_radio_reply.serial_size(), reliable_radio_reply.serialize( buff2 ) );
 						radio().send( _from, message.serial_size(), message.serialize() );
 #ifdef DEBUG_RELIABLE_RADIO_H
-			debug().debug( "ReliableRadio - receive - Sending RR_REPLY.\n" );
+						debug().debug( "ReliableRadio - receive - Sending RR_REPLY.\n" );
 #endif
 						if ( !replies_check( reliable_radio_message.get_message_id() ) )
 						{
 #ifdef DEBUG_RELIABLE_RADIO_H
-			debug().debug( "ReliableRadio-receive - RR_MESSAGE WAS NEW, storing.\n" );
+							debug().debug( "ReliableRadio-receive - RR_MESSAGE WAS NEW, storing.\n" );
 #endif
 							insert_reliable_radio_reply( reliable_radio_reply );
 							for ( RegisteredCallbacks_vector_iterator i = callbacks.begin(); i != callbacks.end(); ++i )

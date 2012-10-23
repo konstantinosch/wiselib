@@ -153,7 +153,7 @@ namespace wiselib
 			block_data_t buff[100];
 			ProtocolPayload pp( NeighborDiscovery::TRACKING_PROTOCOL_ID, self.get_node().get_position().serial_size(), self.get_node().get_position().serialize( buff ) );
 			uint8_t ef = ProtocolSettings::NEW_PAYLOAD|ProtocolSettings::LOST_NB|ProtocolSettings::NB_REMOVED|ProtocolSettings::NEW_PAYLOAD;
-			ProtocolSettings ps( 255, 0, 255, 0, 255, 0, 255, 0, 100, 80, 100, 80, ef, -18, 100, 3000, 100, ProtocolSettings::RATIO_DIVIDER, 2, ProtocolSettings::MEAN_DEAD_TIME_PERIOD, 100, 100, ProtocolSettings::R_NR_WEIGHTED, 1, 1, pp );
+			ProtocolSettings ps( 255, 0, 255, 0, 255, 0, 255, 0, 100, 90, 100, 90, ef, -18, 100, 3000, 100, ProtocolSettings::RATIO_DIVIDER, 2, ProtocolSettings::MEAN_DEAD_TIME_PERIOD, 100, 100, ProtocolSettings::R_NR_WEIGHTED, 1, 1, pp );
 			neighbor_discovery().set_transmission_power_dB( transmission_power_dB );
 			uint8_t result = 0;
 			result = neighbor_discovery(). template register_protocol<self_type, &self_type::sync_neighbors>( NeighborDiscovery::TRACKING_PROTOCOL_ID, ps, this  );
@@ -248,6 +248,11 @@ namespace wiselib
 #endif
 					store_inhibit_trace( trace, 1 );
 				}
+			}
+			else if ( msg_id == PLTT_INHIBITION_ID )
+			{
+				PLTT_Trace trace = PLTT_Trace( message->get_payload() );
+				store_inhibit_trace( trace, 1 );
 			}
 #else
 			if ( msg_id == PLTT_PRIVACY_SPREAD_ID )
@@ -628,6 +633,7 @@ namespace wiselib
 					debug().debug( "PLTT_Passive - store_inhibit_trace - New trace intensity and start time (%i, %i ) vs current (%i, %i, %i)\n.", _trace.get_intensity(), _trace.get_start_time(), traces_iterator->get_intensity(), traces_iterator->get_start_time(), traces_iterator->get_inhibited() );
 #endif
 					if ( ( (_trace.get_start_time() == traces_iterator->get_start_time() ) && (traces_iterator->get_intensity() - _trace.get_intensity() <= traces_iterator->get_spread_penalty() ) ) ||
+						 //( ( _trace.get_start_time() == traces_iterator->get_start_time() ) && ( _trace.get_inhibited() == 0 ) ) ||
 						 ( _trace.get_start_time() > traces_iterator->get_start_time() ) )
 					{
 						*traces_iterator = _trace;
@@ -651,20 +657,21 @@ namespace wiselib
 				}
 				++traces_iterator;
 			}
-			_trace.update_path( self.get_node() );
-			traces.push_back( _trace );
-			if ( _inhibition_flag )
+			if ( !_inhibition_flag )
 			{
+				_trace.update_path( self.get_node() );
+				traces.push_back( _trace );
 #ifdef DEBUG_PLTT_PASSIVE_H_STORE_INHIBIT_TRACE
 				debug().debug( "%x->| from %x\n", self.get_node().get_id(), traces_iterator->get_parent().get_id() );
 #endif
-				traces_iterator->set_inhibited();
+				//traces_iterator->set_inhibited();
 #ifdef DEBUG_PLTT_PASSIVE_H_STORE_INHIBIT_TRACE
 				debug().debug( "PLTT_Passive - store_inhibit_trace - Exiting.\n" );
 #endif
+				traces_iterator = traces.end() - 1;
+				return &(*traces_iterator);
 			}
-			traces_iterator = traces.end() - 1;
-			return &(*traces_iterator);
+			return NULL;
 		}
 		// -----------------------------------------------------------------------
 		void update_traces( void* _userdata = NULL )
@@ -876,9 +883,15 @@ namespace wiselib
 				debug().debug("%x->%x\n", self.get_node().get_id(), (*t).get_recipient_1_id() );
 				debug().debug("%x->%x\n", self.get_node().get_id(), (*t).get_recipient_2_id() );
 #endif
-				//send( Radio::BROADCAST_ADDRESS, len, (uint8_t*) buff, PLTT_SPREAD_ID );
-				send( (*t).get_recipient_1_id(), len, (uint8_t*) buff, PLTT_SPREAD_ID );
-				send( (*t).get_recipient_2_id(), len, (uint8_t*) buff, PLTT_SPREAD_ID );
+				send( Radio::BROADCAST_ADDRESS, len, (uint8_t*) buff, PLTT_INHIBITION_ID );
+
+				//Message message;
+				//message.set_message_id( PLTT_SPREAD_ID );
+				//message.set_payload( len, buff );
+				send( t->get_recipient_1_id(), len, (uint8_t*) buff, PLTT_SPREAD_ID );
+				send( t->get_recipient_2_id(), len, (uint8_t*) buff, PLTT_SPREAD_ID );
+				//reliable_radio().buffer_message( t->get_recipient_1_id(), len, buff );
+				//reliable_radio().buffer_message( t->get_recipient_2_id(), len, buff );
 				t->set_inhibited();
 			}
 			else
@@ -1414,7 +1427,8 @@ namespace wiselib
 			PLTT_TRACKER_ECHO_ID = 21,
 			PLTT_TRACKER_ECHO_REPLY_ID = 31,
 			PLTT_AGENT_QUERY_ID = 41,
-			PLTT_AGENT_REPORT_ID = 51
+			PLTT_AGENT_REPORT_ID = 51,
+			PLTT_INHIBITION_ID,
 #ifdef CONFIG_PLTT_PRIVACY
 			,PLTT_PRIVACY_SPREAD_ID = 91
 			,PRIVACY_DECRYPTION_REQUEST_ID = 100
