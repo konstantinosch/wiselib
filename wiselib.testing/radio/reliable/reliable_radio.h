@@ -207,6 +207,9 @@ namespace wiselib
 					}
 					else if ( i->get_counter() == ( max_retries + 1 ) )
 					{
+//#ifdef DEBUG_RELIABLE_RADIO_H
+						debug().debug( "ReliableRadio - daemon - An RR_MESSAGE exists with max retries %d... - Undelivered...\n", max_retries + 1 );
+//#endif
 						for ( RegisteredCallbacks_vector_iterator j = callbacks.begin(); j != callbacks.end(); ++j )
 						{
 							ExData ex;
@@ -259,9 +262,9 @@ namespace wiselib
 #endif
 				return 1;
 			}
-#ifdef DEBUG_RELIABLE_RADIO_H
+//#ifdef DEBUG_RELIABLE_RADIO_H
 			debug().debug( "ReliableRadio - insert_reliable_radio_message - Exiting with failure.\n" );
-#endif
+//#endif
 			return 0;
 		}
 		// --------------------------------------------------------------------
@@ -290,9 +293,9 @@ namespace wiselib
 				return 1;
 			}
 			return 0;
-#ifdef DEBUG_RELIABLE_RADIO_H
+//#ifdef DEBUG_RELIABLE_RADIO_H
 			debug().debug( "ReliableRadio - insert_reliable_radio_reply - Exiting with failure.\n" );
-#endif
+//#endif
 		}
 		// --------------------------------------------------------------------
 		uint8_t replies_check( message_id_t _msg_id )
