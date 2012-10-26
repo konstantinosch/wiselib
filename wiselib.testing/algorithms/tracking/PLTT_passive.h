@@ -637,8 +637,6 @@ namespace wiselib
 					if ( ( ( !traces_iterator->get_send() ) && (_trace.get_start_time() == traces_iterator->get_start_time() ) && (traces_iterator->get_intensity() <= traces_iterator->get_spread_penalty() + _trace.get_intensity() ) ) ||
 						 ( _trace.get_start_time() > traces_iterator->get_start_time() ) )
 					{
-						*traces_iterator = _trace;
-						traces_iterator->update_path( self.get_node() );
 						if ( _inhibition_flag )
 						{
 							traces_iterator->set_inhibited();
@@ -652,6 +650,8 @@ namespace wiselib
 						}
 						else
 						{
+							*traces_iterator = _trace;
+							traces_iterator->update_path( self.get_node() );
 							return &(*traces_iterator);
 						}
 					}
@@ -662,10 +662,17 @@ namespace wiselib
 				}
 				++traces_iterator;
 			}
-			_trace.update_path( self.get_node() );
-			traces.push_back( _trace );
-			debug().debug( "storing trace %d, to rec %x, from %x\n", _trace.get_start_time(), self.get_node().get_id(), _trace.get_parent().get_id() );
-			if ( _inhibition_flag )
+			if ( !_inhibition_flag )
+			{
+				_trace.update_path( self.get_node() );
+				traces.push_back( _trace );
+#ifdef DEBUG_PLTT_PASSIVE_H_STORE_INHIBIT_TRACE
+				debug().debug( "storing trace %d, to rec %x, from %x\n", _trace.get_start_time(), self.get_node().get_id(), _trace.get_parent().get_id() );
+#endif
+				traces_iterator = traces.end() - 1;
+				return &(*traces_iterator);
+			}
+			else //if ( _inhibition_flag )
 			{
 //#ifdef DEBUG_PLTT_PASSIVE_H_STORE_INHIBIT_TRACE
 				debug().debug( "%x->| from %x\n", self.get_node().get_id(), _trace.get_parent().get_id() );
@@ -674,9 +681,8 @@ namespace wiselib
 #ifdef DEBUG_PLTT_PASSIVE_H_STORE_INHIBIT_TRACE
 				debug().debug( "PLTT_Passive - store_inhibit_trace - Exiting.\n" );
 #endif
+				return NULL;
 			}
-			traces_iterator = traces.end() - 1;
-			return &(*traces_iterator);
 		}
 		// -----------------------------------------------------------------------
 		void update_traces( void* _userdata = NULL )
