@@ -766,7 +766,8 @@ namespace wiselib
 										( neighbors_iterator->get_node().get_id() != recipient_other_id )
 									) &&
 									( ( ( d1 == d2 ) ||
-									( ( d1 != d2 ) && !( ( d1 | d2 == 0x11 ) && ( d1 & d2 == 0x00 ) ) && ( rep_point.get_position().distsq( self.get_node().get_position() ) > self.get_node().get_position().distsq( neighbors_iterator->get_node().get_position() ) ) ) ) )
+									( ( d1 != d2 ) && !( ( d1 | d2 == 0x11 ) && ( d1 & d2 == 0x00 ) ) &&
+												( rep_point.get_position().distsq( self.get_node().get_position() ) > self.get_node().get_position().distsq( neighbors_iterator->get_node().get_position() ) ) ) ) )
 								)
 							{
 								recipient_candidates.push_back(	neighbors_iterator->get_node() );
@@ -1442,7 +1443,7 @@ namespace wiselib
 			PLTT_TRACKER_ECHO_REPLY_ID = 31,
 			PLTT_AGENT_QUERY_ID = 41,
 			PLTT_AGENT_REPORT_ID = 51,
-			PLTT_INHIBITION_ID = 61,
+			PLTT_INHIBITION_ID = 61
 #ifdef CONFIG_PLTT_PRIVACY
 			,PLTT_PRIVACY_SPREAD_ID = 91
 			,PRIVACY_DECRYPTION_REQUEST_ID = 100
