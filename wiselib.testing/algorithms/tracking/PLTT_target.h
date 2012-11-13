@@ -118,7 +118,7 @@ namespace wiselib
 			radio().enable_radio();
 			set_status( ACTIVE_STATUS );
 #ifdef DEBUG_PLTT_TARGET_H_ENABLE
-			debug().debug( "PLTT_Target - enable.\n" );
+			debug().debug( "PLTT_Target - enable %x.\n", radio().id() );
 #endif
 #ifdef CONFIG_PLTT_PRIVACY
 			radio_callback_id = radio().template reg_recv_callback<self_type, &self_type::receive>( this );
@@ -132,14 +132,14 @@ namespace wiselib
 #ifdef CONFIG_PLTT_PRIVACY
 		void receive( node_id_t _from, size_t _len, block_data_t* _data )
 		{
-#ifdef DEBUG_PLTT_TARGET_H_RECEIVE
-			debug().debug( "PLTT_Target - radio_receive - Received message from %x.\n", _from );
-#endif
+//#ifdef DEBUG_PLTT_TARGET_H_RECEIVE
+//			debug().debug( "PLTT_Target - radio_receive %x - Received message from %x.\n", radio().id(), _from );
+//#endif
 			message_id_t msg_id = *_data;
 			if	( msg_id == PRIVACY_ENCRYPTION_REPLY_ID )
 			{
 #ifdef DEBUG_PLTT_TARGET_H_RECEIVE
-				debug().debug( "PLTT_Target - radio_receive - ID encrypted of size : %i.\n", _len );
+				debug().debug( "PLTT_Target - radio_receive %x - ID encrypted of size : %i.\n", radio().id(), _len );
 #endif
 				PrivacyMessage *encryption_privacy_message = (PrivacyMessage*)_data;
 				if ( encryption_privacy_message->request_id() == target_request_id )
@@ -156,7 +156,7 @@ namespace wiselib
 			if ( status == ACTIVE_STATUS )
 			{
 #ifdef DEBUG_PLTT_TARGET_H_ENCRYPTION_REQUEST_DAEMON
-				debug().debug( "PLTT_Target - encryption_request_daemon - Entering.\n" );
+				debug().debug( "PLTT_Target - encryption_request_daemon %x - Entering.\n", radio().id() );
 #endif
 				if ( has_encrypted_id == 0 )
 				{
@@ -169,7 +169,7 @@ namespace wiselib
 					write<Os, block_data_t, node_id_t>( buff, self_id );
 					encryption_privacy_message.set_payload( sizeof(node_id_t), buff );
 #ifdef DEBUG_PLTT_TARGET_H_ENCRYPTION_REQUEST_DAEMON
-					debug().debug( "PLTT_Target - encryption_request_daemon - Sending request of size : %i.\n", encryption_privacy_message.buffer_size() );
+					debug().debug( "PLTT_Target - encryption_request_daemon %x - Sending request of size : %i.\n", radio().id(), encryption_privacy_message.buffer_size() );
 #endif
 					trans_power.set_dB( transmission_power_dB );
 					radio().set_power( trans_power );
@@ -184,13 +184,13 @@ namespace wiselib
 			if ( status == ACTIVE_STATUS )
 			{
 #ifdef DEBUG_PLTT_TARGET_H_RANDOMIZE_CALLBACK
-				debug().debug( "PLTT_Target - randomize_callback - Entering\n." );
+				debug().debug( "PLTT_Target - randomize_callback %x - Entering.\n", radio().id() );
 #endif
 				message_id_t msg_id = *_data;
 				if ( msg_id == PRIVACY_RANDOMIZE_REPLY_ID )
 				{
 #ifdef DEBUG_PLTT_TARGET_H_RANDOMIZE_CALLBACK
-					debug().debug( "PLTT_Target - randomize_callback - ID randomized.\n" );
+					debug().debug( "PLTT_Target - randomize_callback %x - ID randomized.\n", radio().id() );
 #endif
 					randomize_privacy_message = ( *( PrivacyMessage* )_data );
 					PrivacyMessage *randomize_privacy_message_ptr = &randomize_privacy_message;
@@ -210,7 +210,7 @@ namespace wiselib
 							radio().set_power( trans_power );
 							radio().send( Radio::BROADCAST_ADDRESS, message.serial_size(), (block_data_t*) &message );
 #ifdef DEBUG_PLTT_TARGET_H_RANDOMIZE_CALLBACK
-							debug().debug( "PLTT_Target - randomize_callback - Randomized message of size : %i send.\n", message.serial_size() );
+							debug().debug( "PLTT_Target - randomize_callback %x - Randomized message of size : %i send.\n", radio().id(), message.serial_size() );
 #endif
 							target_trace.update_start_time();
 							randomize_privacy_message_ptr->set_msg_id( PRIVACY_RANDOMIZE_REQUEST_ID );
@@ -229,7 +229,7 @@ namespace wiselib
 			{
 				PrivacyMessage* randomize_privacy_message_ptr = ( PrivacyMessage* ) _userdata;
 #ifdef DEBUG_PLTT_TARGET_H_TIMED_PRIVACY_CALLBACK
-				debug().debug( "PLTT_Target - timed_privacy_callback - Entering with Message: \n" );
+				debug().debug( "PLTT_Target - timed_privacy_callback %x - Entering with Message: \n", radio().id() );
 				debug().debug( "message id : %i\n", randomize_privacy_message_ptr->msg_id() );
 				debug().debug( "request id : %x\n", randomize_privacy_message_ptr->request_id() );
 				debug().debug( "payload length : %i\n", randomize_privacy_message_ptr->payload_size() );
@@ -261,7 +261,7 @@ namespace wiselib
 			if ( status == ACTIVE_STATUS )
 			{
 #ifdef DEBUG_PLTT_TARGET_H_SEND_TRACE
-				debug().debug( "PLTT_Target - send_trace - Entering.\n" );
+				debug().debug( "PLTT_Target - send_trace %x - Entering.\n", radio().id() );
 #endif
 #ifdef CONFIG_PLTT_TARGET_H_MINI_RUN
 				if ( target_trace.get_start_time() < target_mini_run_times )
@@ -284,7 +284,7 @@ namespace wiselib
 				}
 #endif
 #ifdef DEBUG_PLTT_TARGET_H_SEND_TRACE
-				debug().debug( "PLTT_Target - send_trace - Exiting.\n" );
+				debug().debug( "PLTT_Target - send_trace %x - Exiting.\n", radio().id() );
 #endif
 			}
 		}
