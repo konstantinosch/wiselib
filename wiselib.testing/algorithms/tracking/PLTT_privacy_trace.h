@@ -329,6 +329,11 @@ namespace wiselib
 			return current;
 		}
 		// --------------------------------------------------------------------
+		inline uint8_t get_send()
+		{
+			return send;
+		}
+		// --------------------------------------------------------------------
 		inline void set_target_id( block_data_t* buff, size_t offset = 0 )
 		{
 			for ( size_t i = 0; i < PRIVACY_CIPHER_TEXT_MAX_SIZE; ++i )
@@ -429,6 +434,16 @@ namespace wiselib
 			return PRIVACY_CIPHER_TEXT_MAX_SIZE;
 		}
 		// --------------------------------------------------------------------
+		inline void set_send()
+		{
+			send = 1;
+		}
+		// --------------------------------------------------------------------
+		inline void set_send( uint8_t _s)
+		{
+			send = _s;
+		}
+		// --------------------------------------------------------------------
 #ifdef DEBUG_PLTT_PRIVACY_TRACE_H
 		inline void print( Debug& _debug, Radio& _radio )
 		{
@@ -473,6 +488,7 @@ namespace wiselib
 		uint16_t request_id;
 		uint16_t decryption_retries;
 		block_data_t target_id[PRIVACY_CIPHER_TEXT_MAX_SIZE];
+		uint8_t send;
 	};
 }
 #endif
