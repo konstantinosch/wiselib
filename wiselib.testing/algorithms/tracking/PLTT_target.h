@@ -132,9 +132,9 @@ namespace wiselib
 #ifdef CONFIG_PLTT_PRIVACY
 		void receive( node_id_t _from, size_t _len, block_data_t* _data )
 		{
-//#ifdef DEBUG_PLTT_TARGET_H_RECEIVE
-//			debug().debug( "PLTT_Target - radio_receive %x - Received message from %x.\n", radio().id(), _from );
-//#endif
+#ifdef DEBUG_PLTT_TARGET_H_RECEIVE
+			debug().debug( "PLTT_Target - radio_receive %x - Received message from %x.\n", radio().id(), _from );
+#endif
 			message_id_t msg_id = *_data;
 			if	( msg_id == PRIVACY_ENCRYPTION_REPLY_ID )
 			{

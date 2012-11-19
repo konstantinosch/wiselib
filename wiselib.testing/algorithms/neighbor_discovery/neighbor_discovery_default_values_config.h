@@ -4,7 +4,7 @@
 #define ND_ENABLE_LINK_STAB_RATIO
 
 //default ND protocol settings
-#define ND_MAX_NEIGHBORS 250
+#define ND_MAX_NEIGHBORS 25
 #define ND_MAX_REGISTERED_PROTOCOLS 2
 #define ND_BEACON_PERIOD 5000
 #define ND_TRANSMISSION_POWER_DB 0

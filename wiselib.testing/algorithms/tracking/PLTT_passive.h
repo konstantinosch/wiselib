@@ -117,8 +117,8 @@ namespace wiselib
 #ifdef CONFIG_PLTT_PRIVACY
 			,decryption_request_timer				( PLTT_PASSIVE_H_DECRYPTION_REQUEST_TIMER ),
 			decryption_request_offset				( PLTT_PASSIVE_H_DECRYPTION_REQUEST_OFFSET ),
-			decryption_max_retries					( PLTT_PASSIVE_H_DECRYPTION_MAX_RETRIES ),
-			erase_daemon_timer						( PLTT_PASSIVE_H_ERASE_DAEMON_TIMER )
+			decryption_max_retries					( PLTT_PASSIVE_H_DECRYPTION_MAX_RETRIES )
+			//erase_daemon_timer						( PLTT_PASSIVE_H_ERASE_DAEMON_TIMER )
 #endif
 		{
 		}
@@ -185,7 +185,7 @@ namespace wiselib
 			reliable_radio_callback_id = reliable_radio().template reg_recv_callback<self_type, &self_type::receive> (this);
 			update_traces();
 #ifdef CONFIG_PLTT_PRIVACY
-			//decryption_request_daemon();
+			decryption_request_daemon();
 #endif
 #ifdef CONFIG_PLTT_PASSIVE_H_DISABLE_NEIGHBOR_DISCOVERY
 			neighbor_discovery().disable();
@@ -195,7 +195,7 @@ namespace wiselib
 #endif
 			//Protocol* prot_ref = neighbor_discovery().get_protocol_ref( NeighborDiscovery::TRACKING_PROTOCOL_ID );
 			//prot_ref->print( debug(), radio() );
-			debug().debug("%d\t%d\n", neighbors.size(), radio().channel() );
+			//debug().debug("%d\t%d\n", neighbors.size(), radio().channel() );
 			//for ( PLTT_NodeListIterator it = neighbors.begin(); it != neighbors.end(); ++it )
 			//{
 			//	it->print( debug(), radio() );
@@ -293,9 +293,9 @@ namespace wiselib
 						node_id_t id = read<Os, block_data_t, node_id_t>( pm->payload() );
 						PLTT_Trace t;
 						t.set_target_id( id );
-//#ifdef DEBUG_PLTT_PASSIVE_H_RECEIVE
+#ifdef DEBUG_PLTT_PASSIVE_H_RECEIVE
 						debug().debug( "PLTT_Passive - receive %x - Received decryption reply from helper %x with trace id : %x.\n", radio().id(), _from, id );
-//#endif
+#endif
 						t.set_start_time( i->get_start_time() );
 						t.set_inhibited( i->get_inhibited() );
 						t.set_diminish_seconds( i->get_diminish_seconds() );
@@ -321,11 +321,12 @@ namespace wiselib
 							traces.push_back( t );
 						}
 						i->set_decryption_retries( decryption_max_retries );
-						if ( ( i->get_decryption_retries() >= decryption_max_retries ) && ( i->get_inhibited() !=0 ) )
+						i->set_decrypted();
+						if ( ( i->get_decryption_retries() >= decryption_max_retries ) && ( i->get_send() !=0 ) )
 						{
-//#ifdef DEBUG_PLTT_PASSIVE_H_RECEIVE
+#ifdef DEBUG_PLTT_PASSIVE_H_RECEIVE
 							debug().debug( "PLTT_Passive - receive %x - Received decryption reply from helper %x with trace id : %x - erased privacy trace instance with retries %d and inhibited %d.\n", radio().id(), _from, id, i->get_decryption_retries(), i->get_inhibited() );
-//#endif
+#endif
 							privacy_traces.erase( i );
 						}
 						return;
@@ -682,11 +683,27 @@ namespace wiselib
 #ifndef CONFIG_PLTT_PRIVACY
 				traces.push_back( _trace );
 				traces_iterator = traces.end() - 1;
-#else
-				privacy_traces.push_back( _trace );
-				traces_iterator = privacy_traces.end() - 1;
-#endif
 				return &(*traces_iterator);
+#else
+				if ( privacy_traces.size() < privacy_traces.max_size() )
+				{
+					privacy_traces.push_back( _trace );
+					traces_iterator = privacy_traces.end() - 1;
+					return &(*traces_iterator);
+				}
+				else
+				{
+					for ( PLTT_PrivacyTraceListIterator k = privacy_traces.begin(); k != privacy_traces.end(); ++k )
+					{
+						if ( ( k->get_send() ) && ( k->get_decrypted() ) )
+						{
+							(*k) = _trace;
+							return &(*k);
+						}
+					}
+					return NULL;
+				}
+#endif
 			}
 			else
 			{
@@ -703,7 +720,7 @@ namespace wiselib
 #endif
 				for ( PLTT_TraceListIterator traces_iterator = traces.begin(); traces_iterator != traces.end(); ++traces_iterator )
 				{
-					if ( ( seconds_counter % traces_iterator->get_diminish_seconds() == 0 ) && ( traces_iterator->get_inhibited() != 0 ) )
+					if ( ( seconds_counter % traces_iterator->get_diminish_seconds() == 0 ) )//&& ( traces_iterator->get_inhibited() != 0 ) )
 					{
 						traces_iterator->update_intensity_diminish();
 						if (traces_iterator->get_intensity() == 0)
@@ -835,7 +852,6 @@ namespace wiselib
 				{
 					r = backoff_connectivity_weight / neighbors.size() + r;
 				}
-
 				uint8_t send_flag = 0;
 				NodeList_Iterator recipient_candidates_iterator_buff;
 				_t->set_recipient_1_id( 0 );
@@ -945,10 +961,10 @@ namespace wiselib
 #ifdef DEBUG_PLTT_PASSIVE_H_SPREAD_TRACE
 				debug().debug( "PLTT_Passive - spread_trace %x - Trace was spread.\n", radio().id() );
 #endif
-//#ifdef DEBUG_PLTT_PASSIVE_H_SPREAD_TRACE
+#ifdef DEBUG_PLTT_PASSIVE_H_SPREAD_TRACE
 				debug().debug("%x->%x : %d \n", self.get_node().get_id(), (*t).get_recipient_1_id(), (*t).get_intensity() );
 				debug().debug("%x->%x : %d \n", self.get_node().get_id(), (*t).get_recipient_2_id(), (*t).get_intensity() );
-//#endif
+#endif
 #ifndef CONFIG_PLTT_PRIVACY
 				message_id_t msg_id = PLTT_SPREAD_ID;
 #else
@@ -969,9 +985,9 @@ namespace wiselib
 #ifdef DEBUG_PLTT_PASSIVE_H_SPREAD_TRACE
 				debug().debug( "PLTT_Passive - spread_trace %x - Trace was not spread due to inhibition.\n.", radio().id() );
 #endif
-//#ifdef DEBUG_PLTT_PASSIVE_H_SPREAD_TRACE
+#ifdef DEBUG_PLTT_PASSIVE_H_SPREAD_TRACE
 				debug().debug("%x->|| \n", self.get_node().get_id() );
-//#endif
+#endif
 			}
 #ifdef DEBUG_PLTT_PASSIVE_H_SPREAD_TRACE
 			debug().debug( "PLTT_Passive - spread_trace %x - Exiting.\n", radio().id() );
@@ -1131,6 +1147,8 @@ namespace wiselib
 			debug().debug( "PLTT_Passive - send_decryption_request %x - Entering.\n", radio().id() );
 #endif
 				PLTT_PrivacyTrace* t = (PLTT_PrivacyTrace*) _userdata;
+				//TODO
+				//check weather inhibition flag matters...
 				PrivacyMessage pm;
 				pm.set_request_id( t->get_request_id() );
 				pm.set_payload( t->get_target_id_size(), t->get_target_id() );
@@ -1245,16 +1263,14 @@ namespace wiselib
 				PLTT_PrivacyTraceListIterator i = privacy_traces.begin();
 				while ( i != privacy_traces.end() )
 				{
-					if ( ( i->get_decryption_retries() >= decryption_max_retries ) && ( i->get_inhibited() !=0 ) )
+					if ( i->get_decryption_retries() >= decryption_max_retries )
 					{
 #ifdef DEBUG_PLTT_PASSIVE_H_DECRYPTION_REQUEST_DAEMON
 						debug().debug( "PLTT_Passive - decryption_request_daemon %x - Before erase with id: %x and size : %d.\n", radio().id(), i->get_request_id(), privacy_traces.size() );
 #endif
-						privacy_traces.erase( i ); //poop happening...
+						i->set_decrypted();
 #ifdef DEBUG_PLTT_PASSIVE_H_DECRYPTION_REQUEST_DAEMON
 						debug().debug( "PLTT_Passive - decryption_request_daemon %x - After erase with id: %x and size : %d.\n", radio().id(), i->get_request_id(), privacy_traces.size() );
-						timer().template set_timer<self_type, &self_type::decryption_request_daemon>( erase_daemon_timer, this, 0 );
-						return;
 #endif
 					}
 					else if ( i->get_decryption_retries() < decryption_max_retries )
@@ -1272,38 +1288,38 @@ namespace wiselib
 						TxPower power;
 						power.set_dB( transmission_power_dB );
 						radio().set_power( power );
-						//radio().send( Radio::BROADCAST_ADDRESS, pm.buffer_size(), pm.buffer() );
+						radio().send( Radio::BROADCAST_ADDRESS, pm.buffer_size(), pm.buffer() );
 					}
 					++i;
 				}
 				timer().template set_timer<self_type, &self_type::decryption_request_daemon>( decryption_request_timer, this, 0 );
 			}
 		}
-		// -----------------------------------------------------------------------
-		void erase_privacy_trace( PLTT_PrivacyTrace _st )
-		{
-#ifdef DEBUB_PLTT_PASSIVE_H_ERASE_PRIVACY_TRACE
-			debug().debug( "PLTT_Passive - erase_privacy_trace - Entering.\n" );
-#endif
-			for ( PLTT_PrivacyTraceListIterator i = privacy_traces.begin(); i != privacy_traces.end(); ++i )
-			{
-#ifdef DEBUB_PLTT_PASSIVE_H_ERASE_PRIVACY_TRACE
-				debug().debug( "PLTT_Passive - erase_privacy_trace %x - Trace of %x with [c : %x] [p: %x] [g %x].\n", radio().id(), i->get_target_id(), i->get_current().get_id(), i->get_parent().get_id(), i->get_grandparent().get_id() );
-#endif
-				if ( ( i->compare_target_id( _st.get_target_id() ) ) && ( i->get_decryption_retries() >= decryption_max_retries ) && ( i->get_inhibited() !=0 ) )
-				{
-					privacy_traces.erase( i );
-#ifdef DEBUB_PLTT_PASSIVE_H_ERASE_PRIVACY_TRACE
-					debug().debug( "PLTT_Passive - erase_privacy_trace %x - Exiting after erase.\n", radio().id() );
-#endif
-					return;
-				}
-			}
-#ifdef DEBUB_PLTT_PASSIVE_H_ERASE_PRIVACY_TRACE
-			debug().debug( "PLTT_Passive - erase_privacy_trace %x - Exiting without erase.\n", radio().id() );
-#endif
-			return;
-		}
+//		// -----------------------------------------------------------------------
+//		void erase_privacy_trace( PLTT_PrivacyTrace _st )
+//		{
+//#ifdef DEBUB_PLTT_PASSIVE_H_ERASE_PRIVACY_TRACE
+//			debug().debug( "PLTT_Passive - erase_privacy_trace - Entering.\n" );
+//#endif
+//			for ( PLTT_PrivacyTraceListIterator i = privacy_traces.begin(); i != privacy_traces.end(); ++i )
+//			{
+//#ifdef DEBUB_PLTT_PASSIVE_H_ERASE_PRIVACY_TRACE
+//				debug().debug( "PLTT_Passive - erase_privacy_trace %x - Trace of %x with [c : %x] [p: %x] [g %x].\n", radio().id(), i->get_target_id(), i->get_current().get_id(), i->get_parent().get_id(), i->get_grandparent().get_id() );
+//#endif
+//				if ( ( i->compare_target_id( _st.get_target_id() ) ) && ( i->get_decryption_retries() >= decryption_max_retries ) && ( i->get_inhibited() !=0 ) )
+//				{
+//					privacy_traces.erase( i );
+//#ifdef DEBUB_PLTT_PASSIVE_H_ERASE_PRIVACY_TRACE
+//					debug().debug( "PLTT_Passive - erase_privacy_trace %x - Exiting after erase.\n", radio().id() );
+//#endif
+//					return;
+//				}
+//			}
+//#ifdef DEBUB_PLTT_PASSIVE_H_ERASE_PRIVACY_TRACE
+//			debug().debug( "PLTT_Passive - erase_privacy_trace %x - Exiting without erase.\n", radio().id() );
+//#endif
+//			return;
+//		}
 #endif
 		// -----------------------------------------------------------------------
 		void init( Radio& radio, ReliableRadio& reliable_radio, Timer& timer, Debug& debug, Rand& rand, Clock& clock, NeighborDiscovery& neighbor_discovery )

@@ -8,7 +8,7 @@
 #define CONFIG_PLTT_PASSIVE_H_TREE
 
 //debug
-#define DEBUG_PLTT
+//#define DEBUG_PLTT
 #ifdef DEBUG_PLTT
 	#define DEBUG_PLTT_NODE_H
 	#define DEBUG_PLTT_NODE_TARGET_H
