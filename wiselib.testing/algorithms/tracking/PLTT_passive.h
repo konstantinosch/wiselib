@@ -334,14 +334,14 @@ namespace wiselib
 				}
 			}
 #endif
-//			else if ( msg_id == PLTT_TRACKER_ECHO_ID )
-//			{
-//#ifdef DEBUG_PLTT_PASSIVE_H_RECEIVE
-//				debug().debug( "PLTT_Passive - receive %x - PLTT_TRACKER_ECHO_ID.\n", radio().id() );
-//#endif
-//				size_t len = sizeof( AgentID );
-//				send( _from, len, message->get_payload(), PLTT_TRACKER_ECHO_REPLY_ID );
-//			}
+			else if ( msg_id == PLTT_TRACKER_ECHO_ID )
+			{
+#ifdef DEBUG_PLTT_PASSIVE_H_RECEIVE
+				debug().debug( "PLTT_Passive - receive %x - PLTT_TRACKER_ECHO_ID.\n", radio().id() );
+#endif
+				size_t len = sizeof( AgentID );
+				send( _from, len, message->get_payload(), PLTT_TRACKER_ECHO_REPLY_ID );
+			}
 //			else if ( msg_id == PLTT_AGENT_QUERY_ID )
 //			{
 //#ifdef DEBUG_PLTT_PASSIVE_H_RECEIVE
