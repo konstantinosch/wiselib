@@ -46,7 +46,8 @@ namespace wiselib
 		inline PLTT_AgentType()
 		{}
 		// --------------------------------------------------------------------
-		inline PLTT_AgentType( const AgentID& _aid, const node_id_t& _tid, const node_id_t& _trid, const IntensityNumber& _mi )
+		inline PLTT_AgentType( const AgentID& _aid, const node_id_t& _tid, const node_id_t& _trid, const IntensityNumber& _mi ) :
+				payload_size (0)
 		{
 			agent_id = _aid;
 			target_id = _tid;

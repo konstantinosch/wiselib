@@ -22,6 +22,7 @@
 
 #include "PLTT_default_values_config.h"
 #include "PLTT_source_config.h"
+#include "../../internal_interface/message/message.h"
 
 namespace wiselib
 {
@@ -91,10 +92,9 @@ namespace wiselib
 			generate_agent_period_offset		( PLTT_TRACKER_H_GENERATE_AGENT_PERIOD_OFFSET )
 		{}
 		// -----------------------------------------------------------------------
-		PLTT_TrackerType( node_id_t _tid, IntensityNumber _tar_max_inten ) :
+		PLTT_TrackerType( node_id_t _tid, IntensityNumber _tar_max_inten, uint8_t _tp_db = PLTT_TRACKER_H_TRANSMISSION_POWER_DB ) :
 			radio_callback_id					( 0 ),
 			reliable_radio_callback_id			( 0 ),
-			transmission_power_dB				( PLTT_TRACKER_H_TRANSMISSION_POWER_DB ),
 			current_link_metric 				( 255 ),
 			status								( WAITING_STATUS ),
 			generate_agent_period				( PLTT_TRACKER_H_GENERATE_AGENT_PERIOD ),
@@ -102,6 +102,7 @@ namespace wiselib
 		{
 			target_id = _tid;
 			target_max_inten = _tar_max_inten;
+			transmission_power_dB = _tp_db;
 		}
 		// -----------------------------------------------------------------------
 		~PLTT_TrackerType()
@@ -147,10 +148,17 @@ namespace wiselib
 				agent.set_start_millis( clock().milliseconds( clock().time() ) + clock().seconds( clock().time() ) * 1000 );
 				block_data_t buff[ReliableRadio::MAX_MESSAGE_LENGTH];
 				trans_power.set_dB( transmission_power_dB );
-				radio().set_power( trans_power );
+				reliable_radio().set_power( trans_power );
 				Message message;
 				message.set_message_id( PLTT_AGENT_QUERY_ID );
 				message.set_payload(  agent.serial_size(), agent.serialize( buff ) );
+				//printf("XXXXXXXXX\n");
+				//agent.print( debug(), radio() );
+				//message.print( debug(), radio() );
+				//PLTT_Agent agent2;
+				//agent2.de_serialize( buff );
+				//printf("XXXXXXXXX\n");
+				//agent2.print( debug(), radio() );
 				reliable_radio().send( current_query_destination, message.serial_size(), message.serialize() );
 				current_link_metric = 255;
 #ifdef DEBUG_PLTT_TRACKER_H_SEND_QUERY
@@ -203,10 +211,10 @@ namespace wiselib
 			}
 			else if( msg_id == PLTT_TRACKER_ECHO_REPLY_ID )
 			{
-#ifdef DEBUG_PLTT_TRACKER_H_RECEIVE
-				debug().debug( "PLTT_Tracker - receive - Received echo reply from %x.\n", _from );
-#endif
 				AgentID aid = read<Os, block_data_t, AgentID>( message->get_payload() );
+#ifdef DEBUG_PLTT_TRACKER_H_RECEIVE
+				debug().debug( "PLTT_Tracker - receive - Received echo reply %x from %x.\n", _from, aid );
+#endif
 				if ( ( aid == current_agent_id ) && ( _exdata.link_metric() < current_link_metric ) )
 				{
 #ifdef DEBUG_PLTT_TRACKER_H_RECEIVE
