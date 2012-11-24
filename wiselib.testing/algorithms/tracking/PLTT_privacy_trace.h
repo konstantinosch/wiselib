@@ -420,7 +420,7 @@ namespace wiselib
 			decryption_retries = _enc_r;
 		}
 		// --------------------------------------------------------------------
-		inline void set_decryption_retries()
+		inline void inc_decryption_retries()
 		{
 			decryption_retries = decryption_retries + 1;
 		}

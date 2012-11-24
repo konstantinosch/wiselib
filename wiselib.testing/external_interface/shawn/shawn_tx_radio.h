@@ -21,6 +21,7 @@
 
 #include "external_interface/shawn/shawn_types.h"
 #include <cmath>
+#include "stdio.h"
 
 namespace wiselib
 {
@@ -264,7 +265,11 @@ namespace wiselib
    template<typename OsModel_P>
    void ShawnTxRadioModel<OsModel_P>::TxPower::set_dB(int db){
       if(db<=0)
+      {
          value=std::pow(10.0,db/30.0);
+      }
+
+  //  printf("that cursed value : %f\n", value );
    }
    //------------------------------------------------------------------------
    template<typename OsModel_P>

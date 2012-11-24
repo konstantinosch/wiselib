@@ -89,20 +89,31 @@ namespace wiselib
 			current_link_metric 				( 255 ),
 			status								( WAITING_STATUS ),
 			generate_agent_period				( PLTT_TRACKER_H_GENERATE_AGENT_PERIOD ),
-			generate_agent_period_offset		( PLTT_TRACKER_H_GENERATE_AGENT_PERIOD_OFFSET )
+			generate_agent_period_offset		( PLTT_TRACKER_H_GENERATE_AGENT_PERIOD_OFFSET ),
+			init_tracking_millis				( PLTT_TRACKER_H_INIT_TRACKING_MILLIS )
+#ifdef CONFIG_PLTT_TRACKER_H_MINI_RUN
+			,tracker_mini_run_times				( PLTT_TRACKER_H_MINI_RUN_TIMES ),
+			tracker_mini_run_counter			( 0 )
+#endif
 		{}
 		// -----------------------------------------------------------------------
-		PLTT_TrackerType( node_id_t _tid, IntensityNumber _tar_max_inten, uint8_t _tp_db = PLTT_TRACKER_H_TRANSMISSION_POWER_DB ) :
+		PLTT_TrackerType( node_id_t _tid, IntensityNumber _tar_max_inten, uint8_t _tp_db, millis_t _itm ) :
 			radio_callback_id					( 0 ),
 			reliable_radio_callback_id			( 0 ),
 			current_link_metric 				( 255 ),
 			status								( WAITING_STATUS ),
 			generate_agent_period				( PLTT_TRACKER_H_GENERATE_AGENT_PERIOD ),
-			generate_agent_period_offset		( PLTT_TRACKER_H_GENERATE_AGENT_PERIOD_OFFSET )
+			generate_agent_period_offset		( PLTT_TRACKER_H_GENERATE_AGENT_PERIOD_OFFSET ),
+			init_tracking_millis				( PLTT_TRACKER_H_INIT_TRACKING_MILLIS )
+#ifdef CONFIG_PLTT_TRACKER_H_MINI_RUN
+			,tracker_mini_run_times				( PLTT_TRACKER_H_MINI_RUN_TIMES ),
+			tracker_mini_run_counter			( 0 )
+#endif
 		{
 			target_id = _tid;
 			target_max_inten = _tar_max_inten;
 			transmission_power_dB = _tp_db;
+			init_tracking_millis = _itm;
 		}
 		// -----------------------------------------------------------------------
 		~PLTT_TrackerType()
@@ -118,7 +129,7 @@ namespace wiselib
 #endif
 			radio_callback_id = radio().template reg_recv_callback<self_type, &self_type::receive> ( this );
 			reliable_radio_callback_id = reliable_radio().template reg_recv_callback<self_type, &self_type::receive> ( this );
-			timer().template set_timer<self_type, &self_type::send_echo> ( generate_agent_period, this, 0 );
+			timer().template set_timer<self_type, &self_type::send_echo> ( init_tracking_millis, this, 0 );
 		}
 		// -----------------------------------------------------------------------
 		void disable( void )
@@ -179,21 +190,30 @@ namespace wiselib
 		void send_echo( void* _userdata )
 		{
 #ifdef DEBUG_PLTT_TRACKER_H_SEND_ECHO
-			debug().debug( "PLTT_Tracker - send_echo - Entering.\n" );
+			debug().debug( "PLTT_Tracker - send_echo %x - Entering.\n", radio().id() );
 #endif
-			current_agent_id = ( rand()() % ( 0xffffffff -1 ) + 1 );
-#ifdef DEBUG_PLTT_TRACKER_H_SEND_ECHO
-			debug().debug( "PLTT_Tracker - send_echo - Generated a new rand id : %x \n", current_agent_id );
+#ifdef CONFIG_PLTT_TRACKER_H_MINI_RUN
+			if ( tracker_mini_run_counter < tracker_mini_run_times )
+			{
+				debug().debug(" tmc vs tmr [%d vs %d]\n", tracker_mini_run_counter, tracker_mini_run_times );
 #endif
-			size_t len = sizeof( AgentID );
-			block_data_t buf[Radio::MAX_MESSAGE_LENGTH];
-			block_data_t* buff = buf;
-			write<Os, block_data_t, AgentID> ( buff, current_agent_id );
-			send( Radio::BROADCAST_ADDRESS, len, buff, PLTT_TRACKER_ECHO_ID );
-			timer().template set_timer<self_type, &self_type::send_echo> ( generate_agent_period, this, 0);
-			timer().template set_timer<self_type, &self_type::send_query> ( generate_agent_period_offset, this, 0);
+				current_agent_id = ( rand()() % ( 0xffffffff -1 ) + 1 );
 #ifdef DEBUG_PLTT_TRACKER_H_SEND_ECHO
-			debug().debug( "PLTT_Tracker - send_echo - Exiting.\n" );
+				debug().debug( "PLTT_Tracker - send_echo - Generated a new rand id : %x \n", current_agent_id );
+#endif
+				size_t len = sizeof( AgentID );
+				block_data_t buf[Radio::MAX_MESSAGE_LENGTH];
+				block_data_t* buff = buf;
+				write<Os, block_data_t, AgentID> ( buff, current_agent_id );
+				send( Radio::BROADCAST_ADDRESS, len, buff, PLTT_TRACKER_ECHO_ID );
+				timer().template set_timer<self_type, &self_type::send_echo> ( generate_agent_period, this, 0);
+				timer().template set_timer<self_type, &self_type::send_query> ( generate_agent_period_offset, this, 0);
+#ifdef CONFIG_PLTT_TRACKER_H_MINI_RUN
+				tracker_mini_run_counter = tracker_mini_run_counter + 1;
+			}
+#endif
+#ifdef DEBUG_PLTT_TRACKER_H_SEND_ECHO
+			debug().debug( "PLTT_Tracker - send_echo %x - Exiting.\n", radio().id() );
 #endif
 		}
 		// -----------------------------------------------------------------------
@@ -234,6 +254,16 @@ namespace wiselib
 		void set_status( int _st )
 		{
 			status = _st;
+		}
+		// -----------------------------------------------------------------------
+		millis_t get_init_tracking_millis()
+		{
+			return init_tracking_millis;
+		}
+		// -----------------------------------------------------------------------
+		void set_init_tracking_millis( millis_t _itm )
+		{
+			init_tracking_millis = _itm;
 		}
 		// -----------------------------------------------------------------------
 	private:
@@ -300,6 +330,11 @@ namespace wiselib
 		millis_t generate_agent_period;
 		millis_t generate_agent_period_offset;
 		Node self;
+		millis_t init_tracking_millis;
+#ifdef CONFIG_PLTT_TRACKER_H_MINI_RUN
+		uint32_t tracker_mini_run_times;
+		uint32_t tracker_mini_run_counter;
+#endif
 	};
 }
 #endif
