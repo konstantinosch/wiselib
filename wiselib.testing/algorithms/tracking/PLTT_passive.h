@@ -154,7 +154,7 @@ namespace wiselib
 			block_data_t buff[100];
 			ProtocolPayload pp( NeighborDiscovery::TRACKING_PROTOCOL_ID, self.get_node().get_position().serial_size(), self.get_node().get_position().serialize( buff ) );
 			uint8_t ef = ProtocolSettings::NEW_PAYLOAD|ProtocolSettings::LOST_NB|ProtocolSettings::NB_REMOVED|ProtocolSettings::NEW_PAYLOAD;
-			ProtocolSettings ps( 255, 0, 255, 0, 255, 0, 255, 20, 100, 20, 100, 0, ef, -18, 100, 3000, 100, ProtocolSettings::RATIO_DIVIDER, 2, ProtocolSettings::MEAN_DEAD_TIME_PERIOD, 100, 100, ProtocolSettings::R_NR_WEIGHTED, 1, 1, pp );
+			ProtocolSettings ps( 255, 0, 255, 0, 255, 0, 255, 0, 100, 50, 100, 50, ef, -18, 100, 3000, 100, ProtocolSettings::RATIO_DIVIDER, 2, ProtocolSettings::MEAN_DEAD_TIME_PERIOD, 100, 100, ProtocolSettings::R_NR_WEIGHTED, 1, 1, pp );
 			neighbor_discovery().set_transmission_power_dB( transmission_power_dB );
 			uint8_t result = 0;
 			result = neighbor_discovery(). template register_protocol<self_type, &self_type::sync_neighbors>( NeighborDiscovery::TRACKING_PROTOCOL_ID, ps, this  );
@@ -204,13 +204,17 @@ namespace wiselib
 #ifdef CONFIG_PLTT_PASSIVE_H_DYNAMIC_NEIGHBOR_DISCOVERY
 			//delete _neighbor_discovery;
 #endif
+			debug().debug("%x - tr:\n", radio().id() );
 			Protocol* prot_ref = neighbor_discovery().get_protocol_ref( NeighborDiscovery::TRACKING_PROTOCOL_ID );
-			//prot_ref->print( debug(), radio() );
-			debug().debug("%d\t%d\n", neighbors.size(), radio().channel() );
-			if ( old_con != neighbors.size() )
-			{
-				printf("%d vs %d diff %d\n", old_con, neighbors.size(), neighbors.size() - old_con );
-			}
+			prot_ref->print( debug(), radio() );
+			debug().debug("%x - nd:\n", radio().id() );
+			prot_ref = neighbor_discovery().get_protocol_ref( NeighborDiscovery::TRACKING_PROTOCOL_ID );
+			prot_ref->print( debug(), radio() );
+			//debug().debug("%d\t%d\n", neighbors.size(), radio().channel() );
+			//if ( old_con != neighbors.size() )
+			//{
+			//	printf("%d vs %d diff %d\n", old_con, neighbors.size(), neighbors.size() - old_con );
+			//}
 			//for ( PLTT_NodeListIterator it = neighbors.begin(); it != neighbors.end(); ++it )
 			//{
 			//	it->print( debug(), radio() );
@@ -670,7 +674,7 @@ namespace wiselib
 						if (
 								(
 										(_trace.get_start_time() == traces_iterator->get_start_time() ) &&
-										( traces_iterator->get_intensity() <=  _trace.get_intensity() )
+										( traces_iterator->get_intensity() <= _trace.get_intensity() )
 								) ||
 								(
 										( _trace.get_start_time() > traces_iterator->get_start_time() ) &&
@@ -691,8 +695,15 @@ namespace wiselib
 //#ifdef DEBUG_PLTT_PASSIVE_H_STORE_INHIBIT_TRACE
 //					debug().debug( "PLTT_Passive - store_inhibit_trace %x - New trace intensity and start time (%i, %i ) vs current (%i, %i, %i)\n", radio().id(), _trace.get_intensity(), _trace.get_start_time(), traces_iterator->get_intensity(), traces_iterator->get_start_time(), traces_iterator->get_inhibited() );
 //#endif
-					if ( ( ( !traces_iterator->get_send() ) && (_trace.get_start_time() == traces_iterator->get_start_time() ) && ( traces_iterator->get_intensity() <= traces_iterator->get_spread_penalty() + _trace.get_intensity() ) ) ||
-						 ( _trace.get_start_time() > traces_iterator->get_start_time() ) )
+					if (
+							(
+									( !traces_iterator->get_send() ) &&
+									(_trace.get_start_time() == traces_iterator->get_start_time() ) &&
+									( traces_iterator->get_intensity() <= traces_iterator->get_spread_penalty() + _trace.get_intensity() ) &&
+									( ( traces_iterator->get_inhibited() == 0 ) || ( ( traces_iterator->get_inhibited() == 1 ) && ( traces_iterator->get_parent().get_id() == radio().id() ) ) )
+							) ||
+							( _trace.get_start_time() > traces_iterator->get_start_time() )
+						)
 					{
 						*traces_iterator = _trace;
 						traces_iterator->update_path( self.get_node() );
