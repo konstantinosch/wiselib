@@ -207,9 +207,9 @@ namespace wiselib
 					}
 					else if ( i->get_counter() == ( max_retries + 1 ) )
 					{
-//#ifdef DEBUG_RELIABLE_RADIO_H
+#ifdef DEBUG_RELIABLE_RADIO_H
 						debug().debug( "ReliableRadio - daemon %x - An RR_MESSAGE exists with max retries %d... - Undelivered...\n", radio().id() , max_retries + 1 );
-//#endif
+#endif
 						for ( RegisteredCallbacks_vector_iterator j = callbacks.begin(); j != callbacks.end(); ++j )
 						{
 							ExData ex;
