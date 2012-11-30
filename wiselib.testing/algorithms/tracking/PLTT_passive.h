@@ -279,12 +279,16 @@ namespace wiselib
 					debug().debug("%x-->%x\n", _from, radio().id() );
 				}
 #endif
+				if ( ( privacy_trace.get_recipient_1_id() == 0 ) && (  privacy_trace.get_recipient_2_id() == 0 ) )
+				{
+					debug().debug( "############ %x -> %x : %d : %d\n", _from, radio().id(), _exdata.get_rssi(), _exdata.get_lqi() );
+				}
 				if	( ( privacy_trace.get_recipient_1_id() == self.get_node().get_id() ) || ( privacy_trace.get_recipient_2_id() == self.get_node().get_id() ) ||
 					( ( privacy_trace.get_recipient_1_id() == 0 ) && (  privacy_trace.get_recipient_2_id() == 0 ) ) )
 				{
 #ifdef DEBUG_PLTT_PASSIVE_H_RECEIVE
-						debug().debug( "PLTT_Passive - receive %x - Received encrypted trace from unknown target %x of size %i and intensity %i vs %i - Encrypted trace is detection or direct spread - inhibition: 0. [%d, %d ]\n", radio().id(), _from, message->get_payload_size(), privacy_trace.get_intensity(), privacy_trace.get_max_intensity(), _exdata.get_rssi(), _exdata.get_lqi()  );
-						privacy_trace.print( debug(), radio() );
+					debug().debug( "PLTT_Passive - receive %x - Received encrypted trace from unknown target %x of size %i and intensity %i vs %i - Encrypted trace is detection or direct spread - inhibition: 0. [%d, %d ]\n", radio().id(), _from, message->get_payload_size(), privacy_trace.get_intensity(), privacy_trace.get_max_intensity(), _exdata.get_rssi(), _exdata.get_lqi()  );
+					privacy_trace.print( debug(), radio() );
 #endif
 					prepare_spread_trace( store_inhibit_trace( privacy_trace ), _exdata );
 				}
