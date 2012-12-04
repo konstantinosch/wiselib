@@ -301,23 +301,26 @@ template<	typename Os_P,
 			message_id_t msg_id = *_buff;
 			if	(
 					0
-#ifdef PRIVACY_ENABLE_ENCRYPTION
+#ifdef PRIVACY_ENABLE_ENCRYPTION_OTA
 					|| ( ( msg_id == PRIVACY_ENCRYPTION_REPLY_ID ) && ( privacy_enable_encryption_switch ) )
 #endif
-#ifdef PRIVACY_ENABLE_DECRYPTION
+#ifdef PRIVACY_ENABLE_DECRYPTION_OTA
 					|| ( ( msg_id == PRIVACY_DECRYPTION_REPLY_ID ) && ( privacy_enable_decryption_switch ) )
 #endif
-#ifdef PRIVACY_ENABLE_RANDOMIZATION
+#ifdef PRIVACY_ENABLE_RANDOMIZATION_OTA
 					|| ( ( msg_id == PRIVACY_RANDOMIZE_REPLY_ID )  && ( privacy_enable_randomization_switch ) )
 #endif
 				)
 			{
+#ifdef PRIVACY_DEBUG
+				debug().debug( "Privacy - send_privacy %x - IN - Sending with size %i and dB %d.\n", radio().id(), _len, privacy_power_db );
+#endif
 				TxPower power;
 				power.set_dB( privacy_power_db );
 				radio().set_power( power );
 				radio().send( Radio::BROADCAST_ADDRESS, _len, _buff );
 #ifdef PRIVACY_DEBUG
-				debug().debug( "Privacy - send_privacy %x - Entering with size %i.\n", radio().id(), _len );
+				debug().debug( "Privacy - send_privacy %x - OUT - Sending with size %i and dB %d.\n", radio().id(), _len, privacy_power_db );
 #endif
 			}
 		}

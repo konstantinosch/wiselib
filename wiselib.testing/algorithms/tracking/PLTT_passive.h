@@ -279,10 +279,12 @@ namespace wiselib
 					debug().debug("%x-->%x\n", _from, radio().id() );
 				}
 #endif
+#ifdef DEBUG_PLTT_PASSIVE_H_RECEIVE
 				if ( ( privacy_trace.get_recipient_1_id() == 0 ) && (  privacy_trace.get_recipient_2_id() == 0 ) )
 				{
 					debug().debug( "############ %x -> %x : %d : %d\n", _from, radio().id(), _exdata.get_rssi(), _exdata.get_lqi() );
 				}
+#endif
 				if	( ( privacy_trace.get_recipient_1_id() == self.get_node().get_id() ) || ( privacy_trace.get_recipient_2_id() == self.get_node().get_id() ) ||
 					( ( privacy_trace.get_recipient_1_id() == 0 ) && (  privacy_trace.get_recipient_2_id() == 0 ) ) )
 				{
