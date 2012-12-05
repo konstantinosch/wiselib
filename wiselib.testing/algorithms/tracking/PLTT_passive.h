@@ -178,7 +178,7 @@ namespace wiselib
 		void neighbor_discovery_inter_task(void* _userdata = NULL )
 		{
 			old_con = neighbors.size();
-			if ( neighbors.size() < 5 )
+			if ( neighbors.size() < 10 )
 			{
 				transmission_power_dB = transmission_power_dB + 6;
 				debug().debug("%x - increasing radius to %d\n", radio().id(), transmission_power_dB );
@@ -204,12 +204,12 @@ namespace wiselib
 			delete _neighbor_discovery;
 #endif
 			//debug().debug("%x - tr:\n", radio().id() );
-			//Protocol* prot_ref = neighbor_discovery().get_protocol_ref( NeighborDiscovery::TRACKING_PROTOCOL_ID );
+			Protocol* prot_ref = neighbor_discovery().get_protocol_ref( NeighborDiscovery::TRACKING_PROTOCOL_ID );
 			//prot_ref->print( debug(), radio() );
 			//debug().debug("%x - nd:\n", radio().id() );
 			//prot_ref = neighbor_discovery().get_protocol_ref( NeighborDiscovery::TRACKING_PROTOCOL_ID );
 			//prot_ref->print( debug(), radio() );
-			//debug().debug("%d\t%d\n", neighbors.size(), radio().channel() );
+			debug().debug("nb_tr %d vs tr_copy %d \t channel : %d\n", neighbors.size(), prot_ref->get_neighborhood_active_size(), radio().channel() );
 			//if ( old_con != neighbors.size() )
 			//{
 			//	printf("%d vs %d diff %d\n", old_con, neighbors.size(), neighbors.size() - old_con );
@@ -894,12 +894,12 @@ namespace wiselib
 				{
 					r = rand()() % backoff_random_weight + r;
 				}
-				if ( _exdata.get_lqi() )
+				if ( _exdata.get_rssi() )
 				{
 #ifdef DEBUG_PLTT_PASSIVE_H_PREPARE_SPREAD_TRACE
-					debug().debug( "PLTT_Passive - prepare_spread_trace %x - Has lqi of %i.\n", radio().id(), _exdata.get_lqi() );
+					debug().debug( "PLTT_Passive - prepare_spread_trace %x - Has rssi of %i.\n", radio().id(), _exdata.get_rssi() );
 #endif
-					r = backoff_lqi_weight * 255 / _exdata.get_lqi() + r;
+					r = backoff_lqi_weight * 255 / _exdata.get_rssi() + r;
 				}
 				if ( neighbors.size() )
 				{
