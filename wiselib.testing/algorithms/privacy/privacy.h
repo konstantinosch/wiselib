@@ -103,7 +103,9 @@ template<	typename Os_P,
 			uart().enable_serial_comm();
 			uart_callback_id_ = uart().template reg_read_callback<self_type, &self_type::uart_receive>( this );
 #endif
+#ifdef PRIVACY_DEBUG
 			debug().debug("Privacy - enable - power_db : %d\n", privacy_power_db );
+#endif
 			if ( !privacy_enable_randomization_switch )
 			{
 				radio_callback_id_ = radio().template reg_recv_callback<self_type, &self_type::radio_receive>( this );

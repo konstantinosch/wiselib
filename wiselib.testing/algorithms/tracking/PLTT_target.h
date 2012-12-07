@@ -207,14 +207,14 @@ namespace wiselib
 							block_data_t* buff = buffer;
 							message.set_payload( target_trace.serial_size(), target_trace.serialize( buff ) );
 							trans_power.set_dB( transmission_power_dB );
-//#ifdef DEBUG_PLTT_TARGET_H_RANDOMIZE_CALLBACK
+#ifdef DEBUG_PLTT_TARGET_H_RANDOMIZE_CALLBACK
 							debug().debug( "PLTT_Target - randomize_callback %x - IN - Randomized message of size : %i send with %d power db and power from radio %f.\n", radio().id(), message.serial_size(), transmission_power_dB, radio().power() );
-//#endif
+#endif
 							radio().set_power( trans_power );
 							radio().send( Radio::BROADCAST_ADDRESS, message.serial_size(), (block_data_t*) &message );
-//#ifdef DEBUG_PLTT_TARGET_H_RANDOMIZE_CALLBACK
+#ifdef DEBUG_PLTT_TARGET_H_RANDOMIZE_CALLBACK
 							debug().debug( "PLTT_Target - randomize_callback %x - OUT - Randomized message of size : %i send with %d power db and power from radio %f.\n", radio().id(), message.serial_size(), transmission_power_dB, radio().power() );
-//#endif
+#endif
 							target_trace.update_start_time();
 							randomize_privacy_message_ptr->set_msg_id( PRIVACY_RANDOMIZE_REQUEST_ID );
 							timer().template set_timer<self_type, &self_type::timed_privacy_callback> ( spread_milis, this, (void*)randomize_privacy_message_ptr );
