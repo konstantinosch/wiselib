@@ -194,7 +194,7 @@ namespace wiselib
 #ifdef CONFIG_PLTT_TRACKER_H_MINI_RUN
 			if ( tracker_mini_run_counter < tracker_mini_run_times )
 			{
-				debug().debug(" tmc vs tmr [%d vs %d]\n", tracker_mini_run_counter, tracker_mini_run_times );
+				debug().debug(" tmc,tmr [%d, %d]\n", tracker_mini_run_counter, tracker_mini_run_times );
 #endif
 				current_agent_id = ( rand()() % ( 0xffffffff -1 ) + 1 );
 #ifdef DEBUG_PLTT_TRACKER_H_SEND_ECHO
@@ -205,7 +205,7 @@ namespace wiselib
 				block_data_t* buff = buf;
 				write<Os, block_data_t, AgentID> ( buff, current_agent_id );
 				send( Radio::BROADCAST_ADDRESS, len, buff, PLTT_TRACKER_ECHO_ID );
-				debug().debug("XXXXXXXXXXXXXXXXXtracker data %d : %d ", generate_agent_period, ( generate_agent_period_offset_ratio * generate_agent_period ) / 100 );
+				debug().debug("tracker data %d : %d \n", generate_agent_period, ( generate_agent_period_offset_ratio * generate_agent_period ) / 100 );
 				timer().template set_timer<self_type, &self_type::send_echo> ( generate_agent_period, this, 0);
 				timer().template set_timer<self_type, &self_type::send_query> ( ( generate_agent_period_offset_ratio * generate_agent_period ) / 100, this, 0);
 #ifdef CONFIG_PLTT_TRACKER_H_MINI_RUN
@@ -223,9 +223,10 @@ namespace wiselib
 			Message *message = (Message*)_data;
 			if ( msg_id == PLTT_AGENT_REPORT_ID )
 			{
-
 //#ifdef DEBUG_PLTT_TRACKER_H_RECEIVE
+				debug().debug("XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX");
 				debug().debug( "PLTT_Tracker - receive - Received agent from %x.\n", _from );
+				debug().debug("XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX");
 				agent.print( debug(), radio() );
 //#endif
 			}

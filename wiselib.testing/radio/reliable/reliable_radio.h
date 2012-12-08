@@ -200,16 +200,37 @@ namespace wiselib
 						message.set_message_id( RR_MESSAGE );
 						block_data_t buff[Radio::MAX_MESSAGE_LENGTH];
 						message.set_payload( i->serial_size(), i->serialize( buff ) );
-						radio().send( i->get_destination(), message.serial_size(), message.serialize() );
+						if ( i->get_counter() > max_retries / 2 )
+						{
+							int old_db = radio().power().to_dB();
+							if ( old_db < -6 )
+							{
+#ifdef DEBUG_RELIABLE_RADIO_H
+								debug().debug("ReliableRadio - daemon %x - Increasing radius [%d, %d], for re-transmission...\n", radio().id(), old_db, old_db + 6 );
+#endif
+								TxPower tp;
+								tp.set_dB( old_db + 6 );
+								radio().set_power( tp );
+							}
+							radio().send( i->get_destination(), message.serial_size(), message.serialize() );
+							TxPower tp;
+							tp.set_dB( old_db );
+							radio().set_power( tp );
+						}
+						else
+						{
+							radio().send( i->get_destination(), message.serial_size(), message.serialize() );
+						}
+
 #ifdef DEBUG_RELIABLE_RADIO_H
 						debug().debug( "ReliableRadio - daemon %x - An RR_MESSAGE exists with less than max retries... - Sending again...\n", radio().id() );
 #endif
 					}
 					else if ( i->get_counter() == ( max_retries + 1 ) )
 					{
-//#ifdef DEBUG_RELIABLE_RADIO_H
+#ifdef DEBUG_RELIABLE_RADIO_H
 						debug().debug( "ReliableRadio - daemon %x - An RR_MESSAGE exists with max retries %d... - Undelivered...\n", radio().id() , max_retries + 1 );
-//#endif
+#endif
 						for ( RegisteredCallbacks_vector_iterator j = callbacks.begin(); j != callbacks.end(); ++j )
 						{
 							ExData ex;

@@ -274,7 +274,8 @@ namespace wiselib
    //------------------------------------------------------------------------
    template<typename OsModel_P>
    inline int ShawnTxRadioModel<OsModel_P>::TxPower::to_dB() const {
-      return std::log10(value)*10.0+.5;
+      //return std::log10(value)*10.0+.5;
+	   return std::log10(value) * 30.0 - .5;
    }
    //------------------------------------------------------------------------
    template<typename OsModel_P>

@@ -208,11 +208,11 @@ namespace wiselib
 #ifdef CONFIG_PLTT_PASSIVE_H_DYNAMIC_NEIGHBOR_DISCOVERY
 			delete _neighbor_discovery;
 #endif
-#ifdef DEBUG_PLTT_PASSIVE_H_NEIGHBOR_DISCOVERY_DISABLE_TASK
+//#ifdef DEBUG_PLTT_PASSIVE_H_NEIGHBOR_DISCOVERY_DISABLE_TASK
 			Protocol* prot_ref = neighbor_discovery().get_protocol_ref( NeighborDiscovery::TRACKING_PROTOCOL_ID );
 			prot_ref->print( debug(), radio() );
 			debug().debug("nb_tr %d vs tr_copy %d \t channel : %d\n", neighbors.size(), prot_ref->get_neighborhood_active_size(), radio().channel() );
-#endif
+//#endif
 #ifdef DEBUG_PLTT_PASSIVE_H_STATUS
 			status_daemon();
 #endif
@@ -384,36 +384,47 @@ namespace wiselib
 			}
 			else if ( msg_id == ReliableRadio::RR_UNDELIVERED)
 			{
-#ifdef DEBUG_PLTT_PASSIVE_H_RECEIVE
-				debug().debug( "PLTT_Passive - receive %x - ReliableRadio::RR_UNDELIVERED to %x.\n", radio().id(), _from );
-#endif
 				block_data_t* buff = message->get_payload();
 				Message *message_inner = (Message*) buff;
+#ifdef DEBUG_PLTT_PASSIVE_H_RECEIVE
+				debug().debug( "PLTT_Passive - receive %x - ReliableRadio::RR_UNDELIVERED to %x with msg_id %d.\n", radio().id(), _from, message_inner->get_message_id() );
+#endif
 				if ( message_inner->get_message_id() == PLTT_AGENT_QUERY_ID )
 				{
-#ifdef DEBUG_PLTT_PASSIVE_H_RECEIVE
+//#ifdef DEBUG_PLTT_PASSIVE_H_RECEIVE
 				debug().debug( "PLTT_Passive - receive %x - Received ReliableRadio::RR_UNDELIVERED::PLTT_AGENT_QUERY_ID.\n", radio().id() );
-#endif
+//#endif
 					PLTT_Agent a;
 					a.de_serialize( message_inner->get_payload() );
 				}
 				else if ( message_inner->get_message_id() == PLTT_AGENT_REPORT_ID )
 				{
-#ifdef DEBUG_PLTT_PASSIVE_H_RECEIVE
-				debug().debug( "PLTT_Passive - receive %x - Received PLTT_AGENT_QUERY_ID::PLTT_AGENT_REPORT_ID.\n", radio().id() );
-#endif
+//#ifdef DEBUG_PLTT_PASSIVE_H_RECEIVE
+				debug().debug( "PLTT_Passive - receive %x - Received ReliableRadio::RR_UNDELIVERED::PLTT_AGENT_REPORT_ID.\n", radio().id() );
+//#endif
 					PLTT_Agent a;
 					a.de_serialize( message_inner->get_payload() );
 				}
+#ifndef CONFIG_PLTT_PRIVACY
+
 				else if ( message_inner->get_message_id() == PLTT_SPREAD_ID )
 				{
-#ifndef CONFIG_PLTT_PRIVACY
-					debug().debug("TR:S %x->?", radio().id() );
+//#ifdef DEBUG_PLTT_PASSIVE_H_RECEIVE
+					//debug().debug("TR:S %x->?", radio().id() );
+					debug().debug( "PLTT_Passive - receive %x - Received ReliableRadio::RR_UNDELIVERED::PLTT_SPREAD_ID.\n", radio().id() );
+//#endif
 					PLTT_Trace trace = PLTT_Trace( message->get_payload() );
-#else
-					PLTT_PrivacyTrace trace = PLTT_PrivacyTrace( message->get_payload() );
-#endif
 				}
+#else
+				else if ( message_inner->get_message_id() == PLTT_PRIVACY_SPREAD_ID )
+				{
+//#ifdef DEBUG_PLTT_PASSIVE_H_RECEIVE
+					//debug().debug("TR:S %x->?", radio().id() );
+					debug().debug( "PLTT_Passive - receive %x - Received ReliableRadio::RR_UNDELIVERED::PLTT_PRIVACY_SPREAD_ID to %x.\n", radio().id(), _from );
+//#endif
+					PLTT_PrivacyTrace trace = PLTT_PrivacyTrace( message->get_payload() );
+				}
+#endif
 			}
 		}
 		// -----------------------------------------------------------------------
@@ -429,26 +440,27 @@ namespace wiselib
 				{
 					found = 1;
 #ifdef DEBUG_PLTT_PASSIVE_H_PROCCESS_QUERY
-					debug().debug( "PLTT_Passive - process_query %x - Found target_id %x - further lookup.\n", radio().id(), _a.get_target_id() );
+					debug().debug( "PLTT_Passive - process_query %x - Found target_id %x with intensity %d - further lookup.\n", radio().id(), _a.get_target_id(), traces_iterator->get_intensity() );
 #endif
-					if ( ( traces_iterator->get_intensity() * 100 ) / _a.get_max_intensity() >= intensity_detection_threshold )
+					if ( ( traces_iterator->get_intensity() * 100 ) / ( _a.get_max_intensity() - ( traces_iterator->get_spread_penalty() + traces_iterator->get_diminish_amount() * 4 ) ) >= intensity_detection_threshold )
 					{
 #ifdef DEBUG_PLTT_PASSIVE_H_PROCCESS_QUERY
-						debug().debug( "PLTT_Passive - process_query %x - Found target_id %x - target is in the area, switching to report mode!", radio().id(), _a.get_target_id() );
+						debug().debug( "PLTT_Passive - process_query %x - Found target_id %x - target is in the area with intensity %d, switching to report mode!\n", radio().id(), _a.get_target_id(), traces_iterator->get_intensity() );
 #endif
 						_a.switch_dest();
-						process_report( _a );
+						//process_report( _a );
 						return;
 					}
 					else
 					{
 #ifdef DEBUG_PLTT_PASSIVE_H_PROCCESS_QUERY
-						debug().debug( "PLTT_Passive - process_query %x - Found target_id %x - target is not in the area - further lookup!\n", radio().id(), _a.get_target_id() );
+						debug().debug( "PLTT_Passive - process_query %x - Found target_id %x with intensity %d - target is not in the area - further lookup!\n", radio().id(), _a.get_target_id(), traces_iterator->get_intensity() );
 #endif
 						if ( traces_iterator->get_parent().get_id() != 0x0 )
 						{
 #ifdef DEBUG_PLTT_PASSIVE_H_PROCCESS_QUERY
-							debug().debug( "PLTT_Passive - process_query %x - Found target_id %x - target is not in the area - further lookup! - found origin and forwarding.\n", _a.get_target_id() );
+							debug().debug( "PLTT_Passive - process_query %x - Found target_id %x with intensity %d - target is not in the area - further lookup! - found origin and forwarding to %x [%x, %x, %x].\n", radio().id(), _a.get_target_id(), traces_iterator->get_intensity(),
+									traces_iterator->get_parent().get_id(), traces_iterator->get_current().get_id(),traces_iterator->get_parent().get_id(), traces_iterator->get_grandparent().get_id());
 #endif
 							block_data_t buff[ReliableRadio::MAX_MESSAGE_LENGTH];
 							_a.serialize( buff );
@@ -457,21 +469,22 @@ namespace wiselib
 						}
 						else
 						{
-#ifdef DEBUG_PLTT_PASSIVE_H_PROCCESS_QUERY
-							debug().debug( "PLTT_Passive - process_query %x - Found target_id %x - target is not in the area - further lookup! - non-coherent trace (old detection inhibited...) forwarding to random recipient.\n", radio().id(), _a.get_target_id() );
-#endif
 							if ( neighbors.size() != 0 )
 							{
 								node_id_t recipient = neighbors.at( rand()() % neighbors.size() ).get_node().get_id();
 								block_data_t buff[ReliableRadio::MAX_MESSAGE_LENGTH];
 								_a.serialize( buff );
+#ifdef DEBUG_PLTT_PASSIVE_H_PROCCESS_QUERY
+							debug().debug( "PLTT_Passive - process_query %x - Found target_id %x with intensity %d - target is not in the area - further lookup! - non-coherent trace (old detection inhibited...) forwarding to random recipient %x [%x, %x %x].\n", radio().id(), _a.get_target_id(), traces_iterator->get_intensity(),
+									recipient, traces_iterator->get_current().get_id(), traces_iterator->get_parent().get_id(), traces_iterator->get_grandparent().get_id() );
+#endif
 								send( recipient, _a.serial_size(), buff, PLTT_AGENT_QUERY_ID );
 								return;
 							}
 							else
 							{
 #ifdef DEBUG_PLTT_PASSIVE_H_PROCCESS_QUERY
-								debug().debug( "PLTT_Passive - process_query %x - Found target_id %x - target is not in the area - further lookup! - non-coherent trace (old detection inhibited...) forwarding to random recipient - FAIL neigh list is empty.\n", radio().id(), _a.get_target_id() );
+								debug().debug( "PLTT_Passive - process_query %x - Found target_id %x with intensity %d - target is not in the area - further lookup! - non-coherent trace (old detection inhibited...) forwarding to random recipient - FAIL neigh list is empty.\n", radio().id(), _a.get_target_id(), traces_iterator->get_intensity() );
 #endif
 								return;
 							}
@@ -481,12 +494,13 @@ namespace wiselib
 			}
 			if ( found == 0 )
 			{
-#ifdef DEBUG_PLTT_PASSIVE_H_PROCCESS_QUERY
-				debug().debug( "PLTT_Passive - process_query %x - Did not find target_id %x in trace list - forwarding to random recipient.\n", radio().id(), _a.get_target_id() );
-#endif
+
 				if ( neighbors.size() != 0 )
 				{
 					node_id_t recipient = neighbors.at( rand()() % neighbors.size() ).get_node().get_id();
+#ifdef DEBUG_PLTT_PASSIVE_H_PROCCESS_QUERY
+				debug().debug( "PLTT_Passive - process_query %x - Did not find target_id %x in trace list - forwarding to random recipient %x.\n", radio().id(), _a.get_target_id(), recipient );
+#endif
 					block_data_t buff[ReliableRadio::MAX_MESSAGE_LENGTH];
 					_a.serialize( buff );
 					send( recipient, _a.serial_size(), buff, PLTT_AGENT_QUERY_ID );
@@ -552,6 +566,10 @@ namespace wiselib
 							if ( neighbors.size() != 0 )
 							{
 								node_id_t recipient = neighbors.at( rand()() % neighbors.size() ).get_node().get_id();
+								for ( PLTT_NodeListIterator i = neighbors.begin(); i!= neighbors.end(); ++i )
+								{
+									debug().debug(" one of these... %x \n", i->get_node().get_id() );
+								}
 								block_data_t buff[ReliableRadio::MAX_MESSAGE_LENGTH];
 								_a.serialize( buff );
 								TxPower power;
@@ -576,6 +594,10 @@ namespace wiselib
 					if ( neighbors.size() != 0 )
 					{
 						node_id_t recipient = neighbors.at( rand()() % neighbors.size() ).get_node().get_id();
+						for ( PLTT_NodeListIterator i = neighbors.begin(); i!= neighbors.end(); ++i )
+						{
+							debug().debug(" one of these... %x \n", i->get_node().get_id() );
+						}
 						block_data_t buff[ReliableRadio::MAX_MESSAGE_LENGTH];
 						_a.serialize( buff );
 						TxPower power;
@@ -685,8 +707,8 @@ namespace wiselib
 								//		( traces_iterator->get_intensity() <= _trace.get_intensity() )
 								//) ||
 								(
-										( _trace.get_start_time() >= traces_iterator->get_start_time() )// &&
-										//( traces_iterator->get_inhibited() )
+										( _trace.get_start_time() >= traces_iterator->get_start_time() ) &&
+										( _trace.get_parent().get_id() != traces_iterator->get_parent().get_id() )
 								)
 							)
 						{
@@ -698,6 +720,7 @@ namespace wiselib
 						debug().debug("TR:R %x -| %x \n", _trace.get_current().get_id(), radio().id() );
 #endif
 							traces_iterator->set_inhibited();
+							//traces_iterator->set_parent( _trace.get_current() );
 						}
 						return NULL;
 					}

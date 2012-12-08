@@ -95,10 +95,11 @@ namespace wiselib
 #endif
 		{}
 		// -----------------------------------------------------------------------
-		PLTT_TargetType( PLTT_Trace _t, millis_t _s, int8_t _tp )
+		PLTT_TargetType( PLTT_Trace _t, millis_t _s, millis_t _is, int8_t _tp )
 		{
 			target_trace = _t;
 			spread_milis = _s;
+			init_spread_milis = _is;
 			transmission_power_dB = _tp;
 			radio_callback_id = 0;
 #ifdef CONFIG_PLTT_TARGET_H_MINI_RUN
@@ -125,6 +126,7 @@ namespace wiselib
 			encryption_request_daemon();
 #else
 			target_trace.set_target_id( self.get_id() );
+			timer().template set_timer<self_type, &self_type::send_trace>( int_spread_milis, this, 0 );
 			send_trace();
 #endif
 		}
@@ -217,7 +219,14 @@ namespace wiselib
 #endif
 							target_trace.update_start_time();
 							randomize_privacy_message_ptr->set_msg_id( PRIVACY_RANDOMIZE_REQUEST_ID );
-							timer().template set_timer<self_type, &self_type::timed_privacy_callback> ( spread_milis, this, (void*)randomize_privacy_message_ptr );
+							if ( target_trace.get_start_time() == 0 )
+							{
+								timer().template set_timer<self_type, &self_type::timed_privacy_callback> ( init_spread_milis, this, (void*)randomize_privacy_message_ptr );
+							}
+							else
+							{
+								timer().template set_timer<self_type, &self_type::timed_privacy_callback> ( spread_milis, this, (void*)randomize_privacy_message_ptr );
+							}
 #ifdef CONFIG_PLTT_TARGET_H_MINI_RUN
 						}
 #endif
@@ -369,6 +378,7 @@ namespace wiselib
 		uint32_t radio_callback_id;
         PLTT_Trace target_trace;
 		millis_t spread_milis;
+		millis_t init_spread_milis;
 		TxPower trans_power;
 		Node self;
 		int8_t transmission_power_dB;
