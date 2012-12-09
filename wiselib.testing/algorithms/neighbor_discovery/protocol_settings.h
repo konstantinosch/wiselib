@@ -71,7 +71,8 @@ namespace wiselib
 			new_dead_time_period_weight				( ND_NEW_DEAD_TIME_PERIOD_WEIGHT ),
 			ratio_normalization_strategy			( R_NR_NORMAL ),
 			beacon_weight							( ND_BEACON_WEIGHT ),
-			lost_beacon_weight						( ND_LOST_BEACON_WEIGHT )
+			lost_beacon_weight						( ND_LOST_BEACON_WEIGHT ),
+			min_required_beacons					( ND_MIN_REQUIRED_BEACONS )
 		{}
 		// --------------------------------------------------------------------
 		ProtocolSettings_Type(
@@ -104,6 +105,7 @@ namespace wiselib
 								uint8_t _rn_s,
 								uint32_t _b_w,
 								uint32_t _lb_w,
+								uint8_t _mrb,
 								ProtocolPayload _pp )
 		{
 #ifdef CONFIG_NEIBHBOR_DISCOVERY_H_LQI_FILTERING
@@ -135,6 +137,7 @@ namespace wiselib
 			ratio_normalization_strategy = _rn_s;
 			beacon_weight = _b_w;
 			lost_beacon_weight = _lb_w;
+			min_required_beacons = _mrb;
 			protocol_payload = _pp;
 		}
 		// --------------------------------------------------------------------
@@ -428,6 +431,16 @@ namespace wiselib
 			lost_beacon_weight = _bl_w;
 		}
 		// --------------------------------------------------------------------
+		uint32_t get_min_required_beacons()
+		{
+			return min_required_beacons;
+		}
+		// --------------------------------------------------------------------
+		void set_min_required_beacons( uint32_t _mrb )
+		{
+			min_required_beacons = _mrb;
+		}
+		// --------------------------------------------------------------------
 		ProtocolSettings_Type& operator=( const ProtocolSettings_Type& _psett )
 		{
 #ifdef CONFIG_NEIBHBOR_DISCOVERY_H_LQI_FILTERING
@@ -460,6 +473,7 @@ namespace wiselib
 			ratio_normalization_strategy = _psett.ratio_normalization_strategy;
 			beacon_weight = _psett.beacon_weight;
 			lost_beacon_weight = _psett.lost_beacon_weight;
+			min_required_beacons = _psett.min_required_beacons;
 			return *this;
 		}
 		// --------------------------------------------------------------------
@@ -497,6 +511,7 @@ namespace wiselib
 			_debug.debug( "ratio_normalization_strategy (size %i) : %d\n", sizeof(ratio_normalization_strategy), ratio_normalization_strategy );
 			_debug.debug( "beacon_weight (size %i) : %d\n", sizeof(beacon_weight), beacon_weight );
 			_debug.debug( "lost_beacon_weight (size %i) : %d\n", sizeof(lost_beacon_weight), lost_beacon_weight );
+			_debug.debug( "min_required_beacons (size %i) : %d\n", sizeof(min_required_beacons), min_required_beacons );
 			protocol_payload.print( _debug, _radio );
 			_debug.debug( "-------------------------------------------------------\n" );
 		}
@@ -571,6 +586,7 @@ namespace wiselib
 		uint8_t ratio_normalization_strategy;
 		uint32_t beacon_weight;
 		uint32_t lost_beacon_weight;
+		uint8_t min_required_beacons;
 		ProtocolPayload protocol_payload;
 	};
 }

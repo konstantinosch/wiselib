@@ -157,6 +157,7 @@ namespace wiselib
 									ProtocolSettings::R_NR_NORMAL,
 									ND_BEACON_WEIGHT,
 									ND_LOST_BEACON_WEIGHT,
+									ND_MIN_REQUIRED_BEACONS,
 									pp
 								);
 			p.set_protocol_id( ND_PROTOCOL_ID );
@@ -520,7 +521,8 @@ namespace wiselib
 								( new_neighbor.get_link_stab_ratio() <= pit->get_protocol_settings_ref()->get_max_link_stab_ratio_threshold() ) &&
 								( new_neighbor.get_link_stab_ratio() >= pit->get_protocol_settings_ref()->get_min_link_stab_ratio_threshold() ) &&
 								( new_neighbor.get_link_stab_ratio_inverse() <= pit->get_protocol_settings_ref()->get_max_link_stab_ratio_inverse_threshold() ) &&
-								( new_neighbor.get_link_stab_ratio_inverse() >= pit->get_protocol_settings_ref()->get_min_link_stab_ratio_inverse_threshold() ) )
+								( new_neighbor.get_link_stab_ratio_inverse() >= pit->get_protocol_settings_ref()->get_min_link_stab_ratio_inverse_threshold() ) &&
+								( new_neighbor.get_total_beacons() >= pit->get_protocol_settings_ref()->get_min_required_beacons() ) )
 						{
 							new_neighbor.set_active();
 							if ( found_flag == 1 )

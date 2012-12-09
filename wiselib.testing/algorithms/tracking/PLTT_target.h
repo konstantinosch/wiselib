@@ -126,7 +126,7 @@ namespace wiselib
 			encryption_request_daemon();
 #else
 			target_trace.set_target_id( self.get_id() );
-			timer().template set_timer<self_type, &self_type::send_trace>( int_spread_milis, this, 0 );
+			timer().template set_timer<self_type, &self_type::send_trace>( init_spread_milis, this, 0 );
 			send_trace();
 #endif
 		}

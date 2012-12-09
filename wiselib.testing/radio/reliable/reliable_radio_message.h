@@ -24,7 +24,8 @@ namespace wiselib
 			message_id				( 0 ),
 			counter					( 0 ),
 			payload_size			( 0 ),
-			destination				( 0 )
+			destination				( 0 ),
+			delivered				( 0 )
 		{};
 		// --------------------------------------------------------------------
 		~ReliableRadioMessage_Type()
@@ -36,6 +37,7 @@ namespace wiselib
 			counter = _rrm.counter;
 			payload_size = _rrm.payload_size;
 			destination = _rrm.destination;
+			delivered = _rrm.delivered;
 			memcpy( payload, _rrm.payload, payload_size );
 			return *this;
 		}
@@ -91,6 +93,16 @@ namespace wiselib
 			counter = _c;
 		}
 		// --------------------------------------------------------------------
+		void set_delivered()
+		{
+			delivered = 1;
+		}
+		// --------------------------------------------------------------------
+		uint8_t get_delivered()
+		{
+			return delivered;
+		}
+		// --------------------------------------------------------------------
 		block_data_t* serialize( block_data_t* _buff, size_t _offset = 0 )
 		{
 			size_t MSG_ID_POS = 0;
@@ -129,6 +141,7 @@ namespace wiselib
 			_debug.debug( "counter (size %i) : %d\n", sizeof(uint32_t), counter );
 			_debug.debug( "destination (size %i) : %d\n", sizeof(node_id_t), destination );
 			_debug.debug( "payload_size (size %i) : %d\n", sizeof(size_t), payload_size );
+			_debug.debug( "delivered (size %i) : %d\n", sizeof(uint8_t), delivered );
 			_debug.debug( "payload: \n");
 			for ( size_t i = 0; i < payload_size; i++ )
 			{
@@ -144,6 +157,7 @@ namespace wiselib
 		block_data_t payload[Radio::MAX_MESSAGE_LENGTH];
 		size_t payload_size;
 		node_id_t destination;
+		uint8_t delivered;
     };
 }
 #endif
