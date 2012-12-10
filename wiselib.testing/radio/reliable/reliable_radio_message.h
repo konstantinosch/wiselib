@@ -103,6 +103,27 @@ namespace wiselib
 			return delivered;
 		}
 		// --------------------------------------------------------------------
+		void reply_destination_write() //caution! only use for reply storage!
+		{
+			write<Os, block_data_t, node_id_t>( payload, destination );
+		}
+		// --------------------------------------------------------------------
+		void reply_destination_read() //caution! only use for reply storage checks!
+		{
+			destination = read<Os, block_data_t, node_id_t>( payload );
+		}
+		// --------------------------------------------------------------------
+		void reply_internal_message_id_write( message_id_t _m) //caution! only use for reply storage debugging!
+		{
+			write<Os, block_data_t, message_id_t>( payload + sizeof(node_id_t), _m );
+		}
+		// --------------------------------------------------------------------
+		message_id_t reply_internal_message_id_read() //caution! only use for reply storage checks debugging!
+		{
+			message_id_t m = read<Os, block_data_t, message_id_t>( payload + sizeof(node_id_t) );
+			return m;
+		}
+		// --------------------------------------------------------------------
 		block_data_t* serialize( block_data_t* _buff, size_t _offset = 0 )
 		{
 			size_t MSG_ID_POS = 0;
