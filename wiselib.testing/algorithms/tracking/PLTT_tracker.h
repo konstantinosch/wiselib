@@ -86,7 +86,7 @@ namespace wiselib
 			radio_callback_id					( 0 ),
 			reliable_radio_callback_id			( 0 ),
 			transmission_power_dB				( PLTT_TRACKER_H_TRANSMISSION_POWER_DB ),
-			current_link_metric 				( 255 ),
+			current_link_metric 				( 0 ),
 			status								( WAITING_STATUS ),
 			generate_agent_period				( PLTT_TRACKER_H_GENERATE_AGENT_PERIOD ),
 			generate_agent_period_offset_ratio	( PLTT_TRACKER_H_GENERATE_AGENT_PERIOD_OFFSET_RATIO ),
@@ -100,7 +100,7 @@ namespace wiselib
 		PLTT_TrackerType( node_id_t _tid, IntensityNumber _tar_max_inten, uint8_t _tp_db, millis_t _itm, millis_t _gap, uint16_t _gapor, uint32_t _tmrt ) :
 			radio_callback_id					( 0 ),
 			reliable_radio_callback_id			( 0 ),
-			current_link_metric 				( 255 ),
+			current_link_metric 				( 0 ),
 			status								( WAITING_STATUS ),
 #ifdef CONFIG_PLTT_TRACKER_H_MINI_RUN
 			tracker_mini_run_counter			( 0 )
@@ -149,10 +149,10 @@ namespace wiselib
 		// -----------------------------------------------------------------------
 		void send_query( void* _userdata )
 		{
-#ifdef DEBUG_PLTT_TRACKER_H_SEND_QUERY
+//#ifdef DEBUG_PLTT_TRACKER_H_SEND_QUERY
 			debug().debug( "PLTT_Tracker - send_query - Entering.\n" );
-#endif
-			if ( current_link_metric != 255 )
+//#endif
+			if ( current_link_metric != 0 )
 			{
 				agent = PLTT_Agent( current_agent_id, target_id, radio().id(), target_max_inten );
 				agent.set_start_millis( clock().milliseconds( clock().time() ) + clock().seconds( clock().time() ) * 1000 );
@@ -170,36 +170,36 @@ namespace wiselib
 				//printf("XXXXXXXXX\n");
 				//agent2.print( debug(), radio() );
 				reliable_radio().send( current_query_destination, message.serial_size(), message.serialize() );
-				current_link_metric = 255;
-#ifdef DEBUG_PLTT_TRACKER_H_SEND_QUERY
+				current_link_metric = 0;
+//#ifdef DEBUG_PLTT_TRACKER_H_SEND_QUERY
 				debug().debug( "PLTT_Tracker - send_query - A track query was routed to %x.\n", current_query_destination );
-#endif
+//#endif
 			}
 			else
 			{
-#ifdef DEBUG_PLTT_TRACKER_H_SEND_QUERY
+//#ifdef DEBUG_PLTT_TRACKER_H_SEND_QUERY
 				debug().debug( "PLTT_Tracker - send_query - No echo replies for %x query.\n", current_agent_id );
-#endif
+//#endif
 			}
-#ifdef DEBUG_PLTT_TRACKER_H_SEND_QUERY
+//#ifdef DEBUG_PLTT_TRACKER_H_SEND_QUERY
 			debug().debug( "PLTT_Tracker - send_query - Exiting.\n" );
-#endif
+//#endif
 		}
 		// -----------------------------------------------------------------------
 		void send_echo( void* _userdata )
 		{
-#ifdef DEBUG_PLTT_TRACKER_H_SEND_ECHO
+//#ifdef DEBUG_PLTT_TRACKER_H_SEND_ECHO
 			debug().debug( "PLTT_Tracker - send_echo %x - Entering.\n", radio().id() );
-#endif
+//#endif
 #ifdef CONFIG_PLTT_TRACKER_H_MINI_RUN
 			if ( tracker_mini_run_counter < tracker_mini_run_times )
 			{
 				debug().debug(" tmc,tmr [%d, %d]\n", tracker_mini_run_counter, tracker_mini_run_times );
 #endif
 				current_agent_id = ( rand()() % ( 0xffffffff -1 ) + 1 );
-#ifdef DEBUG_PLTT_TRACKER_H_SEND_ECHO
+//#ifdef DEBUG_PLTT_TRACKER_H_SEND_ECHO
 				debug().debug( "PLTT_Tracker - send_echo - Generated a new rand id : %x \n", current_agent_id );
-#endif
+//#endif
 				size_t len = sizeof( AgentID );
 				block_data_t buf[Radio::MAX_MESSAGE_LENGTH];
 				block_data_t* buff = buf;
@@ -212,9 +212,9 @@ namespace wiselib
 				tracker_mini_run_counter = tracker_mini_run_counter + 1;
 			}
 #endif
-#ifdef DEBUG_PLTT_TRACKER_H_SEND_ECHO
+//#ifdef DEBUG_PLTT_TRACKER_H_SEND_ECHO
 			debug().debug( "PLTT_Tracker - send_echo %x - Exiting.\n", radio().id() );
-#endif
+//#endif
 		}
 		// -----------------------------------------------------------------------
 		void receive( node_id_t _from, size_t _len, block_data_t* _data, const ExtendedData& _exdata )
@@ -233,14 +233,14 @@ namespace wiselib
 			else if( msg_id == PLTT_TRACKER_ECHO_REPLY_ID )
 			{
 				AgentID aid = read<Os, block_data_t, AgentID>( message->get_payload() );
-#ifdef DEBUG_PLTT_TRACKER_H_RECEIVE
-				debug().debug( "PLTT_Tracker - receive - Received echo reply %x from %x.\n", _from, aid );
-#endif
-				if ( ( aid == current_agent_id ) && ( _exdata.link_metric() < current_link_metric ) )
+//#ifdef DEBUG_PLTT_TRACKER_H_RECEIVE
+				debug().debug( "PLTT_Tracker - receive - Received echo reply [%x vs %x] from %x of lm [%d vs %d].\n", aid, current_agent_id, _from, _exdata.link_metric(), current_link_metric );
+//#endif
+				if ( ( aid == current_agent_id ) && ( _exdata.link_metric() > current_link_metric ) )
 				{
-#ifdef DEBUG_PLTT_TRACKER_H_RECEIVE
+//#ifdef DEBUG_PLTT_TRACKER_H_RECEIVE
 					debug().debug( "PLTT_Tracker - receive - Node %x was chosen for the final candidate.\n", _from );
-#endif
+//#endif
 					current_query_destination = _from;
 					current_link_metric = _exdata.link_metric();
 				}

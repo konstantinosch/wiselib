@@ -358,26 +358,26 @@ namespace wiselib
 #endif
 			else if ( msg_id == PLTT_TRACKER_ECHO_ID )
 			{
-#ifdef DEBUG_PLTT_PASSIVE_H_RECEIVE
+//#ifdef DEBUG_PLTT_PASSIVE_H_RECEIVE
 				AgentID aid = read<Os, block_data_t, AgentID>( message->get_payload() );
 				debug().debug( "PLTT_Passive - receive %x - %x - PLTT_TRACKER_ECHO_ID.\n", radio().id(), aid );
-#endif
+//#endif
 				send( _from, message->get_payload_size(), message->get_payload(), PLTT_TRACKER_ECHO_REPLY_ID );
 			}
 			else if ( msg_id == PLTT_AGENT_QUERY_ID )
 			{
-#ifdef DEBUG_PLTT_PASSIVE_H_RECEIVE
+//#ifdef DEBUG_PLTT_PASSIVE_H_RECEIVE
 				debug().debug( "PLTT_Passive - receive %x - Received PLTT_AGENT_QUERY_ID.\n", radio().id() );
-#endif
+//#endif
 				PLTT_Agent a;
 				a.de_serialize( message->get_payload() );
 				process_query( a );
 			}
 			else if ( msg_id == PLTT_AGENT_REPORT_ID )
 			{
-#ifdef DEBUG_PLTT_PASSIVE_H_RECEIVE
+//#ifdef DEBUG_PLTT_PASSIVE_H_RECEIVE
 				debug().debug( "PLTT_Passive - receive %x- Received PLTT_AGENT_REPORT_ID.\n", radio().id() );
-#endif
+//#endif
 				PLTT_Agent a;
 				a.de_serialize( message->get_payload() );
 				process_report( a );
