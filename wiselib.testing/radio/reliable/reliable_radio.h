@@ -95,7 +95,7 @@ namespace wiselib
 					return;
 				}
 				ReliableRadioMessage reliable_radio_message;
-				reliable_radio_message.set_message_id( rand()()%0xff );
+				reliable_radio_message.set_message_id( rand()()%0xffff );
 				reliable_radio_message.set_payload( _len, _data );
 				reliable_radio_message.set_destination( _dest );
 				insert_reliable_radio_message( reliable_radio_message );
@@ -164,7 +164,10 @@ namespace wiselib
 						reliable_radio_reply.set_message_id( reliable_radio_message.get_message_id() );
 						block_data_t buff2[Radio::MAX_MESSAGE_LENGTH];
 						block_data_t buff1[Radio::MAX_MESSAGE_LENGTH];
-						reliable_radio_reply.set_payload( sizeof(node_id_t) + sizeof(message_id_t), buff1 );
+						//**
+						size_t olds = reliable_radio_reply.serial_size();
+						//**
+						reliable_radio_reply.set_payload( sizeof(node_id_t) + sizeof(uint32_t), buff1 );
 						reliable_radio_reply.set_destination( _from );
 						reliable_radio_reply.reply_destination_write();
 						//**
@@ -179,11 +182,13 @@ namespace wiselib
 //#ifdef DEBUG_RELIABLE_RADIO_H
 						if ( ( mmmmm.get_message_id() == 41 )  && ( _len != 187 ) )
 						{
-							debug().debug( "ReliableRadio - receive %x - Sending RR_REPLY of %d to %x.\n", radio().id(), reliable_radio_message.get_message_id(), _from );
+							debug().debug( "ReliableRadio - receive %x - Sending RR_REPLY of %d to %x vs %x with sizes[%d + %d, %d].\n", radio().id(), reliable_radio_reply.get_message_id(), _from, reliable_radio_reply.get_destination(), olds, sizeof(node_id_t) + sizeof(uint32_t), reliable_radio_reply.serial_size() );
+							reliable_radio_reply.reply_destination_read();
+							debug().debug( "ReliableRadio - receive %x - Sending RR_REPLY of %d to %x vs %x with sizes[%d + %d, %d].\n", radio().id(), reliable_radio_reply.get_message_id(), _from, reliable_radio_reply.get_destination(), olds, sizeof(node_id_t) + sizeof(uint32_t), reliable_radio_reply.serial_size() );
 						}
 //#endif
 						radio().send( _from, message.serial_size(), message.serialize() );
-						if ( replies_check( reliable_radio_message.get_message_id(), _from ) == 0 )
+						if ( replies_check( reliable_radio_reply.get_message_id(), _from ) == 0 )
 						{
 //#ifdef DEBUG_RELIABLE_RADIO_H
 							if ( ( mmmmm.get_message_id() == 41 )  && ( _len != 187 ) )
@@ -215,7 +220,7 @@ namespace wiselib
 						{
 							if ( ( mmmmm.get_message_id() == 41 )  && ( _len != 187 ) )
 							{
-								debug().debug( "ReliableRadio-receive %x - RR_MESSAGE WAS NOT!!!! NEW of [%d] from %x.\n", radio().id(), reliable_radio_message.get_message_id(), _from );
+								debug().debug( "ReliableRadio - receive %x - RR_MESSAGE WAS NOT!!!! NEW of [%d] from %x.\n", radio().id(), reliable_radio_message.get_message_id(), _from );
 							}
 						}
 //#endif
@@ -253,7 +258,6 @@ namespace wiselib
 									debug().debug( "ReliableRadio - receive %x - Exiting with mark of %d message from %x.\n", radio().id(), i->get_message_id(), _from );
 									found_flag = 1;
 								}
-
 //#endif
 								//return;
 							}
@@ -446,11 +450,23 @@ namespace wiselib
 			return 0;
 		}
 		// --------------------------------------------------------------------
-		uint8_t replies_check( message_id_t _msg_id, node_id_t _from )
+		uint8_t replies_check( uint32_t _msg_id, node_id_t _from )
 		{
 			for ( ReliableRadioMessage_vector_iterator i = reliable_radio_replies.begin(); i != reliable_radio_replies.end(); ++i )
 			{
+#ifdef DEBUG_RELIABLE_RADIO_H
+				if ( i->reply_internal_message_id_read() == 41 )
+				{
+					debug().debug( "Replies_check - checking in loop %x - Reply with [msg_id %d, dest %x] vs inc param [msg_id %d, dest %x]\n", radio().id(), i->get_message_id(), i->get_destination(), _msg_id, _from );
+				}
+#endif
 				i->reply_destination_read();
+#ifdef DEBUG_RELIABLE_RADIO_H
+				if ( i->reply_internal_message_id_read() == 41 )
+				{
+					debug().debug( "Replies_check - checking in loop %x - Reply with [msg_id %d, dest %x] vs inc param [msg_id %d, dest %x]\n", radio().id(), i->get_message_id(), i->get_destination(), _msg_id, _from );
+				}
+#endif
 				if ( ( i->get_message_id() == _msg_id ) && ( i->get_destination() == _from ) )
 				{
 					return 1;

@@ -14,7 +14,7 @@ namespace wiselib
 		typedef Os_P Os;
 		typedef Radio_P Radio;
 		typedef Debug_P Debug;
-		typedef typename Radio::message_id_t message_id_t;
+		//typedef typename Radio::message_id_t message_id_t;
 		typedef typename Radio::block_data_t block_data_t;
 		typedef typename Radio::node_id_t node_id_t;
 		typedef typename Radio::size_t size_t;
@@ -42,12 +42,12 @@ namespace wiselib
 			return *this;
 		}
 		// --------------------------------------------------------------------
-		message_id_t get_message_id()
+		uint32_t get_message_id()
 		{
 			return message_id;
 		}
 		// --------------------------------------------------------------------
-		void set_message_id( message_id_t _msg_id )
+		void set_message_id( uint32_t _msg_id )
 		{
 			message_id = _msg_id;
 		}
@@ -112,24 +112,26 @@ namespace wiselib
 		{
 			destination = read<Os, block_data_t, node_id_t>( payload );
 		}
+#ifdef DEBUG_RELIABLE_RADIO_H_DEEP_DEBUGS
 		// --------------------------------------------------------------------
-		void reply_internal_message_id_write( message_id_t _m) //caution! only use for reply storage debugging!
+		void reply_internal_message_id_write( uint32_t _m) //caution! only use for reply storage debugging!
 		{
-			write<Os, block_data_t, message_id_t>( payload + sizeof(node_id_t), _m );
+			write<Os, block_data_t, uint32_t>( payload + sizeof(node_id_t), _m );
 		}
 		// --------------------------------------------------------------------
-		message_id_t reply_internal_message_id_read() //caution! only use for reply storage checks debugging!
+		uint32_t reply_internal_message_id_read() //caution! only use for reply storage checks debugging!
 		{
-			message_id_t m = read<Os, block_data_t, message_id_t>( payload + sizeof(node_id_t) );
+			uint32_t m = read<Os, block_data_t, uint32_t>( payload + sizeof(node_id_t) );
 			return m;
 		}
+#endif
 		// --------------------------------------------------------------------
 		block_data_t* serialize( block_data_t* _buff, size_t _offset = 0 )
 		{
 			size_t MSG_ID_POS = 0;
-			size_t DATA_LEN_POS = MSG_ID_POS + sizeof(message_id_t);
+			size_t DATA_LEN_POS = MSG_ID_POS + sizeof(uint32_t);
 			size_t DATA_POS = DATA_LEN_POS + sizeof(size_t);
-			write<Os, block_data_t, message_id_t>( _buff + MSG_ID_POS + _offset,  message_id );
+			write<Os, block_data_t, uint32_t>( _buff + MSG_ID_POS + _offset,  message_id );
 			write<Os, block_data_t, size_t>( _buff + DATA_LEN_POS + _offset, payload_size );
 			memcpy( _buff + DATA_POS + _offset, payload, payload_size );
 			return _buff;
@@ -138,9 +140,9 @@ namespace wiselib
 		void de_serialize( block_data_t* _buff, size_t _offset = 0 )
 		{
 			size_t MSG_ID_POS = 0;
-			size_t DATA_LEN_POS = MSG_ID_POS + sizeof(message_id_t);
+			size_t DATA_LEN_POS = MSG_ID_POS + sizeof(uint32_t);
 			size_t DATA_POS = DATA_LEN_POS + sizeof(size_t);
-			message_id = read<Os, block_data_t, message_id_t>( _buff + MSG_ID_POS + _offset );
+			message_id = read<Os, block_data_t, uint32_t>( _buff + MSG_ID_POS + _offset );
 			payload_size = read<Os, block_data_t, size_t>( _buff + DATA_LEN_POS + _offset );
 			memcpy( payload, _buff + DATA_POS + _offset, payload_size );
 		}
@@ -148,7 +150,7 @@ namespace wiselib
 		size_t serial_size()
 		{
 			size_t MSG_ID_POS = 0;
-			size_t DATA_LEN_POS = MSG_ID_POS + sizeof(message_id_t);
+			size_t DATA_LEN_POS = MSG_ID_POS + sizeof(uint32_t);
 			size_t DATA_POS = DATA_LEN_POS + sizeof(size_t);
 			return DATA_POS + payload_size;
 		}
@@ -158,7 +160,7 @@ namespace wiselib
 		{
 			_debug.debug( "-------------------------------------------------------\n");
 			_debug.debug( "ReliableRadioMessage : \n" );
-			_debug.debug( "message_id (size %i) : %d\n", sizeof(message_id_t), message_id );
+			_debug.debug( "message_id (size %i) : %d\n", sizeof(uint32_t), message_id );
 			_debug.debug( "counter (size %i) : %d\n", sizeof(uint32_t), counter );
 			_debug.debug( "destination (size %i) : %d\n", sizeof(node_id_t), destination );
 			_debug.debug( "payload_size (size %i) : %d\n", sizeof(size_t), payload_size );
@@ -173,7 +175,7 @@ namespace wiselib
 #endif
 		// --------------------------------------------------------------------
 	private:
-		message_id_t message_id;
+		uint32_t message_id;
 		uint32_t counter;
 		block_data_t payload[Radio::MAX_MESSAGE_LENGTH];
 		size_t payload_size;

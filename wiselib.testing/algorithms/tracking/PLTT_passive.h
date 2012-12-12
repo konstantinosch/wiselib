@@ -113,7 +113,8 @@ namespace wiselib
 			backoff_candidate_list_weight			( PLTT_PASSIVE_H_BACKOFF_CANDIDATE_LIST_WEIGHT ),
 			random_enable_timer_range				( PLTT_PASSIVE_H_RANDOM_ENABLE_TIMER_RANGE ),
 			inhibition_spread_offset_millis_ratio	( PLTT_PASSIVE_H_BACKOFF_INHIBITION_SPREAD_OFFSET_MILLIS_RATIO ),
-			status									( WAITING_STATUS )
+			status									( WAITING_STATUS ),
+			intensity_ticks							( PLTT_PASSIVE_H_INTENSITY_TICKS )
 #ifdef CONFIG_PLTT_PRIVACY
 			,decryption_request_timer				( PLTT_PASSIVE_H_DECRYPTION_REQUEST_TIMER ),
 			decryption_request_offset				( PLTT_PASSIVE_H_DECRYPTION_REQUEST_OFFSET ),
@@ -121,8 +122,8 @@ namespace wiselib
 #endif
 #ifdef DEBUG_PLTT_PASSIVE_H_STATUS
 			,status_t								( 0 ),
-			status_t_max							( PLTT_PASSIVE_STATUS_T_MAX ),
-			status_t_millis							( PLTT_PASSIVE_STATUS_T_MILLIS)
+			status_t_max							( PLTT_PASSIVE_H_STATUS_T_MAX ),
+			status_t_millis							( PLTT_PASSIVE_H_STATUS_T_MILLIS)
 #endif
 		{
 		}
@@ -442,13 +443,13 @@ namespace wiselib
 #ifdef DEBUG_PLTT_PASSIVE_H_PROCCESS_QUERY
 					debug().debug( "PLTT_Passive - process_query %x - Found target_id %x with intensity %d - further lookup.\n", radio().id(), _a.get_target_id(), traces_iterator->get_intensity() );
 #endif
-					if ( ( traces_iterator->get_intensity() * 100 ) / ( _a.get_max_intensity() - ( traces_iterator->get_spread_penalty() + traces_iterator->get_diminish_amount() * 4 ) ) >= intensity_detection_threshold )
+					if ( ( traces_iterator->get_intensity() * 100 ) / ( _a.get_max_intensity() - ( traces_iterator->get_spread_penalty() + traces_iterator->get_diminish_amount() * intensity_ticks ) ) >= intensity_detection_threshold )
 					{
 #ifdef DEBUG_PLTT_PASSIVE_H_PROCCESS_QUERY
 						debug().debug( "PLTT_Passive - process_query %x - Found target_id %x - target is in the area with intensity %d, switching to report mode!\n", radio().id(), _a.get_target_id(), traces_iterator->get_intensity() );
 #endif
 						_a.switch_dest();
-						//process_report( _a );
+						process_report( _a );
 						return;
 					}
 					else
@@ -494,7 +495,6 @@ namespace wiselib
 			}
 			if ( found == 0 )
 			{
-
 				if ( neighbors.size() != 0 )
 				{
 					node_id_t recipient = neighbors.at( rand()() % neighbors.size() ).get_node().get_id();
@@ -1335,6 +1335,16 @@ namespace wiselib
 			return inhibition_spread_offset_millis_ratio;
 		}
 		// -----------------------------------------------------------------------
+		uint8_t get_intensity_tics()
+		{
+			return intensity_ticks;
+		}
+		// -----------------------------------------------------------------------
+		void set_intensity_ticks( uint8_t _it )
+		{
+			intensity_ticks = _it;
+		}
+		// -----------------------------------------------------------------------
 #ifdef CONFIG_PLTT_PRIVACY
 		// -----------------------------------------------------------------------
 		void set_decryption_request_timer( millis_t _drt )
@@ -1371,7 +1381,6 @@ namespace wiselib
 		{
 			return status;
 		}
-		// -----------------------------------------------------------------------
 #endif
 		uint8_t direction_processing( Node _node1, Node _node2 )
 		{
@@ -1477,6 +1486,7 @@ namespace wiselib
 		uint32_t random_enable_timer_range;
 		uint32_t inhibition_spread_offset_millis_ratio;
 		uint8_t status;
+		uint8_t intensity_ticks;
 #ifdef CONFIG_PLTT_PRIVACY
 		PLTT_PrivacyTraceList privacy_traces;
 		millis_t decryption_request_timer;
