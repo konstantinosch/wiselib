@@ -20,6 +20,7 @@
 #ifndef __PLTT_TRACKER_H__
 #define __PLTT_TRACKER_H__
 
+#include "util/pstl/vector_static.h"
 #include "PLTT_default_values_config.h"
 #include "PLTT_source_config.h"
 #include "../../internal_interface/message/message.h"
@@ -62,6 +63,8 @@ namespace wiselib
 		typedef typename Radio::ExtendedData ExtendedData;
 		typedef typename Clock::time_t time_t;
 		typedef Message_Type<Os, Radio, Debug> Message;
+		typedef vector_static<Os, PLTT_Agent, PLTT_TRACKER_H_AGENT_LIST_MAX_SIZE> PLTT_AgentList;
+		typedef typename PLTT_AgentList::iterator PLTT_AgentList_Iterator;
 		void init( Radio& _radio, ReliableRadio& _reliable_radio, Timer& _timer, Rand& _rand, Clock& _clock, Debug& _debug )
 		{
 			radio_ = &_radio;
@@ -91,13 +94,21 @@ namespace wiselib
 			generate_agent_period				( PLTT_TRACKER_H_GENERATE_AGENT_PERIOD ),
 			generate_agent_period_offset_ratio	( PLTT_TRACKER_H_GENERATE_AGENT_PERIOD_OFFSET_RATIO ),
 			init_tracking_millis				( PLTT_TRACKER_H_INIT_TRACKING_MILLIS )
+#ifdef CONFIG_PLTT_TRACKER_H_AGENT_BUFFERING
+			,agent_daemon_period				( PLTT_TRACKER_H_AGENT_DAEMON_PERIOD ),
+			agent_list_max_count				( PLTT_TRACKER_H_AGENT_LIST_MAX_COUNT )
+#endif
 #ifdef CONFIG_PLTT_TRACKER_H_MINI_RUN
 			,tracker_mini_run_times				( PLTT_TRACKER_H_MINI_RUN_TIMES ),
 			tracker_mini_run_counter			( 0 )
 #endif
 		{}
 		// -----------------------------------------------------------------------
-		PLTT_TrackerType( node_id_t _tid, IntensityNumber _tar_max_inten, uint8_t _tp_db, millis_t _itm, millis_t _gap, uint16_t _gapor, uint32_t _tmrt ) :
+		PLTT_TrackerType( node_id_t _tid, IntensityNumber _tar_max_inten, uint8_t _tp_db, millis_t _itm, millis_t _gap, uint16_t _gapor, uint32_t _tmrt
+#ifdef CONFIG_PLTT_TRACKER_H_AGENT_BUFFERING
+		, millis_t _adp, uint32_t _almc
+#endif
+				) :
 			radio_callback_id					( 0 ),
 			reliable_radio_callback_id			( 0 ),
 			current_link_metric 				( 0 ),
@@ -113,6 +124,10 @@ namespace wiselib
 			generate_agent_period = _gap;
 			generate_agent_period_offset_ratio = _gapor;
 			tracker_mini_run_times = _tmrt;
+#ifdef CONFIG_PLTT_TRACKER_H_AGENT_BUFFERING
+			agent_daemon_period = _adp;
+			agent_list_max_count = _almc;
+#endif
 		}
 		// -----------------------------------------------------------------------
 		~PLTT_TrackerType()
@@ -154,7 +169,7 @@ namespace wiselib
 //#endif
 			if ( current_link_metric != 0 )
 			{
-				agent = PLTT_Agent( current_agent_id, target_id, radio().id(), target_max_inten );
+				PLTT_Agent agent = PLTT_Agent( current_agent_id, target_id, radio().id(), target_max_inten );
 				agent.set_start_millis( clock().milliseconds( clock().time() ) + clock().seconds( clock().time() ) * 1000 );
 				block_data_t buff[ReliableRadio::MAX_MESSAGE_LENGTH];
 				trans_power.set_dB( transmission_power_dB );
@@ -169,6 +184,7 @@ namespace wiselib
 				//agent2.de_serialize( buff );
 				//printf("XXXXXXXXX\n");
 				//agent2.print( debug(), radio() );
+				//insert_agent( agent );
 				reliable_radio().send( current_query_destination, message.serial_size(), message.serialize() );
 				current_link_metric = 0;
 //#ifdef DEBUG_PLTT_TRACKER_H_SEND_QUERY
@@ -223,11 +239,16 @@ namespace wiselib
 			Message *message = (Message*)_data;
 			if ( msg_id == PLTT_AGENT_REPORT_ID )
 			{
+				PLTT_Agent a;
+				a.de_serialize( message->get_payload() );
+				uint32_t end_millis = (clock().milliseconds( clock().time() ) + clock().seconds( clock().time() ) * 1000 );
 //#ifdef DEBUG_PLTT_TRACKER_H_RECEIVE
-				debug().debug("XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX");
+				debug().debug("XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX\n");
 				debug().debug( "PLTT_Tracker - receive - Received agent from %x.\n", _from );
-				debug().debug("XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX");
-				agent.print( debug(), radio() );
+				a.print( debug(), radio() );
+				//debug().debug( "PLTT_Tracker - receive - Received agent millis diff [%d vs %d = %d] %x.\n", _from, a.get_start_millis(), retrieve_agent( a )->get_start_millis(), _from, ( a.get_start_millis() - retrieve_agent( a )->get_start_millis() ) );
+				debug().debug( "PLTT_Tracker - receive - Received agent millis diff [%d vs %d = %d] %x.\n",  a.get_start_millis(), end_millis, ( end_millis - a.get_start_millis()  ), _from );
+				debug().debug("XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX\n");
 //#endif
 			}
 			else if( msg_id == PLTT_TRACKER_ECHO_REPLY_ID )
@@ -246,6 +267,78 @@ namespace wiselib
 				}
 			}
 		}
+		// -----------------------------------------------------------------------
+#ifdef CONFIG_PLTT_TRACKER_H_AGENT_BUFFERING
+		void agent_daemon( void* _user_data = NULL )
+		{
+			for ( PLTT_AgentList_Iterator i = agents.begin(); i != agents.end(); ++i )
+			{
+				i->inc_count();
+			}
+			timer().template set_timer<self_type, &self_type::agent_daemon> ( agent_daemon_period, this, 0);
+		}
+		// -----------------------------------------------------------------------
+		void insert_agent( PLTT_Agent _a )
+		{
+			if ( agents.size() < agents.max_size() )
+			{
+				agents.push_back( _a );
+				return;
+			}
+#ifdef DEBUG_PLTT_TRACKER_H_INSERT_AGENT
+			uint8_t found = 0;
+#endif
+			for ( PLTT_AgentList_Iterator i = agents.begin(); i != agents.end(); ++i )
+			{
+				if ( i->get_count() > agent_list_max_count )
+				{
+					(*i) = _a;
+#ifdef DEBUG_PLTT_TRACKER_H_INSERT_AGENT
+					found = 1;
+#endif
+					return;
+				}
+			}
+#ifdef DEBUG_PLTT_TRACKER_H_INSERT_AGENT
+			if ( found == 0 )
+			{
+				debug().debug( "PLTT_Tracker - insert agent %x - Buffering problem\n", radio().id() );
+			}
+#endif
+		}
+		// -----------------------------------------------------------------------
+		PLTT_Agent* retrieve_agent( PLTT_Agent _a )
+		{
+			for ( PLTT_AgentList_Iterator i = agents.begin(); i != agents.end(); ++i )
+			{
+				if ( i->get_agent_id() == _a.get_agent_id() )
+				{
+					return &(*i);
+				}
+			}
+			return NULL;
+		}
+		// -----------------------------------------------------------------------
+		millis_t get_agent_daemon_period()
+		{
+			return agent_daemon_period;
+		}
+		// -----------------------------------------------------------------------
+		void set_agent_daemon_period( millis_t _adp )
+		{
+			agent_daemon_period = _adp;
+		}
+		// -----------------------------------------------------------------------
+		uint32_t get_agent_list_max_count()
+		{
+			return agent_list_max_count;
+		}
+		// -----------------------------------------------------------------------
+		void set_agent_list_max_count( uint32_t _almc )
+		{
+			agent_list_max_count = _almc;
+		}
+#endif
 		// -----------------------------------------------------------------------
 		uint8_t get_status()
 		{
@@ -322,7 +415,7 @@ namespace wiselib
 		node_id_t target_id;
 		TxPower trans_power;
 		int8_t transmission_power_dB;
-		PLTT_Agent agent;
+		//PLTT_Agent agent;
 		IntensityNumber target_max_inten;
 		AgentID current_agent_id;
 		node_id_t current_query_destination;
@@ -332,6 +425,9 @@ namespace wiselib
 		millis_t generate_agent_period_offset_ratio;
 		Node self;
 		millis_t init_tracking_millis;
+		millis_t agent_daemon_period;
+		PLTT_AgentList agents;
+		uint32_t agent_list_max_count;
 #ifdef CONFIG_PLTT_TRACKER_H_MINI_RUN
 		uint32_t tracker_mini_run_times;
 		uint32_t tracker_mini_run_counter;
