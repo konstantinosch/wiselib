@@ -29,6 +29,8 @@ namespace wiselib
 				typename Radio_P,
 				typename AgentID_P,
 				typename IntensitiyNumber_P,
+				typename Position_P,
+				typename TimesNumber_P,
 				typename Debug_P>
 	class PLTT_AgentType
 	{
@@ -37,11 +39,13 @@ namespace wiselib
 		typedef Radio_P Radio;
 		typedef AgentID_P AgentID;
 		typedef IntensitiyNumber_P IntensityNumber;
+		typedef Position_P Position;
+		typedef TimesNumber_P TimesNumber;
 		typedef Debug_P Debug;
 		typedef typename Radio::block_data_t block_data_t;
 		typedef typename Radio::size_t size_t;
 		typedef typename Radio::node_id_t node_id_t;
-		typedef PLTT_AgentType<Os, Radio, AgentID, IntensityNumber, Debug> self_type;
+		typedef PLTT_AgentType<Os, Radio, AgentID, IntensityNumber, Position, TimesNumber, Debug> self_type;
 		// --------------------------------------------------------------------
 		inline PLTT_AgentType()
 		{}
@@ -49,8 +53,11 @@ namespace wiselib
 		inline PLTT_AgentType( const AgentID& _aid, const node_id_t& _tid, const node_id_t& _trid, const IntensityNumber& _mi ) :
 				payload_size 	(0),
 				start_millis	(0),
+#ifdef CONFIG_PLTT_TRACKER_H_AGENT_BUFFERING
 				count			(0),
-				hop_count		(0)
+#endif
+				hop_count		(0),
+				trace_id		(0)
 		{
 			agent_id = _aid;
 			target_id = _tid;
@@ -66,7 +73,9 @@ namespace wiselib
 			size_t MAX_INTEN_POS = TRACKER_ID_POS + sizeof(node_id_t);
 			size_t START_MILLIS_POS = MAX_INTEN_POS + sizeof(IntensityNumber);
 			size_t HOP_COUNT_POS = START_MILLIS_POS + sizeof(uint32_t);
-			size_t PAYLOAD_SIZE_POS = HOP_COUNT_POS + sizeof(uint32_t);
+			size_t TRACE_ID_POS = HOP_COUNT_POS + sizeof(uint32_t);
+			size_t TARGET_POSITION_POS = TRACE_ID_POS + sizeof(TimesNumber);
+			size_t PAYLOAD_SIZE_POS = TARGET_POSITION_POS + target_position.serial_size();
 			size_t PAYLOAD_POS = PAYLOAD_SIZE_POS + sizeof(size_t);
 			write<Os, block_data_t, AgentID> ( _buff + AGENT_ID_POS + _offset, agent_id );
 			write<Os, block_data_t, node_id_t> ( _buff + TARGET_ID_POS + _offset, target_id );
@@ -74,6 +83,8 @@ namespace wiselib
 			write<Os, block_data_t, IntensityNumber> ( _buff + MAX_INTEN_POS + _offset, max_intensity );
 			write<Os, block_data_t, uint32_t> ( _buff + START_MILLIS_POS + _offset, start_millis );
 			write<Os, block_data_t, uint32_t> ( _buff + HOP_COUNT_POS + _offset, hop_count );
+			write<Os, block_data_t, TimesNumber> ( _buff + TRACE_ID_POS + _offset, trace_id );
+			target_position.serialize( _buff + _offset, TARGET_POSITION_POS );
 			write<Os, block_data_t, size_t> ( _buff + PAYLOAD_SIZE_POS + _offset, payload_size );
 			memcpy( _buff + PAYLOAD_POS + _offset, payload, payload_size );
 			return _buff;
@@ -87,7 +98,9 @@ namespace wiselib
 			size_t MAX_INTEN_POS = TRACKER_ID_POS + sizeof(node_id_t);
 			size_t START_MILLIS_POS = MAX_INTEN_POS + sizeof(IntensityNumber);
 			size_t HOP_COUNT_POS = START_MILLIS_POS + sizeof(uint32_t);
-			size_t PAYLOAD_SIZE_POS = HOP_COUNT_POS + sizeof(uint32_t);
+			size_t TRACE_ID_POS = HOP_COUNT_POS + sizeof(uint32_t);
+			size_t TARGET_POSITION_POS = TRACE_ID_POS + sizeof(TimesNumber);
+			size_t PAYLOAD_SIZE_POS = TARGET_POSITION_POS + target_position.serial_size();
 			size_t PAYLOAD_POS = PAYLOAD_SIZE_POS + sizeof(size_t);
 			agent_id = read<Os, block_data_t, AgentID> ( _buff + AGENT_ID_POS + _offset );
 			target_id = read<Os, block_data_t, node_id_t> ( _buff + TARGET_ID_POS + _offset );
@@ -95,6 +108,8 @@ namespace wiselib
 			max_intensity = read<Os, block_data_t, IntensityNumber> ( _buff + MAX_INTEN_POS + _offset );
 			start_millis = read<Os, block_data_t, uint32_t> ( _buff + START_MILLIS_POS + _offset );
 			hop_count = read<Os, block_data_t, uint32_t> ( _buff + HOP_COUNT_POS + _offset );
+			trace_id = read<Os, block_data_t, TimesNumber> ( _buff + TRACE_ID_POS + _offset );
+			target_position.de_serialize( _buff + _offset, TARGET_POSITION_POS );
 			payload_size = read<Os, block_data_t, size_t> ( _buff + PAYLOAD_SIZE_POS + _offset );
 			memcpy( payload, _buff + PAYLOAD_POS + _offset, payload_size );
 		}
@@ -107,7 +122,9 @@ namespace wiselib
 			size_t MAX_INTEN_POS = TRACKER_ID_POS + sizeof(node_id_t);
 			size_t START_MILLIS_POS = MAX_INTEN_POS + sizeof(IntensityNumber);
 			size_t HOP_COUNT_POS = START_MILLIS_POS + sizeof(uint32_t);
-			size_t PAYLOAD_SIZE_POS = HOP_COUNT_POS + sizeof(uint32_t);
+			size_t TRACE_ID_POS = HOP_COUNT_POS + sizeof(uint32_t);
+			size_t TARGET_POSITION_POS = TRACE_ID_POS + sizeof(TimesNumber);
+			size_t PAYLOAD_SIZE_POS = TARGET_POSITION_POS + target_position.serial_size();
 			size_t PAYLOAD_POS = PAYLOAD_SIZE_POS + sizeof(size_t);
 			return PAYLOAD_POS + payload_size;
 		}
@@ -120,8 +137,12 @@ namespace wiselib
 			max_intensity = _a.max_intensity;
 			payload_size = _a.payload_size;
 			start_millis = _a.start_millis;
+#ifdef CONFIG_PLTT_TRACKER_H_AGENT_BUFFERING
 			count = _a.count;
+#endif
 			hop_count = _a.hop_count;
+			trace_id = _a.trace_id;
+			target_position = _a.target_position;
 			memcpy( payload, _a.payload, payload_size );
 			return *this;
 		}
@@ -200,6 +221,7 @@ namespace wiselib
 			tracker_id = buff;
 		}
 		// --------------------------------------------------------------------
+#ifdef CONFIG_PLTT_TRACKER_H_AGENT_BUFFERING
 		void inc_count()
 		{
 			count = count + 1;
@@ -209,6 +231,7 @@ namespace wiselib
 		{
 			return count;
 		}
+#endif
 		// --------------------------------------------------------------------
 		void inc_hop_count()
 		{
@@ -218,6 +241,26 @@ namespace wiselib
 		uint32_t get_hop_count()
 		{
 			return hop_count;
+		}
+		// --------------------------------------------------------------------
+		void set_target_position( Position _tp )
+		{
+			target_position = _tp;
+		}
+		// --------------------------------------------------------------------
+		Position get_target_position()
+		{
+			return target_position;
+		}
+		// --------------------------------------------------------------------
+		void set_trace_id( TimesNumber _tid )
+		{
+			trace_id = _tid;
+		}
+		// --------------------------------------------------------------------
+		TimesNumber get_trace_id()
+		{
+			return trace_id;
 		}
 		// --------------------------------------------------------------------
 #ifdef DEBUG_PLTT_AGENT_H
@@ -230,9 +273,13 @@ namespace wiselib
 			_debug.debug( "current target id (size %i) : %x\n", sizeof(target_id), target_id );
 			_debug.debug( "current tracker id (size %i) : %x\n", sizeof(tracker_id), tracker_id );
 			_debug.debug( "millis_t (size %i) : %d\n", sizeof(start_millis), start_millis );
+#ifdef CONFIG_PLTT_TRACKER_H_AGENT_BUFFERING
 			_debug.debug( "count (size %i) : %d\n", sizeof(count), count );
+#endif
 			_debug.debug( "hop_count (size %i) : %d\n", sizeof(hop_count), hop_count );
 			_debug.debug( "payload_size (size %i) : %i\n", sizeof(size_t), payload_size );
+			_debug.debug( "trace_id (size %i) : %i\n", sizeof(trace_id), trace_id );
+			target_position.print( _debug, _radio );
 			_debug.debug( "payload : \n" );
 			for ( size_t i = 0; i < payload_size; i++ )
 			{
@@ -251,8 +298,12 @@ namespace wiselib
 		uint32_t start_millis;
 		block_data_t payload[PLTT_AGENT_H_MAX_PAYLOAD];
 		size_t payload_size;
+#ifdef CONFIG_PLTT_TRACKER_H_AGENT_BUFFERING
 		uint32_t count;
+#endif
 		uint32_t hop_count;
+		TimesNumber trace_id;
+		Position target_position;
 	};
 }
 #endif

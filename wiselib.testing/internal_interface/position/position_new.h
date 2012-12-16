@@ -17,6 +17,9 @@
 ** If not, see <http://www.gnu.org/licenses/>.                           **
 ***************************************************************************/
 
+#define POSITION_FLOAT_DEBUG
+//#define POSITION_INT_DEBUG
+
 namespace wiselib
 {
 	#ifndef __POSITION3D___
@@ -122,7 +125,13 @@ namespace wiselib
 		}
 		inline void print( Debug& debug, Radio& radio )
 		{
+#ifdef POSITION_FLOAT_DEBUG
+			debug.debug("Position3D (size %i) : ( %f, %f, %f )", sizeof(x) + sizeof(y) + sizeof(z), x, y, z);
+#endif
+#ifdef POSITION_INT_DEBUG
 			debug.debug("Position3D (size %i) : ( %d, %d, %d )", sizeof(x) + sizeof(y) + sizeof(z), x, y, z);
+#endif
+
 		}
 	private:
 		CoordinatesNumber x, y, z;
@@ -221,7 +230,12 @@ namespace wiselib
 		}
 		inline void print( Debug& _debug, Radio& _radio )
 		{
+#ifdef POSITION_FLOAT_DEBUG
+			_debug.debug("Position2D (size %i) : ( %f, %f )\n", sizeof(x) + sizeof(y), x, y );
+#endif
+#ifdef POSITION_INT_DEBUG
 			_debug.debug("Position2D (size %i) : ( %d, %d )\n", sizeof(x) + sizeof(y), x, y );
+#endif
 		}
 	private:
 		CoordinatesNumber x, y;

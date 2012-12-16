@@ -410,19 +410,19 @@ namespace wiselib
 
 				else if ( message_inner->get_message_id() == PLTT_SPREAD_ID )
 				{
-//#ifdef DEBUG_PLTT_PASSIVE_H_RECEIVE
+#ifdef DEBUG_PLTT_PASSIVE_H_RECEIVE
 					//debug().debug("TR:S %x->?", radio().id() );
 					debug().debug( "PLTT_Passive - receive %x - Received ReliableRadio::RR_UNDELIVERED::PLTT_SPREAD_ID.\n", radio().id() );
-//#endif
+#endif
 					PLTT_Trace trace = PLTT_Trace( message->get_payload() );
 				}
 #else
 				else if ( message_inner->get_message_id() == PLTT_PRIVACY_SPREAD_ID )
 				{
-//#ifdef DEBUG_PLTT_PASSIVE_H_RECEIVE
+#ifdef DEBUG_PLTT_PASSIVE_H_RECEIVE
 					//debug().debug("TR:S %x->?", radio().id() );
 					debug().debug( "PLTT_Passive - receive %x - Received ReliableRadio::RR_UNDELIVERED::PLTT_PRIVACY_SPREAD_ID to %x.\n", radio().id(), _from );
-//#endif
+#endif
 					PLTT_PrivacyTrace trace = PLTT_PrivacyTrace( message->get_payload() );
 				}
 #endif
@@ -464,6 +464,8 @@ namespace wiselib
 #ifdef DEBUG_PLTT_PASSIVE_H_PROCCESS_QUERY_REPORT
 							debug().debug( "PLTT_Passive - process_query %x - Found target_id %x - target is in the area with intensity %d, switching to REPORT mode!\n", radio().id(), _a.get_target_id(), traces_iterator->get_intensity() );
 #endif
+							_a.set_target_position( self.get_node().get_position() );
+							_a.set_trace_id( traces_iterator->get_start_time() );
 							_a.switch_dest();
 							process_query_report( _a, PLTT_AGENT_REPORT_ID );
 						}
@@ -584,107 +586,6 @@ namespace wiselib
 			debug().debug( "PLTT_Passive - process_query %x - Exiting.\n", radio().id() );
 #endif
 		}
-		// -----------------------------------------------------------------------
-//		void process_report( PLTT_Agent _a )
-//		{
-//#ifdef DEBUG_PLTT_PASSIVE_H_PROCCESS_REPORT
-//			debug().debug( "PLTT_Passive - process_report %x - Entering.\n", radio().id() );
-//#endif
-//			for ( PLTT_TraceListIterator traces_iterator = traces.begin(); traces_iterator != traces.end(); ++traces_iterator )
-//			{
-//				if ( _a.get_target_id() == traces_iterator->get_target_id() )
-//				{
-//#ifdef DEBUG_PLTT_PASSIVE_H_PROCCESS_REPORT
-//					debug().debug( "PLTT_Passive - process_report %x - Found tracker_id %x - further lookup.\n", radio().id(),  _a.get_target_id());
-//#endif
-//					if ( ( traces_iterator->get_intensity() * 100 ) / ( _a.get_max_intensity() - ( traces_iterator->get_spread_penalty() + traces_iterator->get_diminish_amount() * intensity_ticks ) ) >= intensity_detection_threshold )
-//					{
-//#ifdef DEBUG_PLTT_PASSIVE_H_PROCCESS_REPORT
-//						debug().debug( "PLTT_Passive - process_report %x - Found tracker_id %x - tracker is in the area report back!\n", radio().id(), _a.get_target_id() );
-//#endif
-//						block_data_t buff[ReliableRadio::MAX_MESSAGE_LENGTH];
-//						_a.serialize( buff );
-//						TxPower power;
-//						power.set_dB( transmission_power_dB );
-//						radio().set_power( power );
-//						reliable_radio().send( _a.get_target_id(), _a.serial_size(), buff );
-//					}
-//					else
-//					{
-//#ifdef DEBUG_PLTT_PASSIVE_H_PROCCESS_REPORT
-//						debug().debug( "PLTT_Passive - process_report %x - Found tracker_id %x - tracker is not in the area - further lookup!\n", radio().id(), _a.get_target_id() );
-//#endif
-//						if ( traces_iterator->get_parent().get_id() != 0x0 )
-//						{
-//#ifdef DEBUG_PLTT_PASSIVE_H_PROCCESS_REPORT
-//							debug().debug( "PLTT_Passive - process_report %x - Found tracker_id %x - tracker is not in the area - further lookup! - found origin and forwarding.\n", radio().id(), _a.get_target_id() );
-//#endif
-//							block_data_t buff[ReliableRadio::MAX_MESSAGE_LENGTH];
-//							_a.serialize( buff );
-//							TxPower power;
-//							power.set_dB( transmission_power_dB );
-//							radio().set_power( power );
-//							reliable_radio().send( traces_iterator->get_parent().get_id(), _a.serial_size(), buff );
-//						}
-//						else
-//						{
-//#ifdef DEBUG_PLTT_PASSIVE_H_PROCCESS_REPORT
-//							debug().debug( "PLTT_Passive - process_report %x - Found tracker_id %x - tracker is not in the area - further lookup! - non-coherent trace (old detection inhibited...) forwarding to random recipient\n", radio().id(), _a.get_target_id() );
-//#endif
-//							if ( neighbors.size() != 0 )
-//							{
-//								node_id_t recipient = neighbors.at( rand()() % neighbors.size() ).get_node().get_id();
-//								//for ( PLTT_NodeListIterator i = neighbors.begin(); i!= neighbors.end(); ++i )
-//								//{
-//								//	debug().debug(" one of these... %x \n", i->get_node().get_id() );
-//								//}
-//								block_data_t buff[ReliableRadio::MAX_MESSAGE_LENGTH];
-//								_a.serialize( buff );
-//								TxPower power;
-//								power.set_dB( transmission_power_dB );
-//								radio().set_power( power );
-//								reliable_radio().send( recipient, _a.serial_size(), buff );
-//							}
-//							else
-//							{
-//#ifdef DEBUG_PLTT_PASSIVE_H_PROCCESS_REPORT
-//								debug().debug( "PLTT_Passive - process_report %x - Did not find tracker_id %x - forwarding to random recipient - FAILED, empty neighbor list.\n", radio().id(), _a.get_target_id() );
-//#endif
-//							}
-//						}
-//					}
-//				}
-//				else
-//				{
-//#ifdef DEBUG_PLTT_PASSIVE_H_PROCCESS_REPORT
-//					debug().debug( "PLTT_Passive - process_report %x - Did not find tracker_id %x - forwarding to random recipient.\n", radio().id(), _a.get_target_id());
-//#endif
-//					if ( neighbors.size() != 0 )
-//					{
-//						node_id_t recipient = neighbors.at( rand()() % neighbors.size() ).get_node().get_id();
-//						for ( PLTT_NodeListIterator i = neighbors.begin(); i!= neighbors.end(); ++i )
-//						{
-//							debug().debug(" one of these... %x \n", i->get_node().get_id() );
-//						}
-//						block_data_t buff[ReliableRadio::MAX_MESSAGE_LENGTH];
-//						_a.serialize( buff );
-//						TxPower power;
-//						power.set_dB( transmission_power_dB );
-//						radio().set_power( power );
-//						reliable_radio().send( recipient, _a.serial_size(), buff );
-//					}
-//					else
-//					{
-//#ifdef DEBUG_PLTT_PASSIVE_H_PROCCESS_REPORT
-//						debug().debug( "PLTT_Passive - process_report %x - Did not find tracker_id %x - forwarding to random recipient - FAILED, empty neighbor list.\n", radio().id(), _a.get_target_id() );
-//#endif
-//					}
-//				}
-//			}
-//#ifdef DEBUG_PLTT_PASSIVE_H_PROCCESS_REPORT
-//			debug().debug( "PLTT_Passive - process_report %x - Exiting.\n", radio().id() );
-//#endif
-//		}
 		// -----------------------------------------------------------------------
 		void sync_neighbors( uint8_t _event, node_id_t _from, size_t _len, uint8_t* _data )
 		{

@@ -93,6 +93,11 @@ namespace wiselib
 #ifdef CONFIG_PLTT_PRIVACY
 			,has_encrypted_id		( 0 )
 #endif
+#ifdef CONFIG_PLLT_TARGET_H_SHAWN_POS_FEED
+			,x						( 0 ),
+			y						( 0 ),
+			z						( 0 )
+#endif
 		{}
 		// -----------------------------------------------------------------------
 		PLTT_TargetType( PLTT_Trace _t, millis_t _s, millis_t _is, int8_t _tp )
@@ -109,6 +114,11 @@ namespace wiselib
 			has_encrypted_id = 0;
 #endif
 			status = WAITING_STATUS;
+#ifdef CONFIG_PLLT_TARGET_H_SHAWN_POS_FEED
+			x = 0;
+			y = 0;
+			z = 0;
+#endif
 		}
 		// -----------------------------------------------------------------------
 		~PLTT_TargetType()
@@ -203,6 +213,11 @@ namespace wiselib
 						{
 #endif
 							target_trace.set_target_id( randomize_privacy_message_ptr->payload() );
+#ifdef CONFIG_PLLT_TARGET_H_SHAWN_POS_FEED
+//#ifdef DEBUG_PLTT_TARGET_H_RANDOMIZE_CALLBACK
+							debug().debug( "PLTT_Target - broadcast presence %x at position : [%f, %f] with trace_id : [%d]\n", radio().id(), get_x(), get_y(), target_trace.get_start_time() );
+//#endif
+#endif
 							Message message;
 							message.set_message_id( PLTT_PRIVACY_SPREAD_ID );
 							block_data_t buffer[Radio::MAX_MESSAGE_LENGTH];
@@ -283,6 +298,11 @@ namespace wiselib
 					message.set_message_id( PLTT_SPREAD_ID );
 					block_data_t buffer[Radio::MAX_MESSAGE_LENGTH];
 					block_data_t* buff = buffer;
+#ifdef CONFIG_PLLT_TARGET_H_SHAWN_POS_FEED
+//#DEBUG_PLTT_TARGET_H_SEND_TRACE
+					debug().debug( "PLTT_Target - broadcast presence %x at position : [%f, %f] with trace_id : [%d]\n", radio().id(), get_x(), get_y(), target_trace.get_start_time() );
+//#endif
+#endif
 					message.set_payload( target_trace.serial_size(), target_trace.serialize( buff ) );
 					trans_power.set_dB( transmission_power_dB );
 					radio().set_power( trans_power );
@@ -331,6 +351,25 @@ namespace wiselib
 		{
 			status = _st;
 		}
+		// -----------------------------------------------------------------------
+#ifdef CONFIG_PLLT_TARGET_H_SHAWN_POS_FEED
+		void set_xy( double _x, double _y, double _z = 0 )
+		{
+			x = _x;
+			y = _y;
+			z = _z;
+		}
+		// -----------------------------------------------------------------------
+		double get_x()
+		{
+			return x;
+		}
+		// -----------------------------------------------------------------------
+		double get_y()
+		{
+			return y;
+		}
+#endif
 		// -----------------------------------------------------------------------
 	private:
 		Radio& radio()
@@ -392,6 +431,11 @@ namespace wiselib
 		uint32_t target_mini_run_times;
 #endif
 		uint8_t status;
+#ifdef CONFIG_PLLT_TARGET_H_SHAWN_POS_FEED
+		double x;
+		double y;
+		double z;
+#endif
 	};
 
 }

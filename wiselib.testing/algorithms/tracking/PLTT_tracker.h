@@ -244,10 +244,10 @@ namespace wiselib
 				uint32_t end_millis = (clock().milliseconds( clock().time() ) + clock().seconds( clock().time() ) * 1000 );
 //#ifdef DEBUG_PLTT_TRACKER_H_RECEIVE
 				debug().debug("XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX\n");
-				debug().debug( "PLTT_Tracker - receive - Received agent from %x.\n", _from );
+				debug().debug( "PLTT_Tracker - receive %x- Received agent from %x.\n", radio().id(), _from );
 				a.print( debug(), radio() );
 				//debug().debug( "PLTT_Tracker - receive - Received agent millis diff [%d vs %d = %d] %x.\n", _from, a.get_start_millis(), retrieve_agent( a )->get_start_millis(), _from, ( a.get_start_millis() - retrieve_agent( a )->get_start_millis() ) );
-				debug().debug( "PLTT_Tracker - receive - Received agent millis diff [%d vs %d = %d] %x.\n",  a.get_start_millis(), end_millis, ( end_millis - a.get_start_millis()  ), _from );
+				debug().debug( "PLTT_Tracker - receive %x - Received agent millis diff [%d vs %d = %d] %x.\n",  radio().id(), a.get_start_millis(), end_millis, ( end_millis - a.get_start_millis()  ), _from );
 				debug().debug("XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX\n");
 //#endif
 			}
