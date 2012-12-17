@@ -93,11 +93,6 @@ namespace wiselib
 #ifdef CONFIG_PLTT_PRIVACY
 			,has_encrypted_id		( 0 )
 #endif
-#ifdef CONFIG_PLLT_TARGET_H_SHAWN_POS_FEED
-			,x						( 0 ),
-			y						( 0 ),
-			z						( 0 )
-#endif
 		{}
 		// -----------------------------------------------------------------------
 		PLTT_TargetType( PLTT_Trace _t, millis_t _s, millis_t _is, int8_t _tp )
@@ -114,11 +109,6 @@ namespace wiselib
 			has_encrypted_id = 0;
 #endif
 			status = WAITING_STATUS;
-#ifdef CONFIG_PLLT_TARGET_H_SHAWN_POS_FEED
-			x = 0;
-			y = 0;
-			z = 0;
-#endif
 		}
 		// -----------------------------------------------------------------------
 		~PLTT_TargetType()
@@ -133,11 +123,12 @@ namespace wiselib
 #endif
 #ifdef CONFIG_PLTT_PRIVACY
 			radio_callback_id = radio().template reg_recv_callback<self_type, &self_type::receive>( this );
-			encryption_request_daemon();
+			timer().template set_timer<self_type, &self_type::encryption_request_daemon>( init_spread_milis, this, 0 );
+			//encryption_request_daemon();
 #else
 			target_trace.set_target_id( self.get_id() );
 			timer().template set_timer<self_type, &self_type::send_trace>( init_spread_milis, this, 0 );
-			send_trace();
+			//send_trace();
 #endif
 		}
 		// -----------------------------------------------------------------------
@@ -175,13 +166,15 @@ namespace wiselib
 					PrivacyMessage encryption_privacy_message;
 					encryption_privacy_message.set_msg_id( PRIVACY_ENCRYPTION_REQUEST_ID );
 					encryption_privacy_message.set_request_id( target_request_id );
+					//debug().debug( " WEIRD %x : %x : %d : %d : %d \n", radio().id(), self.get_id(), sizeof(node_id_t), target_request_id, PRIVACY_ENCRYPTION_REQUEST_ID );
+					//debug().debug( " WEIRD %x : %x : %d : %d : %d \n", radio().id(), self.get_id(), sizeof(node_id_t), encryption_privacy_message.request_id(), encryption_privacy_message.msg_id() );
 					node_id_t self_id = self.get_id();
-					block_data_t buffer[2];
+					block_data_t buffer[10];
 					block_data_t* buff = buffer;
 					write<Os, block_data_t, node_id_t>( buff, self_id );
 					encryption_privacy_message.set_payload( sizeof(node_id_t), buff );
 #ifdef DEBUG_PLTT_TARGET_H_ENCRYPTION_REQUEST_DAEMON
-					debug().debug( "PLTT_Target - encryption_request_daemon %x - Sending request of size : %i.\n", radio().id(), encryption_privacy_message.buffer_size() );
+					debug().debug( "PLTT_Target - encryption_request_daemon %x - Sending request of size : %i and req_id : %i and msg_id : %i.\n", radio().id(), encryption_privacy_message.buffer_size(), encryption_privacy_message.request_id(), encryption_privacy_message.msg_id() );
 #endif
 					trans_power.set_dB( transmission_power_dB );
 					radio().set_power( trans_power );
@@ -213,10 +206,8 @@ namespace wiselib
 						{
 #endif
 							target_trace.set_target_id( randomize_privacy_message_ptr->payload() );
-#ifdef CONFIG_PLLT_TARGET_H_SHAWN_POS_FEED
-//#ifdef DEBUG_PLTT_TARGET_H_RANDOMIZE_CALLBACK
-							debug().debug( "PLTT_Target - broadcast presence %x at position : [%f, %f] with trace_id : [%d]\n", radio().id(), get_x(), get_y(), target_trace.get_start_time() );
-//#endif
+#ifdef DEBUG_PLTT_TARGET_H_STATS
+							debug().debug( "TAR:%x:%d:%f:%f\n", radio().id(),  target_trace.get_start_time(), self.get_position().get_x(), self.get_position().get_y() );
 #endif
 							Message message;
 							message.set_message_id( PLTT_PRIVACY_SPREAD_ID );
@@ -234,14 +225,7 @@ namespace wiselib
 #endif
 							target_trace.update_start_time();
 							randomize_privacy_message_ptr->set_msg_id( PRIVACY_RANDOMIZE_REQUEST_ID );
-							if ( target_trace.get_start_time() == 0 )
-							{
-								timer().template set_timer<self_type, &self_type::timed_privacy_callback> ( init_spread_milis, this, (void*)randomize_privacy_message_ptr );
-							}
-							else
-							{
-								timer().template set_timer<self_type, &self_type::timed_privacy_callback> ( spread_milis, this, (void*)randomize_privacy_message_ptr );
-							}
+							timer().template set_timer<self_type, &self_type::timed_privacy_callback> ( spread_milis, this, (void*)randomize_privacy_message_ptr );
 #ifdef CONFIG_PLTT_TARGET_H_MINI_RUN
 						}
 #endif
@@ -259,12 +243,6 @@ namespace wiselib
 				debug().debug( "PLTT_Target - timed_privacy_callback %x - Entering with Message: \n", radio().id() );
 				debug().debug( "message id : %i\n", randomize_privacy_message_ptr->msg_id() );
 				debug().debug( "request id : %x\n", randomize_privacy_message_ptr->request_id() );
-				debug().debug( "payload length : %i\n", randomize_privacy_message_ptr->payload_size() );
-				for ( size_t i = 0; i < randomize_privacy_message_ptr->payload_size(); ++i )
-				{
-					debug().debug( " %i", *( randomize_privacy_message_ptr->payload() + i ) );
-				}
-				debug().debug("\n");
 #endif
 				privacy_radio_callback( self.get_id(), randomize_privacy_message_ptr->buffer_size(), randomize_privacy_message_ptr->buffer()  );
 			}
@@ -298,10 +276,8 @@ namespace wiselib
 					message.set_message_id( PLTT_SPREAD_ID );
 					block_data_t buffer[Radio::MAX_MESSAGE_LENGTH];
 					block_data_t* buff = buffer;
-#ifdef CONFIG_PLLT_TARGET_H_SHAWN_POS_FEED
-//#DEBUG_PLTT_TARGET_H_SEND_TRACE
-					debug().debug( "PLTT_Target - broadcast presence %x at position : [%f, %f] with trace_id : [%d]\n", radio().id(), get_x(), get_y(), target_trace.get_start_time() );
-//#endif
+#ifdef DEBUG_PLTT_TARGET_H_STATS
+							debug().debug( "TAR:%x:%d:%f:%f\n", radio().id(),  target_trace.get_start_time(), self.get_position().get_x(), self.get_position().get_y() );
 #endif
 					message.set_payload( target_trace.serial_size(), target_trace.serialize( buff ) );
 					trans_power.set_dB( transmission_power_dB );
@@ -342,6 +318,11 @@ namespace wiselib
 		}
 #endif
 		// -----------------------------------------------------------------------
+		millis_t get_init_spread_millis()
+		{
+			return init_spread_milis;
+		}
+		// -----------------------------------------------------------------------
 		uint8_t get_status()
 		{
 			return status;
@@ -351,25 +332,6 @@ namespace wiselib
 		{
 			status = _st;
 		}
-		// -----------------------------------------------------------------------
-#ifdef CONFIG_PLLT_TARGET_H_SHAWN_POS_FEED
-		void set_xy( double _x, double _y, double _z = 0 )
-		{
-			x = _x;
-			y = _y;
-			z = _z;
-		}
-		// -----------------------------------------------------------------------
-		double get_x()
-		{
-			return x;
-		}
-		// -----------------------------------------------------------------------
-		double get_y()
-		{
-			return y;
-		}
-#endif
 		// -----------------------------------------------------------------------
 	private:
 		Radio& radio()
@@ -431,11 +393,6 @@ namespace wiselib
 		uint32_t target_mini_run_times;
 #endif
 		uint8_t status;
-#ifdef CONFIG_PLLT_TARGET_H_SHAWN_POS_FEED
-		double x;
-		double y;
-		double z;
-#endif
 	};
 
 }
