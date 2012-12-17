@@ -107,6 +107,10 @@ namespace wiselib
 			transmission_power_dB					( PLTT_PASSIVE_H_TRANSMISSION_POWER_DB ),
 			intensity_detection_threshold			( PLTT_PASSIVE_H_INTENSITY_DETECTION_THRESHOLD ),
 			nb_convergence_time						( PLTT_PASSIVE_H_NEIGHBOR_DISCOVERY_CONVERGENCE_TIME ),
+			nb_convergence_time_counter				( 0 ),
+			nb_convergence_time_max_counter			( PLTT_PASSIVE_H_NEIGHBOR_DISCOVERY_CONVERGENCE_TIME_COUNTER ),
+			nb_connections_high						( PLTT_PASSIVE_H_NEIGHBOR_DISCOVERY_CONNECTIONS_HIGH ),
+			nb_connections_low						( PLTT_PASSIVE_H_NEIGHBOR_DISCOVERY_CONNECTIONS_LOW ),
 			backoff_connectivity_weight				( PLTT_PASSIVE_H_BACKOFF_CONNECTIVITY_WEIGHT ),
 			backoff_random_weight					( PLTT_PASSIVE_H_BACKOFF_RANDOM_WEIGHT ),
 			backoff_lqi_weight						( PLTT_PASSIVE_H_BACKOFF_LQI_WEIGHT ),
@@ -159,7 +163,7 @@ namespace wiselib
 			block_data_t buff[100];
 			ProtocolPayload pp( NeighborDiscovery::TRACKING_PROTOCOL_ID, self.get_node().get_position().serial_size(), self.get_node().get_position().serialize( buff ) );
 			uint8_t ef = ProtocolSettings::NEW_PAYLOAD|ProtocolSettings::LOST_NB|ProtocolSettings::NB_REMOVED|ProtocolSettings::NEW_PAYLOAD;
-			ProtocolSettings ps( 255, 0, 255, 0, 255, 0, 255, 0, 100, 70, 100, 70, ef, -18, 100, 3000, 100, ProtocolSettings::RATIO_DIVIDER, 2, ProtocolSettings::MEAN_DEAD_TIME_PERIOD, 100, 100, ProtocolSettings::R_NR_WEIGHTED, 1, 1, 10, pp );
+			ProtocolSettings ps( 255, 0, 255, 0, 255, 0, 255, 0, 100, 50, 100, 50, ef, -18, 100, 3000, 100, ProtocolSettings::RATIO_DIVIDER, 2, ProtocolSettings::MEAN_DEAD_TIME_PERIOD, 100, 100, ProtocolSettings::R_NR_WEIGHTED, 1, 1, 10, pp );
 			neighbor_discovery().set_transmission_power_dB( transmission_power_dB );
 			uint8_t result = 0;
 			result = neighbor_discovery(). template register_protocol<self_type, &self_type::sync_neighbors>( NeighborDiscovery::TRACKING_PROTOCOL_ID, ps, this  );
@@ -173,8 +177,7 @@ namespace wiselib
 				debug().debug( "PLTT_Passive : neighbor_discovery_enable_task %x - All good with protocol inside.\n", radio().id() );
 #endif
 				neighbor_discovery().enable();
-				timer().template set_timer<self_type, &self_type::neighbor_discovery_inter_task> ( nb_convergence_time/2, this, 0 );
-				timer().template set_timer<self_type, &self_type::neighbor_discovery_disable_task> ( nb_convergence_time, this, 0 );
+				timer().template set_timer<self_type, &self_type::neighbor_discovery_inter_task> ( nb_convergence_time/nb_convergence_time_max_counter, this, 0 );
 			}
 #ifdef DEBUB_PLTT_PASSIVE_H_NEIGHBOR_DISCOVERY_ENABLE_TASK
 			debug().debug( "PLTT_Passive : neighbor_discovery_enable_task - Exiting.\n" );
@@ -183,12 +186,50 @@ namespace wiselib
 		// -----------------------------------------------------------------------
 		void neighbor_discovery_inter_task(void* _userdata = NULL )
 		{
-			old_con = neighbors.size();
-			if ( neighbors.size() < 10 )
+			if ( neighbors.size() < nb_connections_low )
 			{
+				int8_t old_transmission_power_dB = transmission_power_dB;
 				transmission_power_dB = transmission_power_dB + 6;
-				debug().debug("%x - increasing radius to %d\n", radio().id(), transmission_power_dB );
+				if ( transmission_power_dB > 0 )
+				{
+					transmission_power_dB = 0;
+				}
+				if ( transmission_power_dB != old_transmission_power_dB )
+				{
+					//debug().debug("%x - increasing radius from %d to %d\n", radio().id(), old_transmission_power_dB, transmission_power_dB );
+				}
 			}
+			else if ( neighbors.size() > nb_connections_high )
+			{
+				int8_t old_transmission_power_dB = transmission_power_dB;
+				transmission_power_dB = transmission_power_dB - 6;
+				if ( transmission_power_dB < -30 )
+				{
+					transmission_power_dB = -30;
+				}
+				if ( transmission_power_dB != old_transmission_power_dB )
+				{
+					//debug().debug("%x - decreasing radius from %d to %d\n", radio().id(), old_transmission_power_dB, transmission_power_dB );
+				}
+			}
+			nb_convergence_time_counter = nb_convergence_time_counter + 1;
+			neighbor_discovery().set_transmission_power_dB( transmission_power_dB );
+			if ( nb_convergence_time_counter < nb_convergence_time_max_counter )
+			{
+				timer().template set_timer<self_type, &self_type::neighbor_discovery_inter_task> ( nb_convergence_time/nb_convergence_time_max_counter, this, 0 );
+			}
+			else
+			{
+				timer().template set_timer<self_type, &self_type::neighbor_discovery_disable_task> ( nb_convergence_time/nb_convergence_time_max_counter, this, 0 );
+			}
+			//#ifdef DEBUG_PLTT_PASSIVE_H_NEIGHBOR_DISCOVERY_DISABLE_TASK
+			Protocol* prot_ref = neighbor_discovery().get_protocol_ref( NeighborDiscovery::ND_PROTOCOL_ID );
+			//prot_ref->print( debug(), radio() );
+			debug().debug("CON:%d:%x:%d:%d:%d\n", nb_convergence_time_counter, radio().id(), neighbors.size(), prot_ref->get_neighborhood_ref()->size(), transmission_power_dB );
+			//nb_tr %d vs tr_copy %d \t channel : %d\n", neighbors.size(), prot_ref->get_neighborhood_active_size(), radio().channel() );
+			//#endif
+
+
 		}
 		// -----------------------------------------------------------------------
 		void neighbor_discovery_disable_task( void* _userdata = NULL )
@@ -210,9 +251,10 @@ namespace wiselib
 			delete _neighbor_discovery;
 #endif
 //#ifdef DEBUG_PLTT_PASSIVE_H_NEIGHBOR_DISCOVERY_DISABLE_TASK
-			Protocol* prot_ref = neighbor_discovery().get_protocol_ref( NeighborDiscovery::TRACKING_PROTOCOL_ID );
-			prot_ref->print( debug(), radio() );
-			debug().debug("nb_tr %d vs tr_copy %d \t channel : %d\n", neighbors.size(), prot_ref->get_neighborhood_active_size(), radio().channel() );
+			//Protocol* prot_ref = neighbor_discovery().get_protocol_ref( NeighborDiscovery::ND_PROTOCOL_ID );
+			//prot_ref->print( debug(), radio() );
+			//debug().debug("CON:%d:%x:%d:%d:%d\n", radio().id(), neighbors.size(), prot_ref->get_neighborhood_ref()->size(), transmission_power_dB );
+			//nb_tr %d vs tr_copy %d \t channel : %d\n", neighbors.size(), prot_ref->get_neighborhood_active_size(), radio().channel() );
 //#endif
 #ifdef DEBUG_PLTT_PASSIVE_H_STATUS
 			status_daemon();
@@ -372,6 +414,10 @@ namespace wiselib
 #endif
 				PLTT_Agent a;
 				a.de_serialize( message->get_payload() );
+				if ( a.get_hop_count() > 5000 )
+				{
+					return;
+				}
 				process_query_report( a, PLTT_AGENT_QUERY_ID );
 			}
 			else if ( msg_id == PLTT_AGENT_REPORT_ID )
@@ -381,6 +427,10 @@ namespace wiselib
 #endif
 				PLTT_Agent a;
 				a.de_serialize( message->get_payload() );
+				if ( a.get_hop_count() > 5000 )
+				{
+					return;
+				}
 				process_query_report( a, PLTT_AGENT_REPORT_ID );
 			}
 			else if ( msg_id == ReliableRadio::RR_UNDELIVERED)
@@ -471,10 +521,10 @@ namespace wiselib
 						}
 						else if ( _msg_id == PLTT_AGENT_REPORT_ID )
 						{
-							debug().debug( "PLTT_Passive - process_query %x - Found target_id %x - TRACKER is in the area with intensity %d, REPORTING TO TRACKER!\n", radio().id(), _a.get_target_id(), traces_iterator->get_intensity() );
 							block_data_t buff[ReliableRadio::MAX_MESSAGE_LENGTH];
 							_a.inc_hop_count();
 							_a.serialize( buff );
+							debug().debug( "PLTT_Passive - process_query %x - Found target_id %x - TRACKER is in the area with intensity %d, REPORTING TO TRACKER! [agent_id %x]\n", radio().id(), _a.get_target_id(), traces_iterator->get_intensity(), _a.get_agent_id() );
 							send( _a.get_target_id(), _a.serial_size(), buff, _msg_id );
 						}
 						return;
@@ -1274,6 +1324,16 @@ namespace wiselib
 			return nb_convergence_time;
 		}
 		// -----------------------------------------------------------------------
+		uint32_t get_nb_convergence_time_max_counter()
+		{
+			return nb_convergence_time_max_counter;
+		}
+		// -----------------------------------------------------------------------
+		void set_nb_convergence_time_max_counter( uint32_t _nbctmc )
+		{
+			nb_convergence_time_max_counter = _nbctmc;
+		}
+		// -----------------------------------------------------------------------
 		void set_transmission_power_dB( uint8_t _tpdb )
 		{
 			transmission_power_dB = _tpdb;
@@ -1312,6 +1372,26 @@ namespace wiselib
 		void set_intensity_ticks( uint8_t _it )
 		{
 			intensity_ticks = _it;
+		}
+		// -----------------------------------------------------------------------
+		void set_nb_connections_high( uint16_t _nbch )
+		{
+			nb_connections_high = _nbch;
+		}
+		// -----------------------------------------------------------------------
+		uint16_t get_nb_connections_high()
+		{
+			return nb_connections_high;
+		}
+		// -----------------------------------------------------------------------
+		void set_nb_connections_low( uint16_t _nbcl )
+		{
+			nb_connections_low = _nbcl;
+		}
+		// -----------------------------------------------------------------------
+		uint16_t get_nb_connections_low()
+		{
+			return nb_connections_low;
 		}
 		// -----------------------------------------------------------------------
 #ifdef CONFIG_PLTT_PRIVACY
@@ -1448,6 +1528,10 @@ namespace wiselib
 		int8_t transmission_power_dB;
 		uint8_t intensity_detection_threshold;
 		millis_t nb_convergence_time;
+		uint32_t nb_convergence_time_counter;
+		uint32_t nb_convergence_time_max_counter;
+		uint16_t nb_connections_high;
+		uint16_t nb_connections_low;
 		uint32_t backoff_connectivity_weight;
 		uint32_t backoff_random_weight;
 		uint32_t backoff_lqi_weight;

@@ -264,11 +264,18 @@ namespace wiselib
    //------------------------------------------------------------------------
    template<typename OsModel_P>
    void ShawnTxRadioModel<OsModel_P>::TxPower::set_dB(int db){
-      if(db<=0)
+      if ( db < -30 )
+      {
+    	  db = -30;
+      }
+	  if ( db >= 0 )
+	  {
+		  db = 0;
+	  }
+	  if( db <= 0 )
       {
          value=std::pow(10.0,db/30.0);
       }
-
   //  printf("that cursed value : %f\n", value );
    }
    //------------------------------------------------------------------------

@@ -6,10 +6,10 @@
 //default ND protocol settings
 #define ND_MAX_NEIGHBORS 250
 #define ND_MAX_REGISTERED_PROTOCOLS 2
-#define ND_BEACON_PERIOD 5000
+#define ND_BEACON_PERIOD 1000
 #define ND_TRANSMISSION_POWER_DB 0
-#define ND_RELAX_MILLIS 2500 //great care with this one when tinkering with very minute period predictions/calculations. Could be set to a tiny analogous value of the period like 10%.
-#define ND_DAEMON_PERIOD 2500
+#define ND_RELAX_MILLIS 500 //great care with this one when tinkering with very minute period predictions/calculations. Could be set to a tiny analogous value of the period like 10%.
+#define ND_DAEMON_PERIOD 500
 
 //benchmark settings
 #define ND_STATS_DURATION 120000
