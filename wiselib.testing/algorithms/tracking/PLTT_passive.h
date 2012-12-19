@@ -191,6 +191,10 @@ namespace wiselib
 #ifdef CONFIG_PLTT_PASSIVE_H_ND_INTER_TASK
 		void neighbor_discovery_inter_task(void* _userdata = NULL )
 		{
+#ifdef DEBUG_PLTT_PASSIVE_H_NEIGHBOR_DISCOVERY_STATS
+			Protocol* prot_ref = neighbor_discovery().get_protocol_ref( NeighborDiscovery::ND_PROTOCOL_ID );
+			debug().debug("CON:%d:%d:%d:%d:%d:%d:%d:%f:%f\n", nb_convergence_time_counter, radio().id(), neighbors.size(), prot_ref->get_neighborhood_ref()->size(), transmission_power_dB, nb_convergence_time, nb_convergence_time_max_counter, self.get_node().get_position().get_x(), self.get_node().get_position().get_y() );
+#endif
 			if ( neighbors.size() < nb_connections_low )
 			{
 				int8_t old_transmission_power_dB = transmission_power_dB;
@@ -227,20 +231,14 @@ namespace wiselib
 			{
 				timer().template set_timer<self_type, &self_type::neighbor_discovery_disable_task> ( nb_convergence_time/nb_convergence_time_max_counter, this, 0 );
 			}
-#ifdef DEBUG_PLTT_PASSIVE_H_NEIGHBOR_DISCOVERY_STATS
-			Protocol* prot_ref = neighbor_discovery().get_protocol_ref( NeighborDiscovery::ND_PROTOCOL_ID );
-			debug().debug("CON:%d:%x:%d:%d:%d\n", nb_convergence_time_counter, radio().id(), neighbors.size(), prot_ref->get_neighborhood_ref()->size(), transmission_power_dB );
-#endif
-
-
 		}
 #endif
 		// -----------------------------------------------------------------------
 		void neighbor_discovery_disable_task( void* _userdata = NULL )
 		{
-#ifdef DEBUG_PLTT_PASSIVE_H_NEIGHBOR_DISCOVERY_DISABLE_TASK
+//#ifdef DEBUG_PLTT_PASSIVE_H_NEIGHBOR_DISCOVERY_DISABLE_TASK
 			debug().debug( "PLTT_Passive - neighbor_discovery_unregister_task %x - Entering.\n", radio().id() );
-#endif
+//#endif
 
 			radio_callback_id = radio().template reg_recv_callback<self_type, &self_type::receive> (this);
 			reliable_radio_callback_id = reliable_radio().template reg_recv_callback<self_type, &self_type::receive> (this);
@@ -251,7 +249,7 @@ namespace wiselib
 #ifndef CONFIG_PLTT_PASSIVE_H_ND_INTER_TASK
 #ifdef DEBUG_PLTT_PASSIVE_H_NEIGHBOR_DISCOVERY_STATS
 			Protocol* prot_ref = neighbor_discovery().get_protocol_ref( NeighborDiscovery::ND_PROTOCOL_ID );
-			debug().debug("CON:%d:%x:%d:%d:%d\n", nb_convergence_time_counter, radio().id(), neighbors.size(), prot_ref->get_neighborhood_ref()->size(), transmission_power_dB );
+			debug().debug("CON:%d:%d:%d:%d:%d:%d:%f:%f\n", nb_convergence_time_counter, radio().id(), neighbors.size(), prot_ref->get_neighborhood_ref()->size(), transmission_power_dB, nb_convergence_time, self.get_node().get_position().get_x(), self.get_node().get_position().get_y() );
 #endif
 #endif
 #ifdef CONFIG_PLTT_PASSIVE_H_DISABLE_NEIGHBOR_DISCOVERY
