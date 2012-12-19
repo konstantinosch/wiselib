@@ -177,24 +177,26 @@ namespace wiselib
 				debug().debug( "PLTT_Passive : neighbor_discovery_enable_task %x - All good with protocol inside.\n", radio().id() );
 #endif
 				neighbor_discovery().enable();
-#ifdef CONFIG_PLTT_PASSIVE_H_ND_INTER_TASK
+//#ifdef CONFIG_PLTT_PASSIVE_H_ND_INTER_TASK
 				timer().template set_timer<self_type, &self_type::neighbor_discovery_inter_task> ( nb_convergence_time/nb_convergence_time_max_counter, this, 0 );
-#else
-				timer().template set_timer<self_type, &self_type::neighbor_discovery_disable_task> ( nb_convergence_time, this, 0 );
-#endif
+//#else
+//				timer().template set_timer<self_type, &self_type::neighbor_discovery_disable_task> ( nb_convergence_time, this, 0 );
+//#endif
 			}
 #ifdef DEBUB_PLTT_PASSIVE_H_NEIGHBOR_DISCOVERY_ENABLE_TASK
 			debug().debug( "PLTT_Passive : neighbor_discovery_enable_task - Exiting.\n" );
 #endif
 		}
 		// -----------------------------------------------------------------------
-#ifdef CONFIG_PLTT_PASSIVE_H_ND_INTER_TASK
+
 		void neighbor_discovery_inter_task(void* _userdata = NULL )
 		{
 #ifdef DEBUG_PLTT_PASSIVE_H_NEIGHBOR_DISCOVERY_STATS
 			Protocol* prot_ref = neighbor_discovery().get_protocol_ref( NeighborDiscovery::ND_PROTOCOL_ID );
+			prot_ref->print( debug(), radio() );
 			debug().debug("CON:%d:%d:%d:%d:%d:%d:%d:%f:%f\n", nb_convergence_time_counter, radio().id(), neighbors.size(), prot_ref->get_neighborhood_ref()->size(), transmission_power_dB, nb_convergence_time, nb_convergence_time_max_counter, self.get_node().get_position().get_x(), self.get_node().get_position().get_y() );
 #endif
+#ifdef CONFIG_PLTT_PASSIVE_H_ND_INTER_TASK
 			if ( neighbors.size() < nb_connections_low )
 			{
 				int8_t old_transmission_power_dB = transmission_power_dB;
@@ -221,8 +223,9 @@ namespace wiselib
 					//debug().debug("%x - decreasing radius from %d to %d\n", radio().id(), old_transmission_power_dB, transmission_power_dB );
 				}
 			}
-			nb_convergence_time_counter = nb_convergence_time_counter + 1;
 			neighbor_discovery().set_transmission_power_dB( transmission_power_dB );
+#endif
+			nb_convergence_time_counter = nb_convergence_time_counter + 1;
 			if ( nb_convergence_time_counter < nb_convergence_time_max_counter )
 			{
 				timer().template set_timer<self_type, &self_type::neighbor_discovery_inter_task> ( nb_convergence_time/nb_convergence_time_max_counter, this, 0 );
@@ -232,7 +235,6 @@ namespace wiselib
 				timer().template set_timer<self_type, &self_type::neighbor_discovery_disable_task> ( nb_convergence_time/nb_convergence_time_max_counter, this, 0 );
 			}
 		}
-#endif
 		// -----------------------------------------------------------------------
 		void neighbor_discovery_disable_task( void* _userdata = NULL )
 		{
@@ -246,12 +248,12 @@ namespace wiselib
 #ifdef CONFIG_PLTT_PRIVACY
 			decryption_request_daemon();
 #endif
-#ifndef CONFIG_PLTT_PASSIVE_H_ND_INTER_TASK
+//#ifndef CONFIG_PLTT_PASSIVE_H_ND_INTER_TASK
 #ifdef DEBUG_PLTT_PASSIVE_H_NEIGHBOR_DISCOVERY_STATS
 			Protocol* prot_ref = neighbor_discovery().get_protocol_ref( NeighborDiscovery::ND_PROTOCOL_ID );
-			debug().debug("CON:%d:%d:%d:%d:%d:%d:%f:%f\n", nb_convergence_time_counter, radio().id(), neighbors.size(), prot_ref->get_neighborhood_ref()->size(), transmission_power_dB, nb_convergence_time, self.get_node().get_position().get_x(), self.get_node().get_position().get_y() );
+			debug().debug("CON:%d:%d:%d:%d:%d:%d:%d:%f:%f\n", nb_convergence_time_counter, radio().id(), neighbors.size(), prot_ref->get_neighborhood_ref()->size(), transmission_power_dB, nb_convergence_time, nb_convergence_time_max_counter, self.get_node().get_position().get_x(), self.get_node().get_position().get_y() );
 #endif
-#endif
+//#endif
 #ifdef CONFIG_PLTT_PASSIVE_H_DISABLE_NEIGHBOR_DISCOVERY
 			neighbor_discovery().disable();
 #endif
