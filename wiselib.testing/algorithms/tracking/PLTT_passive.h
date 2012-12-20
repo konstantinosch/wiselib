@@ -193,7 +193,7 @@ namespace wiselib
 		{
 #ifdef DEBUG_PLTT_PASSIVE_H_NEIGHBOR_DISCOVERY_STATS
 			Protocol* prot_ref = neighbor_discovery().get_protocol_ref( NeighborDiscovery::ND_PROTOCOL_ID );
-			prot_ref->print( debug(), radio() );
+			//prot_ref->print( debug(), radio() );
 			debug().debug("CON:%d:%d:%d:%d:%d:%d:%d:%f:%f\n", nb_convergence_time_counter, radio().id(), neighbors.size(), prot_ref->get_neighborhood_ref()->size(), transmission_power_dB, nb_convergence_time, nb_convergence_time_max_counter, self.get_node().get_position().get_x(), self.get_node().get_position().get_y() );
 #endif
 #ifdef CONFIG_PLTT_PASSIVE_H_ND_INTER_TASK

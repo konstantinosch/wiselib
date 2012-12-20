@@ -258,7 +258,32 @@ namespace wiselib
 						beacon.set_protocol_payloads( protocols );
 						beacon.set_beacon_period( bp );
 						beacon.set_beacon_period_update_counter( n->get_beacon_period_update_counter() );
+#ifdef CONFIG_NEIGHBOR_DISCOVERY_H_SMALL_PAYLOAD
+						Neighbor_vector nv_tmp = p_ptr->get_neighborhood();
+						Neighbor_vector nv;
+						for ( Neighbor_vector_iterator i = p_ptr->get_neighborhood_ref()->begin(); i != p_ptr->get_neighborhood_ref()->end(); ++i )
+						{
+							if (		( 1 )
+#ifdef CONFIG_NEIGHBOR_DISCOVERY_H_SMALL_PAYLOAD_LINK_STAB
+									&&	( i->get_link_stab_ratio() >= ND_PAYLOAD_MIN_LINK_STAB_RATIO_THRESHOLD )
+									&&	( i->get_link_stab_ratio() <= ND_PAYLOAD_MAX_LINK_STAB_RATIO_THRESHOLD )
+#endif
+#ifdef CONFIG_NEIGHBOR_DISCOVERY_H_SMALL_PAYLOAD_RSSI
+									&&	( i->get_avg_RSSI() >= ND_PAYLOAD_MIN_RSSI_THRESHOLD )
+									&&	( i->get_avg_RSSI() <= ND_PAYLOAD_MAX_RSSI_THRESHOLD )
+#endif
+#ifdef CONFIG_NEIGHBOR_DISCOVERY_H_SMALL_PAYLOAD_LQI
+									&&	( i->get_avg_LQI() >= ND_PAYLOAD_MIN_LQI_THRESHOLD )
+									&&	( i->get_avg_LQI() <= ND_PAYLOAD_MAX_LQI_THRESHOLD )
+#endif
+								)
+							{
+								nv.push_back( *i );
+							}
+						}
+#else
 						Neighbor_vector nv = p_ptr->get_neighborhood();
+#endif
 						beacon.set_neighborhood( nv, radio().id() );
 						block_data_t buff[Radio::MAX_MESSAGE_LENGTH];
 						send( Radio::BROADCAST_ADDRESS, beacon.serial_size(), beacon.serialize( buff ), ND_MESSAGE );
