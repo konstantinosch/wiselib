@@ -177,33 +177,38 @@ namespace wiselib
 				debug().debug( "PLTT_Passive : neighbor_discovery_enable_task %x - All good with protocol inside.\n", radio().id() );
 #endif
 				neighbor_discovery().enable();
-//#ifdef CONFIG_PLTT_PASSIVE_H_ND_INTER_TASK
+#ifdef CONFIG_PLTT_PASSIVE_H_ND_INTER_TASK
 				timer().template set_timer<self_type, &self_type::neighbor_discovery_inter_task> ( nb_convergence_time/nb_convergence_time_max_counter, this, 0 );
-//#else
-//				timer().template set_timer<self_type, &self_type::neighbor_discovery_disable_task> ( nb_convergence_time, this, 0 );
-//#endif
+#else
+				timer().template set_timer<self_type, &self_type::neighbor_discovery_disable_task> ( nb_convergence_time, this, 0 );
+#endif
 			}
 #ifdef DEBUB_PLTT_PASSIVE_H_NEIGHBOR_DISCOVERY_ENABLE_TASK
 			debug().debug( "PLTT_Passive : neighbor_discovery_enable_task - Exiting.\n" );
 #endif
 		}
 		// -----------------------------------------------------------------------
-
+#ifdef CONFIG_PLTT_PASSIVE_H_ND_INTER_TASK
 		void neighbor_discovery_inter_task(void* _userdata = NULL )
 		{
-#ifdef DEBUG_PLTT_PASSIVE_H_NEIGHBOR_DISCOVERY_STATS
 			Protocol* prot_ref = neighbor_discovery().get_protocol_ref( NeighborDiscovery::ND_PROTOCOL_ID );
+			Protocol* prot_ref_tr = neighbor_discovery().get_protocol_ref( NeighborDiscovery::TRACKING_PROTOCOL_ID );
+#ifdef DEBUG_PLTT_PASSIVE_H_NEIGHBOR_DISCOVERY_STATS
 			//prot_ref->print( debug(), radio() );
 			debug().debug("CON:%d:%d:%d:%d:%d:%d:%d:%f:%f\n", nb_convergence_time_counter, radio().id(), neighbors.size(), prot_ref->get_neighborhood_ref()->size(), transmission_power_dB, nb_convergence_time, nb_convergence_time_max_counter, self.get_node().get_position().get_x(), self.get_node().get_position().get_y() );
+			debug().debug("INFO:%d:%d:%d:%d:%d\n", nb_convergence_time_counter,
+					prot_ref->get_protocol_settings_ref()->get_beacon_weight(),
+					prot_ref->get_protocol_settings_ref()->get_lost_beacon_weight(),
+					prot_ref_tr->get_protocol_settings_ref()->get_beacon_weight(),
+					prot_ref_tr->get_protocol_settings_ref()->get_lost_beacon_weight() );
 #endif
-#ifdef CONFIG_PLTT_PASSIVE_H_ND_INTER_TASK
 			if ( neighbors.size() < nb_connections_low )
 			{
 				int8_t old_transmission_power_dB = transmission_power_dB;
 				transmission_power_dB = transmission_power_dB + 6;
-				if ( transmission_power_dB > 0 )
+				if ( transmission_power_dB > PLTT_PASSIVE_H_NB_INTER_TASK_MAX_DB )
 				{
-					transmission_power_dB = 0;
+					transmission_power_dB = PLTT_PASSIVE_H_NB_INTER_TASK_MAX_DB;
 				}
 				if ( transmission_power_dB != old_transmission_power_dB )
 				{
@@ -214,9 +219,9 @@ namespace wiselib
 			{
 				int8_t old_transmission_power_dB = transmission_power_dB;
 				transmission_power_dB = transmission_power_dB - 6;
-				if ( transmission_power_dB < -30 )
+				if ( transmission_power_dB < PLTT_PASSIVE_H_NB_INTER_TASK_MIN_DB )
 				{
-					transmission_power_dB = -30;
+					transmission_power_dB = PLTT_PASSIVE_H_NB_INTER_TASK_MIN_DB;
 				}
 				if ( transmission_power_dB != old_transmission_power_dB )
 				{
@@ -224,8 +229,14 @@ namespace wiselib
 				}
 			}
 			neighbor_discovery().set_transmission_power_dB( transmission_power_dB );
-#endif
 			nb_convergence_time_counter = nb_convergence_time_counter + 1;
+#ifdef CONFIG_PLTT_PASSIVE_H_MEMORYLESS_STATISTICS
+			prot_ref->get_protocol_settings_ref()->set_beacon_weight( nb_convergence_time_counter );
+			prot_ref->get_protocol_settings_ref()->set_lost_beacon_weight( nb_convergence_time_counter );
+
+			prot_ref_tr->get_protocol_settings_ref()->set_beacon_weight( nb_convergence_time_counter );
+			prot_ref_tr->get_protocol_settings_ref()->set_lost_beacon_weight( nb_convergence_time_counter );
+#endif
 			if ( nb_convergence_time_counter < nb_convergence_time_max_counter )
 			{
 				timer().template set_timer<self_type, &self_type::neighbor_discovery_inter_task> ( nb_convergence_time/nb_convergence_time_max_counter, this, 0 );
@@ -235,25 +246,30 @@ namespace wiselib
 				timer().template set_timer<self_type, &self_type::neighbor_discovery_disable_task> ( nb_convergence_time/nb_convergence_time_max_counter, this, 0 );
 			}
 		}
+#endif
 		// -----------------------------------------------------------------------
 		void neighbor_discovery_disable_task( void* _userdata = NULL )
 		{
-//#ifdef DEBUG_PLTT_PASSIVE_H_NEIGHBOR_DISCOVERY_DISABLE_TASK
+#ifdef DEBUG_PLTT_PASSIVE_H_NEIGHBOR_DISCOVERY_DISABLE_TASK
 			debug().debug( "PLTT_Passive - neighbor_discovery_unregister_task %x - Entering.\n", radio().id() );
-//#endif
+#endif
 
 			radio_callback_id = radio().template reg_recv_callback<self_type, &self_type::receive> (this);
 			reliable_radio_callback_id = reliable_radio().template reg_recv_callback<self_type, &self_type::receive> (this);
 			update_traces();
+			if ( neighbors.size() < nb_connections_low )
+			{
+				debug().debug( "LOCAL_MINIMUM:%d:%d\n", radio().id(), neighbors.size() );
+			}
 #ifdef CONFIG_PLTT_PRIVACY
 			decryption_request_daemon();
 #endif
-//#ifndef CONFIG_PLTT_PASSIVE_H_ND_INTER_TASK
+#ifndef CONFIG_PLTT_PASSIVE_H_ND_INTER_TASK
 #ifdef DEBUG_PLTT_PASSIVE_H_NEIGHBOR_DISCOVERY_STATS
 			Protocol* prot_ref = neighbor_discovery().get_protocol_ref( NeighborDiscovery::ND_PROTOCOL_ID );
 			debug().debug("CON:%d:%d:%d:%d:%d:%d:%d:%f:%f\n", nb_convergence_time_counter, radio().id(), neighbors.size(), prot_ref->get_neighborhood_ref()->size(), transmission_power_dB, nb_convergence_time, nb_convergence_time_max_counter, self.get_node().get_position().get_x(), self.get_node().get_position().get_y() );
 #endif
-//#endif
+#endif
 #ifdef CONFIG_PLTT_PASSIVE_H_DISABLE_NEIGHBOR_DISCOVERY
 			neighbor_discovery().disable();
 #endif
@@ -419,8 +435,8 @@ namespace wiselib
 #endif
 				PLTT_Agent a;
 				a.de_serialize( message->get_payload() );
-				debug().debug("PAS:%x:%d\n", radio().id(), a.get_hop_count() );
-				if ( a.get_hop_count() > 5000 )
+				debug().debug("PAS:%d:%x:%d\n", radio().id(), a.get_agent_id(), a.get_hop_count() );
+				if ( a.get_hop_count() > 300 )
 				{
 					return;
 				}
@@ -433,8 +449,8 @@ namespace wiselib
 #endif
 				PLTT_Agent a;
 				a.de_serialize( message->get_payload() );
-				debug().debug("PAS:%x:%d\n", radio().id(), a.get_hop_count() );
-				if ( a.get_hop_count() > 5000 )
+				debug().debug("PAS:%d:%x:%d\n", radio().id(), a.get_agent_id(), a.get_hop_count() );
+				if ( a.get_hop_count() > 300 )
 				{
 					return;
 				}

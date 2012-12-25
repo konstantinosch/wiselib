@@ -254,7 +254,7 @@ namespace wiselib
 				debug().debug("XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX\n");
 #endif
 #ifdef DEBUG_PLTT_TRACKER_H_STATS
-				debug().debug( "TRA:%x:%d:%x:%d:%x:%x:%d:%d:%d:%f:%f:%d\n", radio().id(), tracker_mini_run_counter, a.get_agent_id(), a.get_max_intensity(), a.get_target_id(), a.get_tracker_id(), a.get_start_millis(), a.get_hop_count(), a.get_trace_id(), a.get_target_position().get_x(), a.get_target_position().get_y(), ( end_millis - a.get_start_millis() ) );
+				debug().debug( "TRA:%d:%d:%x:%d:%x:%x:%d:%d:%d:%f:%f:%d\n", radio().id(), tracker_mini_run_counter, a.get_agent_id(), a.get_max_intensity(), a.get_target_id(), a.get_tracker_id(), a.get_start_millis(), a.get_hop_count(), a.get_trace_id(), a.get_target_position().get_x(), a.get_target_position().get_y(), ( end_millis - a.get_start_millis() ) );
 #endif
 			}
 			else if( msg_id == PLTT_TRACKER_ECHO_REPLY_ID )
