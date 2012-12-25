@@ -207,7 +207,7 @@ namespace wiselib
 #endif
 							target_trace.set_target_id( randomize_privacy_message_ptr->payload() );
 #ifdef DEBUG_PLTT_TARGET_H_STATS
-							debug().debug( "TAR:%x:%d:%f:%f\n", radio().id(),  target_trace.get_start_time(), self.get_position().get_x(), self.get_position().get_y() );
+							debug().debug( "TAR:%d:%d:%d:%f:%f\n", radio().id(),  clock().seconds( clock().time() ) * 1000 + clock().milliseconds( clock().time() ), target_trace.get_start_time(), self.get_position().get_x(), self.get_position().get_y() );
 #endif
 							Message message;
 							message.set_message_id( PLTT_PRIVACY_SPREAD_ID );
@@ -277,7 +277,8 @@ namespace wiselib
 					block_data_t buffer[Radio::MAX_MESSAGE_LENGTH];
 					block_data_t* buff = buffer;
 #ifdef DEBUG_PLTT_TARGET_H_STATS
-							debug().debug( "TAR:%x:%d:%f:%f\n", radio().id(),  target_trace.get_start_time(), self.get_position().get_x(), self.get_position().get_y() );
+					debug().debug( "TAR:%d:%d:%d:%f:%f\n", radio().id(),  clock().seconds( clock().time() ) * 1000 + clock().milliseconds( clock().time() ), target_trace.get_start_time(), self.get_position().get_x(), self.get_position().get_y() );
+					//debug().debug( "TAR:%x:%d:%f:%f\n", radio().id(),  target_trace.get_start_time(), self.get_position().get_x(), self.get_position().get_y() );
 #endif
 					message.set_payload( target_trace.serial_size(), target_trace.serialize( buff ) );
 					trans_power.set_dB( transmission_power_dB );
