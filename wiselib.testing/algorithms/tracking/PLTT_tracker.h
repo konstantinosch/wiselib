@@ -177,6 +177,9 @@ namespace wiselib
 				Message message;
 				message.set_message_id( PLTT_AGENT_QUERY_ID );
 				message.set_payload(  agent.serial_size(), agent.serialize( buff ) );
+#ifdef DEBUG_PLTT_TRACKER_H_STATS
+				debug().debug("QTR:%d:%x\n",radio().id(), agent.get_agent_id() );
+#endif
 				//printf("XXXXXXXXX\n");
 				//agent.print( debug(), radio() );
 				//message.print( debug(), radio() );
@@ -254,7 +257,7 @@ namespace wiselib
 				debug().debug("XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX\n");
 #endif
 #ifdef DEBUG_PLTT_TRACKER_H_STATS
-				debug().debug( "TRA:%d:%d:%d:%d:%d:%d:%d:%x:%d:%d:%d:%f:%f\n",
+				debug().debug( "TRA:%d:%d:%d:%d:%d:%d:%d:%x:%d:%d:%d:%f:%f:%d\n",
 						radio().id(),
 						a.get_target_id(),
 						a.get_tracker_id(),
@@ -267,7 +270,8 @@ namespace wiselib
 						a.get_hop_count(),
 						a.get_trace_id(),
 						a.get_target_position().get_x(),
-						a.get_target_position().get_y() );
+						a.get_target_position().get_y(),
+						a.get_tracker_trace_id() );
 #endif
 			}
 			else if( msg_id == PLTT_TRACKER_ECHO_REPLY_ID )

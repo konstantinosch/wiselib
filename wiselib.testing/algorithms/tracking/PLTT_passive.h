@@ -530,7 +530,7 @@ namespace wiselib
 						debug().debug( "PLTT_Passive - process_report %x - Found tracker %x with intensity %d - further lookup.\n", radio().id(), _a.get_target_id(), traces_iterator->get_intensity() );
 					}
 #endif
-					if ( ( traces_iterator->get_intensity() * 100 ) / ( _a.get_max_intensity() - ( traces_iterator->get_spread_penalty() + traces_iterator->get_diminish_amount() * intensity_ticks ) ) >= intensity_detection_threshold )
+					if ( ( ( traces_iterator->get_intensity() * 100 ) / ( _a.get_max_intensity() - ( traces_iterator->get_spread_penalty() + traces_iterator->get_diminish_amount() * intensity_ticks ) ) >= intensity_detection_threshold ) && ( traces_iterator->get_parent().get_id() != 0x0 ) )
 					{
 						if ( _msg_id == PLTT_AGENT_QUERY_ID )
 						{
@@ -545,6 +545,7 @@ namespace wiselib
 						else if ( _msg_id == PLTT_AGENT_REPORT_ID )
 						{
 							block_data_t buff[ReliableRadio::MAX_MESSAGE_LENGTH];
+							_a.set_tracker_trace_id( traces_iterator->get_start_time() );
 							_a.inc_hop_count();
 							_a.serialize( buff );
 							debug().debug( "PLTT_Passive - process_query %x - Found target_id %x - TRACKER is in the area with intensity %d, REPORTING TO TRACKER! [agent_id %x]\n", radio().id(), _a.get_target_id(), traces_iterator->get_intensity(), _a.get_agent_id() );

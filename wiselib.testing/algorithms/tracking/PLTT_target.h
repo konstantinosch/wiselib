@@ -334,6 +334,12 @@ namespace wiselib
 			status = _st;
 		}
 		// -----------------------------------------------------------------------
+#ifdef CONFIG_PLTT_PRIVACY
+		uint8_t get_has_encrypted_id()
+		{
+			return has_encrypted_id;
+		}
+#endif
 	private:
 		Radio& radio()
 		{
