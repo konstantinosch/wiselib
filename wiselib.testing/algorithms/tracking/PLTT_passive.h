@@ -530,7 +530,14 @@ namespace wiselib
 						debug().debug( "PLTT_Passive - process_report %x - Found tracker %x with intensity %d - further lookup.\n", radio().id(), _a.get_target_id(), traces_iterator->get_intensity() );
 					}
 #endif
-					if ( ( ( traces_iterator->get_intensity() * 100 ) / ( _a.get_max_intensity() - ( traces_iterator->get_spread_penalty() + traces_iterator->get_diminish_amount() * intensity_ticks ) ) >= intensity_detection_threshold ) && ( traces_iterator->get_parent().get_id() != 0x0 ) )
+					if (
+							//intensity criteria
+							//( ( traces_iterator->get_intensity() * 100 ) / ( _a.get_max_intensity() - ( traces_iterator->get_spread_penalty() + traces_iterator->get_diminish_amount() * intensity_ticks ) ) >= intensity_detection_threshold ) &&
+							//detection point criteria
+							( traces_iterator->get_parent().get_id() == 0x0 ) &&
+							//time criteria
+							( traces_iterator->get_start_time() >= _a.get_trace_id() )
+							)
 					{
 						if ( _msg_id == PLTT_AGENT_QUERY_ID )
 						{
