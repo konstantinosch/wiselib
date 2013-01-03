@@ -60,8 +60,9 @@ namespace wiselib
 			request_id			(0),
 			decryption_retries	(0),
 			send				(0),
-			decrypted			(0)
-
+			decrypted			(0),
+			target_lqi			(0),
+			target_rssi			(0)
 		{
 			max_intensity = 2;
 			for ( IntensityNumber i = 0; i < ( sizeof(max_intensity) * 8 ); i++ )
@@ -93,6 +94,10 @@ namespace wiselib
 				target_id[i] = 0;
 			}
 			decryption_retries = 0;
+			send = 0;
+			decrypted = 0;
+			target_lqi = 0;
+			target_rssi = 0;
 		}
 		// --------------------------------------------------------------------
 		inline PLTT_PrivacyTraceType( const self_type& _t )
@@ -112,6 +117,10 @@ namespace wiselib
 			max_intensity = max_intensity - 1;
 			decryption_retries	= 0;
 			request_id = 0;
+			send = 0;
+			decrypted = 0;
+			target_lqi = 0;
+			target_rssi = 0;
 		}
 		// --------------------------------------------------------------------
 		inline block_data_t* serialize( block_data_t* _buff, size_t _offset = 0 )
@@ -209,6 +218,10 @@ namespace wiselib
 			grandparent = _t.grandparent;
 			diminish_amount = _t.diminish_amount;
 			max_intensity = _t.max_intensity;
+			send = _t.send;
+			decrypted = _t.decrypted;
+			target_lqi = _t.target_lqi;
+			target_rssi = _t.target_rssi;
 			return *this;
 		}
 		// --------------------------------------------------------------------
@@ -457,6 +470,26 @@ namespace wiselib
 			decrypted = 1;
 		}
 		// --------------------------------------------------------------------
+		uint8_t get_target_lqi()
+		{
+			return target_lqi;
+		}
+		// --------------------------------------------------------------------
+		void set_target_lqi( uint8_t _tlqi )
+		{
+			target_lqi = _tlqi;
+		}
+		// --------------------------------------------------------------------
+		uint8_t get_target_rssi()
+		{
+			return target_rssi;
+		}
+		// --------------------------------------------------------------------
+		void set_target_rssi( uint8_t _trssi )
+		{
+			target_rssi = _trssi;
+		}
+		// --------------------------------------------------------------------
 #ifdef DEBUG_PLTT_PRIVACY_TRACE_H
 		inline void print( Debug& _debug, Radio& _radio )
 		{
@@ -478,6 +511,8 @@ namespace wiselib
 			_debug.debug( "request_id (size %i ) : %x\n", sizeof(request_id), request_id );
 			_debug.debug( "inhibited (size %i) : %i\n", sizeof(inhibited), inhibited );
 			_debug.debug( "decryption_retries (size %i) : %i\n", sizeof(decryption_retries), decryption_retries );
+			_debug.debug( "target_lqi (size %i) : %i\n", sizeof(target_lqi), target_lqi );
+			_debug.debug( "target_rssi (size %i) : %i\n", sizeof(target_rssi), target_rssi );
 			_debug.debug( "current, parent, grandparent :\n" );
 			current.print( _debug, _radio );
 			parent.print( _debug, _radio );
@@ -503,6 +538,8 @@ namespace wiselib
 		block_data_t target_id[PRIVACY_CIPHER_TEXT_MAX_SIZE];
 		uint8_t send;
 		uint8_t decrypted;
+		uint8_t target_lqi;
+		uint8_t target_rssi;
 	};
 }
 #endif

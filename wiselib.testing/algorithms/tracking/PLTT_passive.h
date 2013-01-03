@@ -259,7 +259,7 @@ namespace wiselib
 			update_traces();
 			if ( neighbors.size() < nb_connections_low )
 			{
-				debug().debug( "LOCAL_MINIMUM:%d:%d\n", radio().id(), neighbors.size() );
+				debug().debug( "LOCAL_MINIMUM:NB:%d:%d\n", radio().id(), neighbors.size() );
 			}
 #ifdef CONFIG_PLTT_PRIVACY
 			decryption_request_daemon();
@@ -310,6 +310,9 @@ namespace wiselib
 			if ( msg_id == PLTT_SPREAD_ID )
 			{
 				PLTT_Trace trace = PLTT_Trace( message->get_payload() );
+				trace.set_target_lqi( _exdata.get_lqi() );
+				trace.set_target_rssi( _exdata.get_rssi() );
+				//debug().debug("lqi:%d,rssi:%d", _exdata.get_lqi(), _exdata.get_rssi() );
 				if 	( ( trace.get_recipient_1_id() == self.get_node().get_id() ) || ( trace.get_recipient_2_id() == self.get_node().get_id() ) ||
 					( ( trace.get_recipient_1_id() == 0 ) && (  trace.get_recipient_2_id() == 0 ) ) )
 				{
@@ -394,6 +397,8 @@ namespace wiselib
 						t.set_grandparent( i->get_grandparent() );
 						t.set_recipient_1_id( i->get_recipient_1_id() );
 						t.set_recipient_2_id( i->get_recipient_2_id() );
+						t.set_target_lqi( i->get_target_lqi() );
+						t.set_target_rssi( i->get_target_rssi() );
 						uint8_t found_flag = 0;
 						for ( PLTT_TraceListIterator j = traces.begin(); j != traces.end(); ++j )
 						{
@@ -432,12 +437,13 @@ namespace wiselib
 			{
 #ifdef DEBUG_PLTT_PASSIVE_H_RECEIVE
 				debug().debug( "PLTT_Passive - receive %x - Received PLTT_AGENT_QUERY_ID from %x.\n", radio().id(), _from );
+				debug().debug("PAS:%d:%x:%d\n", radio().id(), a.get_agent_id(), a.get_hop_count() );
 #endif
 				PLTT_Agent a;
 				a.de_serialize( message->get_payload() );
-				debug().debug("PAS:%d:%x:%d\n", radio().id(), a.get_agent_id(), a.get_hop_count() );
 				if ( a.get_hop_count() > 300 )
 				{
+					debug().debug("LM:TR:");
 					return;
 				}
 				process_query_report( a, PLTT_AGENT_QUERY_ID );
@@ -446,12 +452,13 @@ namespace wiselib
 			{
 #ifdef DEBUG_PLTT_PASSIVE_H_RECEIVE
 				debug().debug( "PLTT_Passive - receive %x- Received PLTT_AGENT_REPORT_ID from %x.\n", radio().id(), _from );
+				debug().debug("PAS:%d:%x:%d\n", radio().id(), a.get_agent_id(), a.get_hop_count() );
 #endif
 				PLTT_Agent a;
 				a.de_serialize( message->get_payload() );
-				debug().debug("PAS:%d:%x:%d\n", radio().id(), a.get_agent_id(), a.get_hop_count() );
 				if ( a.get_hop_count() > 300 )
 				{
+					debug().debug("LM:TR:");
 					return;
 				}
 				process_query_report( a, PLTT_AGENT_REPORT_ID );
@@ -545,6 +552,8 @@ namespace wiselib
 							debug().debug( "PLTT_Passive - process_query %x - Found target_id %x - target is in the area with intensity %d, switching to REPORT mode!\n", radio().id(), _a.get_target_id(), traces_iterator->get_intensity() );
 #endif
 							_a.set_target_position( self.get_node().get_position() );
+							_a.set_target_lqi( traces_iterator->get_target_lqi() );
+							_a.set_target_rssi( traces_iterator->get_target_rssi() );
 							_a.set_trace_id( traces_iterator->get_start_time() );
 							_a.switch_dest();
 							process_query_report( _a, PLTT_AGENT_REPORT_ID );

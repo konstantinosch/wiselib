@@ -200,7 +200,7 @@ namespace wiselib
 				debug().debug( "PLTT_Tracker - send_query - No echo replies for %x query.\n", current_agent_id );
 #endif
 #ifdef DEBUG_PLTT_TRACKER_H_STATS
-				debug().debug( "TRA:%x:%d:X\n", radio().id(), tracker_mini_run_counter );
+				debug().debug( "XTR:%d:%d:%d:X\n", radio().id(), target_id, tracker_mini_run_counter );
 #endif
 			}
 #ifdef DEBUG_PLTT_TRACKER_H_SEND_QUERY
@@ -257,7 +257,7 @@ namespace wiselib
 				debug().debug("XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX\n");
 #endif
 #ifdef DEBUG_PLTT_TRACKER_H_STATS
-				debug().debug( "TRA:%d:%d:%d:%d:%d:%d:%d:%x:%d:%d:%d:%f:%f:%d\n",
+				debug().debug( "TRA:%d:%d:%d:%d:%d:%d:%d:%x:%d:%d:%d:%f:%f:%d:%d:%d\n",
 						radio().id(),
 						a.get_target_id(),
 						a.get_tracker_id(),
@@ -271,7 +271,9 @@ namespace wiselib
 						a.get_trace_id(),
 						a.get_target_position().get_x(),
 						a.get_target_position().get_y(),
-						a.get_tracker_trace_id() );
+						a.get_tracker_trace_id(),
+						a.get_target_lqi(),
+						a.get_target_rssi() );
 #endif
 			}
 			else if( msg_id == PLTT_TRACKER_ECHO_REPLY_ID )
