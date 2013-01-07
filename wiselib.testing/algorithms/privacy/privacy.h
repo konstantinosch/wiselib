@@ -153,6 +153,7 @@ template<	typename Os_P,
 #ifdef PRIVACY_DEBUG
 			debug().debug( "Privacy - radio_receive - Entering %x with len %i, msg_id %i, from %x.\n", radio().id(), _len, msg_id, _from );
 #endif
+				//debug().debug("P1\n");
 				PrivacyMessage* message = (PrivacyMessage*) _data;
 #ifdef PRIVACY_DEBUG
 				debug().debug( "Privacy - radio_receive - Received request.\n" );
@@ -166,14 +167,19 @@ template<	typename Os_P,
 				}
 				debug().debug("\n");
 #endif
+				//debug().debug("P2\n");
 				message_list.push_back( *message );
+				//debug().debug("P3\n");
 			}
 			else if ( msg_id == PRIVACY_UNREGISTER )
 			{
+				debug().debug("P4\n");
 				PrivacyMessage* message = (PrivacyMessage*) _data;
+				//debug().debug("P5\n");
 				for ( CallbackContainerIterator i = privacy_callbacks.begin(); i != privacy_callbacks.end(); ++i )
 				{
-					if ( i->callback_id == message->request_id() ) { privacy_callbacks.erase( i ); }
+					//debug().debug("P6\n");
+					if ( i->callback_id == message->request_id() ) { privacy_callbacks.erase( i ); return; }
 				}
 			}
 		}
@@ -268,10 +274,10 @@ template<	typename Os_P,
 #endif
 						message_list.erase( i );
 						uart_read_write = 0;
+						return;
 #ifdef PRIVACY_DEBUG
 			debug().debug("Privacy - uart_receive %x - After erase with req id %x.\n", radio().id(), message->request_id() );
 #endif
-						return;
 					}
 				}
 			}

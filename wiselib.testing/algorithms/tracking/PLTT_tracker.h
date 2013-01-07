@@ -178,7 +178,7 @@ namespace wiselib
 				message.set_message_id( PLTT_AGENT_QUERY_ID );
 				message.set_payload(  agent.serial_size(), agent.serialize( buff ) );
 #ifdef DEBUG_PLTT_TRACKER_H_STATS
-				debug().debug("QTR:%d:%x\n",radio().id(), agent.get_agent_id() );
+				debug().debug("QTR:%d:%d:%x:%d\n",radio().id(), target_id, agent.get_agent_id(), tracker_mini_run_counter );
 #endif
 				//printf("XXXXXXXXX\n");
 				//agent.print( debug(), radio() );
