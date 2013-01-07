@@ -476,19 +476,19 @@ namespace wiselib
 #endif
 				if ( message_inner->get_message_id() == PLTT_AGENT_QUERY_ID )
 				{
-#ifdef DEBUG_PLTT_PASSIVE_H_RECEIVE
-				debug().debug( "PLTT_Passive - receive %x - Received ReliableRadio::RR_UNDELIVERED::PLTT_AGENT_QUERY_ID.\n", radio().id() );
-#endif
 					PLTT_Agent a;
 					a.de_serialize( message_inner->get_payload() );
+//#ifdef DEBUG_PLTT_PASSIVE_H_RECEIVE
+					debug().debug( "PLTT_Passive - receive %d - Received ReliableRadio::RR_UNDELIVERED::PLTT_AGENT_QUERY_ID [%x].\n", radio().id(), a.get_agent_id() );
+//#endif
 				}
 				else if ( message_inner->get_message_id() == PLTT_AGENT_REPORT_ID )
 				{
-#ifdef DEBUG_PLTT_PASSIVE_H_RECEIVE
-					debug().debug( "PLTT_Passive - receive %x - Received ReliableRadio::RR_UNDELIVERED::PLTT_AGENT_REPORT_ID.\n", radio().id() );
-#endif
 					PLTT_Agent a;
 					a.de_serialize( message_inner->get_payload() );
+//#ifdef DEBUG_PLTT_PASSIVE_H_RECEIVE
+					debug().debug( "PLTT_Passive - receive %d - Received ReliableRadio::RR_UNDELIVERED::PLTT_AGENT_REPORT_ID [%x].\n", radio().id(), a.get_agent_id() );
+//#endif
 				}
 #ifndef CONFIG_PLTT_PRIVACY
 
@@ -616,6 +616,10 @@ namespace wiselib
 							if ( neighbors.size() != 0 )
 							{
 								node_id_t recipient = neighbors.at( rand()() % neighbors.size() ).get_node().get_id();
+								for ( PLTT_NodeListIterator i = neighbors.begin(); i != neighbors.end(); ++i )
+								{
+									debug().debug( "nb:%d:[%f,%f,%d] %d:[%f,%f] [%f]\n", radio().id(), self.get_node().get_position().get_x(), self.get_node().get_position().get_y(), transmission_power_dB, i->get_node().get_id(), i->get_node().get_position().get_x(), i->get_node().get_position().get_y(), i->get_node().get_position().distsq( self.get_node().get_position() ) );
+								}
 								block_data_t buff[ReliableRadio::MAX_MESSAGE_LENGTH];
 								_a.inc_hop_count();
 								_a.serialize( buff );
@@ -655,6 +659,10 @@ namespace wiselib
 				if ( neighbors.size() != 0 )
 				{
 					node_id_t recipient = neighbors.at( rand()() % neighbors.size() ).get_node().get_id();
+					for ( PLTT_NodeListIterator i = neighbors.begin(); i != neighbors.end(); ++i )
+					{
+						debug().debug( "nb:%d:[%f,%f,%d] %d:[%f,%f] [%f]\n", radio().id(), self.get_node().get_position().get_x(), self.get_node().get_position().get_y(), transmission_power_dB, i->get_node().get_id(), i->get_node().get_position().get_x(), i->get_node().get_position().get_y(), i->get_node().get_position().distsq( self.get_node().get_position() ) );
+					}
 #ifdef DEBUG_PLTT_PASSIVE_H_PROCCESS_QUERY_REPORT
 					if ( _msg_id == PLTT_AGENT_QUERY_ID )
 					{
@@ -662,7 +670,7 @@ namespace wiselib
 					}
 					else if ( _msg_id == PLTT_AGENT_REPORT_ID )
 					{
-						debug().debug( "PLTT_Passive - process_report %d - Did not find tracker_id %d in trace list - forwarding to random recipient %d [%x%d:%d] .\n", radio().id(), _a.get_target_id(), recipient, _a.get_agent_id(), _a.get_trace_id(), _a.get_tracker_trace_id() );
+						debug().debug( "PLTT_Passive - process_report %d - Did not find tracker_id %d in trace list - forwarding to random recipient %d [%x:%d:%d] .\n", radio().id(), _a.get_target_id(), recipient, _a.get_agent_id(), _a.get_trace_id(), _a.get_tracker_trace_id() );
 					}
 #endif
 					block_data_t buff[ReliableRadio::MAX_MESSAGE_LENGTH];
@@ -675,11 +683,11 @@ namespace wiselib
 				{
 					if ( _msg_id == PLTT_AGENT_QUERY_ID )
 					{
-						debug().debug( "PLTT_Passive - process_query %d - Did not find target_id %d - forwarding to random recipient - FAILED, empty neighbor list [%x%d:%d:%d] .\n", radio().id(), _a.get_target_id(), _a.get_agent_id(), _a.get_trace_id(), _a.get_tracker_trace_id() );
+						debug().debug( "PLTT_Passive - process_query %d - Did not find target_id %d - forwarding to random recipient - FAILED, empty neighbor list [%x:%d:%d:%d] .\n", radio().id(), _a.get_target_id(), _a.get_agent_id(), _a.get_trace_id(), _a.get_tracker_trace_id() );
 					}
 					else if ( _msg_id == PLTT_AGENT_REPORT_ID )
 					{
-						debug().debug( "PLTT_Passive - process_report %d - Did not find tracker_id %d - forwarding to random recipient - FAILED, empty neighbor list [%x%d:%d:%d] .\n", radio().id(), _a.get_target_id() , _a.get_agent_id(), _a.get_trace_id(), _a.get_tracker_trace_id() );
+						debug().debug( "PLTT_Passive - process_report %d - Did not find tracker_id %d - forwarding to random recipient - FAILED, empty neighbor list [%x%:d:%d:%d] .\n", radio().id(), _a.get_target_id() , _a.get_agent_id(), _a.get_trace_id(), _a.get_tracker_trace_id() );
 					}
 				}
 #endif

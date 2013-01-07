@@ -357,6 +357,7 @@ namespace wiselib
 							message.set_message_id( RR_UNDELIVERED );
 							message.set_payload( i->get_payload_size(), i->get_payload() );
 							(*j)( i->get_destination(), message.serial_size(), message.serialize(), ex);
+							i->inc_counter();
 						}
 					}
 				}
