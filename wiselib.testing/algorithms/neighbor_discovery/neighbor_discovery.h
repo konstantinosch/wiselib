@@ -154,7 +154,7 @@ namespace wiselib
 									ProtocolSettings::MEAN_DEAD_TIME_PERIOD,
 									ND_OLD_DEAD_TIME_PERIOD_WEIGHT,
 									ND_NEW_DEAD_TIME_PERIOD_WEIGHT,
-									ProtocolSettings::R_NR_NORMAL,
+									ProtocolSettings::R_NR_WEIGHTED,
 									ND_BEACON_WEIGHT,
 									ND_LOST_BEACON_WEIGHT,
 									ND_MIN_REQUIRED_BEACONS,

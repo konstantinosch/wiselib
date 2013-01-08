@@ -254,16 +254,32 @@ namespace wiselib
 			debug().debug( "PLTT_Passive - neighbor_discovery_unregister_task %x - Entering.\n", radio().id() );
 #endif
 
-			radio_callback_id = radio().template reg_recv_callback<self_type, &self_type::receive> (this);
-			reliable_radio_callback_id = reliable_radio().template reg_recv_callback<self_type, &self_type::receive> (this);
-			update_traces();
-			if ( neighbors.size() < nb_connections_low )
+
+			debug().debug("$$$$$$$$$$$$$[ %d, %d TR LOCAL]$$$$$$$$$$$$$$$$$$$$$$$$\n", radio().id(), transmission_power_dB );
+			for ( PLTT_NodeListIterator i = neighbors.begin(); i != neighbors.end(); ++i )
 			{
-				debug().debug( "LOCAL_MINIMUM:NB:%d:%d\n", radio().id(), neighbors.size() );
+				debug().debug( "nb:%d:[%f,%f,%d] %d:[%f,%f] [%f]\n", radio().id(), self.get_node().get_position().get_x(), self.get_node().get_position().get_y(), transmission_power_dB, i->get_node().get_id(), i->get_node().get_position().get_x(), i->get_node().get_position().get_y(), i->get_node().get_position().distsq( self.get_node().get_position() ) );
 			}
-#ifdef CONFIG_PLTT_PRIVACY
-			decryption_request_daemon();
-#endif
+			debug().debug("$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$\n");
+			Protocol* prot_ref = neighbor_discovery().get_protocol_ref( NeighborDiscovery::ND_PROTOCOL_ID );
+			Protocol* prot_ref_tr = neighbor_discovery().get_protocol_ref( NeighborDiscovery::TRACKING_PROTOCOL_ID );
+			debug().debug("$$$$$$$$$$$$$[ %d, %d TR NB]$$$$$$$$$$$$$$$$$$$$$$$$\n", radio().id(), transmission_power_dB );
+			prot_ref_tr->print( debug(), radio() );
+			debug().debug("$$$$$$$$$$$$$[ %d, %d NB NB]$$$$$$$$$$$$$$$$$$$$$$$$\n", radio().id(), transmission_power_dB );
+			prot_ref->print( debug(), radio() );
+			debug().debug("$$$$$$$$$$$$$[ %d, %d END]$$$$$$$$$$$$$$$$$$$$$$$$\n", radio().id(), transmission_power_dB );
+
+//			radio_callback_id = radio().template reg_recv_callback<self_type, &self_type::receive> (this);
+//			reliable_radio_callback_id = reliable_radio().template reg_recv_callback<self_type, &self_type::receive> (this);
+//			update_traces();
+//
+//			if ( neighbors.size() < nb_connections_low )
+//			{
+//				debug().debug( "LOCAL_MINIMUM:NB:%d:%d\n", radio().id(), neighbors.size() );
+//			}
+//#ifdef CONFIG_PLTT_PRIVACY
+//			decryption_request_daemon();
+//#endif
 #ifndef CONFIG_PLTT_PASSIVE_H_ND_INTER_TASK
 #ifdef DEBUG_PLTT_PASSIVE_H_NEIGHBOR_DISCOVERY_STATS
 			Protocol* prot_ref = neighbor_discovery().get_protocol_ref( NeighborDiscovery::ND_PROTOCOL_ID );
