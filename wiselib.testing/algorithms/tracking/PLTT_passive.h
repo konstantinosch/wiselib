@@ -269,17 +269,17 @@ namespace wiselib
 			prot_ref->print( debug(), radio() );
 			debug().debug("$$$$$$$$$$$$$[ %d, %d END]$$$$$$$$$$$$$$$$$$$$$$$$\n", radio().id(), transmission_power_dB );
 
-//			radio_callback_id = radio().template reg_recv_callback<self_type, &self_type::receive> (this);
-//			reliable_radio_callback_id = reliable_radio().template reg_recv_callback<self_type, &self_type::receive> (this);
-//			update_traces();
-//
-//			if ( neighbors.size() < nb_connections_low )
-//			{
-//				debug().debug( "LOCAL_MINIMUM:NB:%d:%d\n", radio().id(), neighbors.size() );
-//			}
-//#ifdef CONFIG_PLTT_PRIVACY
-//			decryption_request_daemon();
-//#endif
+			radio_callback_id = radio().template reg_recv_callback<self_type, &self_type::receive> (this);
+			reliable_radio_callback_id = reliable_radio().template reg_recv_callback<self_type, &self_type::receive> (this);
+			update_traces();
+
+			if ( neighbors.size() < nb_connections_low )
+			{
+				debug().debug( "LOCAL_MINIMUM:NB:%d:%d\n", radio().id(), neighbors.size() );
+			}
+#ifdef CONFIG_PLTT_PRIVACY
+			decryption_request_daemon();
+#endif
 #ifndef CONFIG_PLTT_PASSIVE_H_ND_INTER_TASK
 #ifdef DEBUG_PLTT_PASSIVE_H_NEIGHBOR_DISCOVERY_STATS
 			Protocol* prot_ref = neighbor_discovery().get_protocol_ref( NeighborDiscovery::ND_PROTOCOL_ID );

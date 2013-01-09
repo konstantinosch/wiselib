@@ -97,6 +97,9 @@ namespace wiselib
 			clock_paradox_message_drops			( 0 ),
 			counter								( 0 )
 #endif
+#ifdef CONFIG_NEIGHBOR_DISCOVERY_H_EFFECTIVE_INVERSE_FILTER
+			,effective_inverse_filter_ratio		( ND_EFFECTIVE_INVERSE_FILTER_RATIO )
+#endif
 		{};
 		// --------------------------------------------------------------------
 		~NeighborDiscovery_Type()
@@ -525,8 +528,19 @@ namespace wiselib
 #ifdef CONFIG_NEIBHBOR_DISCOVERY_H_RSSI_FILTERING
 								new_neighbor.set_avg_RSSI_inverse( nit->get_avg_RSSI() );
 #endif
-								new_neighbor.set_link_stab_ratio_inverse( nit->get_link_stab_ratio() );
-								new_neighbor.update_link_stab_ratio_inverse( pit->resolve_beacon_weight( _from ), pit->resolve_lost_beacon_weight( _from ) );
+
+#ifdef CONFIG_NEIGHBOR_DISCOVERY_H_EFFECTIVE_INVERSE_FILTER
+								if ( new_neighbor.get_link_stab_ratio() >= effective_inverse_filter_ratio )
+								{
+									new_neighbor.set_link_stab_ratio_inverse( nit->get_link_stab_ratio() );
+									new_neighbor.update_link_stab_ratio_inverse( pit->resolve_beacon_weight( _from ), pit->resolve_lost_beacon_weight( _from ) );
+								}
+								else
+								{
+									new_neighbor.set_link_stab_ratio_inverse( 0 );
+								}
+#endif
+
 							}
 						}
 						uint8_t events_flag = 0;
@@ -1234,6 +1248,18 @@ namespace wiselib
 		}
 #endif
 		// --------------------------------------------------------------------
+#ifdef CONFIG_NEIGHBOR_DISCOVERY_H_EFFECTIVE_INVERSE_FILTER
+		uint8_t get_effective_inverse_filter_ratio()
+		{
+			return effective_inverse_filter_ratio;
+		}
+		// --------------------------------------------------------------------
+		void set_effective_inverse_filter_ratio( uint8_t _eifr )
+		{
+			effective_inverse_filter_ratio = _eifr;
+		}
+#endif
+		// --------------------------------------------------------------------
 		void init( Radio& _radio, Timer& _timer, Debug& _debug, Clock& _clock, Rand& _rand )
 		{
 			radio_ = &_radio;
@@ -1341,6 +1367,9 @@ namespace wiselib
 #endif
 #ifdef NEIGHBOR_DISCOVERY_COORD_SUPPORT
 		Position position;
+#endif
+#ifdef CONFIG_NEIGHBOR_DISCOVERY_H_EFFECTIVE_INVERSE_FILTER
+		uint8_t effective_inverse_filter_ratio;
 #endif
         Radio * radio_;
         Clock * clock_;
