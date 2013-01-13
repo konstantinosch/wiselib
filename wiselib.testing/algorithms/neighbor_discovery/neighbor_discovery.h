@@ -503,7 +503,7 @@ namespace wiselib
 							new_neighbor.set_id( _from );
 							new_neighbor.set_total_beacons( 1 );
 							new_neighbor.set_total_beacons_expected( 1 );
-							new_neighbor.set_link_stab_ratio( 100 );
+							new_neighbor.set_link_stab_ratio( 0 );
 							new_neighbor.set_link_stab_ratio_inverse( 0 );
 #ifdef CONFIG_NEIBHBOR_DISCOVERY_H_LQI_FILTERING
 							new_neighbor.update_avg_LQI( signal_quality, 1 );
@@ -530,17 +530,16 @@ namespace wiselib
 #endif
 
 #ifdef CONFIG_NEIGHBOR_DISCOVERY_H_EFFECTIVE_INVERSE_FILTER
-								if ( new_neighbor.get_link_stab_ratio() >= effective_inverse_filter_ratio )
+								if ( ( new_neighbor.get_link_stab_ratio() >= effective_inverse_filter_ratio ) && ( new_neighbor.get_total_beacons() >= pit->get_protocol_settings_ref()->get_min_required_beacons() ) )
 								{
 									new_neighbor.set_link_stab_ratio_inverse( nit->get_link_stab_ratio() );
-									new_neighbor.update_link_stab_ratio_inverse( pit->resolve_beacon_weight( _from ), pit->resolve_lost_beacon_weight( _from ) );
+									//new_neighbor.update_link_stab_ratio_inverse( pit->resolve_beacon_weight( _from ), pit->resolve_lost_beacon_weight( _from ) );
 								}
 								else
 								{
 									new_neighbor.set_link_stab_ratio_inverse( 0 );
 								}
 #endif
-
 							}
 						}
 						uint8_t events_flag = 0;
@@ -885,8 +884,6 @@ namespace wiselib
 				}
 #endif
 			}
-
-
 			if ( min_link_stab_ratio != 0 )
 			{
 				p_ref.get_neighborhood_ref()->erase( mlsr );

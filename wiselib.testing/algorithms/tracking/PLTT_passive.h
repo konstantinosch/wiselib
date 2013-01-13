@@ -564,9 +564,9 @@ namespace wiselib
 					}
 					if (
 							//intensity criteria
-							//( ( traces_iterator->get_intensity() * 100 ) / ( _a.get_max_intensity() - ( traces_iterator->get_spread_penalty() + traces_iterator->get_diminish_amount() * intensity_ticks ) ) >= intensity_detection_threshold ) &&
+							( ( traces_iterator->get_intensity() * 100 ) / ( _a.get_max_intensity() - ( traces_iterator->get_spread_penalty() + traces_iterator->get_diminish_amount() * intensity_ticks ) ) >= intensity_detection_threshold ) &&
 							//detection point criteria
-							( traces_iterator->get_parent().get_id() == 0x0 ) &&
+							//( traces_iterator->get_parent().get_id() == 0x0 ) &&
 							//time criteria
 							//***
 							( trace_time == 1 )
@@ -1239,8 +1239,10 @@ namespace wiselib
 #endif
 
 				PLTT_PrivacyTrace* t = (PLTT_PrivacyTrace*) _userdata;
+#ifdef CONFIG_PLTT_PASSIVE_H_INHIBITION_LIMIT_ON_DECRYPTION_REQUEST
 				if ( !t->get_inhibited() )
 				{
+#endif
 					PrivacyMessage pm;
 					pm.set_request_id( t->get_request_id() );
 					pm.set_payload( t->get_target_id_size(), t->get_target_id() );
@@ -1250,7 +1252,9 @@ namespace wiselib
 					radio().set_power( power );
 					radio().send( Radio::BROADCAST_ADDRESS, pm.buffer_size(), pm.buffer() );
 				}
+#ifdef CONFIG_PLTT_PASSIVE_H_INHIBITION_LIMIT_ON_DECRYPTION_REQUEST
 			}
+#endif
 		}
 		// -----------------------------------------------------------------------
 		void decryption_request_daemon( void* _userdata = NULL )

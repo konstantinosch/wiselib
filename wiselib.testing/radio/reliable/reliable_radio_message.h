@@ -112,7 +112,7 @@ namespace wiselib
 		{
 			destination = read<Os, block_data_t, node_id_t>( payload );
 		}
-//#ifdef DEBUG_RELIABLE_RADIO_H_DEEP_DEBUGS
+#ifdef DEBUG_RELIABLE_RADIO_H_DEEP_DEBUGS
 		// --------------------------------------------------------------------
 		void reply_internal_message_id_write( uint32_t _m) //caution! only use for reply storage debugging!
 		{
@@ -124,7 +124,7 @@ namespace wiselib
 			uint32_t m = read<Os, block_data_t, uint32_t>( payload + sizeof(node_id_t) );
 			return m;
 		}
-//#endif
+#endif
 		// --------------------------------------------------------------------
 		block_data_t* serialize( block_data_t* _buff, size_t _offset = 0 )
 		{
