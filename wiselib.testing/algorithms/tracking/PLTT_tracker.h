@@ -177,17 +177,9 @@ namespace wiselib
 				Message message;
 				message.set_message_id( PLTT_AGENT_QUERY_ID );
 				message.set_payload(  agent.serial_size(), agent.serialize( buff ) );
-#ifdef DEBUG_PLTT_TRACKER_H_STATS
+#ifdef DEBUG_PLTT_STATS
 				debug().debug("QTR:%d:%d:%x:%d\n",radio().id(), target_id, agent.get_agent_id(), tracker_mini_run_counter );
 #endif
-				//printf("XXXXXXXXX\n");
-				//agent.print( debug(), radio() );
-				//message.print( debug(), radio() );
-				//PLTT_Agent agent2;
-				//agent2.de_serialize( buff );
-				//printf("XXXXXXXXX\n");
-				//agent2.print( debug(), radio() );
-				//insert_agent( agent );
 				reliable_radio().send( current_query_destination, message.serial_size(), message.serialize() );
 				current_link_metric = 0;
 #ifdef DEBUG_PLTT_TRACKER_H_SEND_QUERY
@@ -199,7 +191,7 @@ namespace wiselib
 #ifdef DEBUG_PLTT_TRACKER_H_SEND_QUERY
 				debug().debug( "PLTT_Tracker - send_query - No echo replies for %x query.\n", current_agent_id );
 #endif
-#ifdef DEBUG_PLTT_TRACKER_H_STATS
+#ifdef DEBUG_PLTT_STATS
 				debug().debug( "XTR:%d:%d:%d:X\n", radio().id(), target_id, tracker_mini_run_counter );
 #endif
 			}
@@ -216,7 +208,9 @@ namespace wiselib
 #ifdef CONFIG_PLTT_TRACKER_H_MINI_RUN
 			if ( tracker_mini_run_counter < tracker_mini_run_times )
 			{
-				//debug().debug(" tmc,tmr [%d, %d]\n", tracker_mini_run_counter, tracker_mini_run_times );
+#ifdef DEBUG_PLTT_TRACKER_H_SEND_ECHO
+				debug().debug(" tmc,tmr [%d, %d]\n", tracker_mini_run_counter, tracker_mini_run_times );
+#endif
 #endif
 				current_agent_id = ( rand()() % ( 0xffffffff -1 ) + 1 );
 #ifdef DEBUG_PLTT_TRACKER_H_SEND_ECHO
@@ -227,7 +221,9 @@ namespace wiselib
 				block_data_t* buff = buf;
 				write<Os, block_data_t, AgentID> ( buff, current_agent_id );
 				send( Radio::BROADCAST_ADDRESS, len, buff, PLTT_TRACKER_ECHO_ID );
-				//debug().debug("tracker data %d : %d \n", generate_agent_period, ( generate_agent_period_offset_ratio * generate_agent_period ) / 100 );
+#ifdef DEBUG_PLTT_TRACKER_H_SEND_ECHO
+				debug().debug("tracker data %d : %d \n", generate_agent_period, ( generate_agent_period_offset_ratio * generate_agent_period ) / 100 );
+#endif
 				timer().template set_timer<self_type, &self_type::send_echo> ( generate_agent_period, this, 0);
 				timer().template set_timer<self_type, &self_type::send_query> ( ( generate_agent_period_offset_ratio * generate_agent_period ) / 100, this, 0);
 #ifdef CONFIG_PLTT_TRACKER_H_MINI_RUN
@@ -256,7 +252,7 @@ namespace wiselib
 				debug().debug( "PLTT_Tracker - receive %x - Received agent millis diff [%d vs %d = %d] %x.\n",  radio().id(), a.get_start_millis(), end_millis, ( end_millis - a.get_start_millis()  ), _from );
 				debug().debug("XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX\n");
 #endif
-#ifdef DEBUG_PLTT_TRACKER_H_STATS
+#ifdef DEBUG_PLTT_STATS
 				debug().debug( "TRA:%d:%d:%d:%d:%d:%d:%d:%x:%d:%d:%d:%f:%f:%d:%d:%d\n",
 						radio().id(),
 						a.get_target_id(),

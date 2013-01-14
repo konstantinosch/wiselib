@@ -123,21 +123,6 @@ namespace wiselib
 #endif
 		}
 		// --------------------------------------------------------------------
-//		void buffer_message( node_id_t _dest, size_t _len, block_data_t* _data )
-//		{
-//#ifdef DEBUG_RELIABLE_RADIO_H
-//			debug().debug( "ReliableRadio - buffer_message %x - Entering.\n", radio().id() );
-//#endif
-//			ReliableRadioMessage reliable_radio_message;
-//			reliable_radio_message.set_message_id( rand()()%0xff );
-//			reliable_radio_message.set_payload( _len, _data );
-//			reliable_radio_message.set_destination( _dest );
-//			insert_reliable_radio_message( reliable_radio_message );
-//#ifdef DEBUG_RELIABLE_RADIO_H
-//			debug().debug( "ReliableRadio - buffer_message %x - Exiting.\n", radio().id() );
-//#endif
-//		}
-		// --------------------------------------------------------------------
 		void receive( node_id_t _from, size_t _len, block_data_t * _msg, ExData const &_ex )
 		{
 #ifdef DEBUG_RELIABLE_RADIO_H

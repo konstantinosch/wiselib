@@ -166,8 +166,6 @@ namespace wiselib
 					PrivacyMessage encryption_privacy_message;
 					encryption_privacy_message.set_msg_id( PRIVACY_ENCRYPTION_REQUEST_ID );
 					encryption_privacy_message.set_request_id( target_request_id );
-					//debug().debug( " WEIRD %x : %x : %d : %d : %d \n", radio().id(), self.get_id(), sizeof(node_id_t), target_request_id, PRIVACY_ENCRYPTION_REQUEST_ID );
-					//debug().debug( " WEIRD %x : %x : %d : %d : %d \n", radio().id(), self.get_id(), sizeof(node_id_t), encryption_privacy_message.request_id(), encryption_privacy_message.msg_id() );
 					node_id_t self_id = self.get_id();
 					block_data_t buffer[10];
 					block_data_t* buff = buffer;
@@ -206,7 +204,7 @@ namespace wiselib
 						{
 #endif
 							target_trace.set_target_id( randomize_privacy_message_ptr->payload() );
-#ifdef DEBUG_PLTT_TARGET_H_STATS
+#ifdef DEBUG_PLTT_STATS
 							debug().debug( "TAR:%d:%d:%d:%f:%f:%d\n", radio().id(),  clock().seconds( clock().time() ) * 1000 + clock().milliseconds( clock().time() ), target_trace.get_start_time(), self.get_position().get_x(), self.get_position().get_y(), transmission_power_dB );
 #endif
 							Message message;
