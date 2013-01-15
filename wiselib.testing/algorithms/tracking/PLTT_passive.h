@@ -125,6 +125,33 @@ namespace wiselib
 			decryption_request_offset				( PLTT_PASSIVE_H_DECRYPTION_REQUEST_OFFSET ),
 			decryption_max_retries					( PLTT_PASSIVE_H_DECRYPTION_MAX_RETRIES )
 #endif
+#ifdef DEBUG_PLTT_STATS
+			,spread_bytes_send									( 0 ),
+			spread_messages_send								( 0 ),
+			inhibition_bytes_send								( 0 ),
+			inhibition_messages_send							( 0 ),
+			spread_bytes_received								( 0 ),
+			spread_messages_received							( 0 ),
+			inhibition_bytes_received							( 0 ),
+			inhibition_messages_received						( 0 )
+#ifdef CONFIG_PLTT_PRIVACY
+			,privacy_inhibition_bytes_send						( 0 ),
+			privacy_inhibition_messages_send					( 0 ),
+			privacy_spread_bytes_send							( 0 ),
+			privacy_spread_messages_send						( 0 ),
+			privacy_decryptions_requests_bytes_send				( 0 ),
+			privacy_decryptions_requests_messages_send			( 0 ),
+			privacy_inhibition_bytes_received					( 0 ),
+			privacy_inhibition_messages_received				( 0 ),
+			privacy_spread_bytes_received						( 0 ),
+			privacy_spread_messages_received					( 0 ),
+			privacy_decryptions_replies_messages_received		( 0 ),
+			privacy_decryptions_replies_bytes_received			( 0 )
+
+#endif
+			,stats_daemon_period								( PLTT_PASSIVE_H_STATS_DAEMON_PERIOD ),
+			stats_counter										( 0 )
+#endif
 #ifdef DEBUG_PLTT_PASSIVE_H_STATUS
 			,status_t								( 0 ),
 			status_t_max							( PLTT_PASSIVE_H_STATUS_T_MAX ),
@@ -279,6 +306,7 @@ namespace wiselib
 			reliable_radio_callback_id = reliable_radio().template reg_recv_callback<self_type, &self_type::receive> (this);
 			update_traces();
 #ifdef DEBUG_PLTT_STATS
+			timer().template set_timer<self_type, &self_type::pltt_stats_daemon>( stats_daemon_period, this, 0 );
 			if ( neighbors.size() < nb_connections_low )
 			{
 				debug().debug( "LOCAL_MINIMUM:NB:%d:%d\n", radio().id(), neighbors.size() );
@@ -320,6 +348,35 @@ namespace wiselib
 		// -----------------------------------------------------------------------
 		void send( node_id_t _destination, size_t _len, block_data_t* _data, message_id_t _msg_id )
 		{
+#ifdef DEBUG_PLTT_STATS
+		if ( _msg_id == PLTT_SPREAD_ID )
+		{
+			spread_bytes_send = spread_bytes_send + _len;
+			spread_messages_send = spread_messages_send + 1;
+		}
+		else if ( _msg_id == PLTT_INHIBITION_ID )
+		{
+			inhibition_bytes_send = inhibition_bytes_send + _len;
+			inhibition_messages_send = inhibition_messages_send + 1;
+		}
+#ifdef CONFIG_PLTT_PRIVACY
+		if ( _msg_id == PLTT_PRIVACY_SPREAD_ID )
+		{
+			privacy_spread_bytes_send = privacy_spread_bytes_send + _len;
+			privacy_spread_messages_send = privacy_spread_messages_send + 1;
+		}
+		else if ( _msg_id == PLTT_PRIVACY_INHIBITION_ID )
+		{
+			privacy_inhibition_bytes_send = privacy_inhibition_bytes_send + _len;
+			privacy_inhibition_messages_send = privacy_inhibition_messages_send + 1;
+		}
+		else if ( _msg_id == PRIVACY_DECRYPTION_REQUEST_ID )
+		{
+			privacy_decryptions_requests_bytes_send = privacy_decryptions_requests_bytes_send + _len;
+			privacy_decryptions_requests_messages_send = privacy_decryptions_requests_messages_send + 1;
+		}
+#endif
+#endif
 			Message message;
 			message.set_message_id( _msg_id );
 			message.set_payload( _len, _data );
@@ -336,10 +393,16 @@ namespace wiselib
 #ifndef CONFIG_PLTT_PRIVACY
 			if ( msg_id == PLTT_SPREAD_ID )
 			{
+#ifdef DEBUG_PLTT_STATS
+				spread_bytes_received = spread_bytes_received + _len;
+				spread_messages_received = spread_messages_received + 1;
+#endif
 				PLTT_Trace trace = PLTT_Trace( message->get_payload() );
 				trace.set_target_lqi( _exdata.get_lqi() );
 				trace.set_target_rssi( _exdata.get_rssi() );
+#ifdef DEBUG_PLTT_PASSIVE_H_RECEIVE
 				debug().debug("lqi:%d,rssi:%d", _exdata.get_lqi(), _exdata.get_rssi() );
+#endif
 				if 	( ( trace.get_recipient_1_id() == self.get_node().get_id() ) || ( trace.get_recipient_2_id() == self.get_node().get_id() ) ||
 					( ( trace.get_recipient_1_id() == 0 ) && (  trace.get_recipient_2_id() == 0 ) ) )
 				{
@@ -353,6 +416,10 @@ namespace wiselib
 			}
 			else if ( msg_id == PLTT_INHIBITION_ID )
 			{
+#ifdef DEBUG_PLTT_STATS
+				inhibition_bytes_received = inhibition_bytes_received + _len;
+				inhibition_messages_received = inhibition_messages_received + 1;
+#endif
 				PLTT_Trace trace = PLTT_Trace( message->get_payload() );
 #ifdef DEBUG_PLTT_PASSIVE_H_RECEIVE
 				debug().debug( "PLTT_Passive - receive %x - Received inhibition message from %x of rssi %i and lqi %i and size %i.\n", radio().id() _from, _exdata.get_rssi(), _exdata.get_lqi(), _len );
@@ -364,6 +431,10 @@ namespace wiselib
 #else
 			if ( msg_id == PLTT_PRIVACY_SPREAD_ID )
 			{
+#ifdef DEBUG_PLTT_STATS
+				privacy_spread_bytes_received = privacy_spread_bytes_received + _len;
+				privacy_spread_messages_received = privacy_spread_messages_received + 1;
+#endif
 				PLTT_PrivacyTrace privacy_trace = PLTT_PrivacyTrace( message->get_payload() );
 				privacy_trace.set_target_lqi( _exdata.get_lqi() );
 				privacy_trace.set_target_rssi( _exdata.get_rssi() );
@@ -393,6 +464,10 @@ namespace wiselib
 			}
 			else if ( msg_id == PLTT_PRIVACY_INHIBITION_ID )
 			{
+#ifdef DEBUG_PLTT_STATS
+				privacy_inhibition_bytes_received = privacy_inhibition_bytes_received + _len;
+				privacy_inhibition_messages_received = privacy_inhibition_messages_received + 1;
+#endif
 				PLTT_PrivacyTrace privacy_trace = PLTT_PrivacyTrace( message->get_payload() );
 #ifdef DEBUG_PLTT_PASSIVE_H_RECEIVE
 				debug().debug( "PLTT_Passive - receive %x - Received encrypted inhibition message from unknown target of size %i and intensity %i vs %i- Encrypted trace is indirect spread - inhibition: 1.\n", radio().id(), message->get_payload_size(), privacy_trace.get_intensity(), privacy_trace.get_max_intensity() );
@@ -401,6 +476,10 @@ namespace wiselib
 			}
 			else if ( msg_id == PRIVACY_DECRYPTION_REPLY_ID )
 			{
+#ifdef DEBUG_PLTT_STATS
+				privacy_decryptions_replies_bytes_received = privacy_decryptions_replies_bytes_received + _len;
+				privacy_decryptions_replies_messages_received = privacy_decryptions_replies_messages_received + 1;
+#endif
 				PrivacyMessage* pm = ( PrivacyMessage* ) _data;
 #ifdef DEBUG_PLTT_PASSIVE_H_RECEIVE
 				debug().debug( "PLTT_Passive - receive %x - Received decryption reply from helper %x of size %i.\n", radio().id(), _from, pm->buffer_size() );
@@ -591,10 +670,8 @@ namespace wiselib
 #ifdef CONFIG_PLTT_PASSIVE_H_TRACKING_INC_DETECTIONS
 							( traces_iterator->get_parent().get_id() == 0x0 ) &&
 #endif
-							//***
 							( trace_time == 1 )
-							//***
-							)
+						)
 					{
 						if ( _msg_id == PLTT_AGENT_QUERY_ID )
 						{
@@ -1558,6 +1635,7 @@ namespace wiselib
 			return status;
 		}
 #endif
+		// -----------------------------------------------------------------------
 		uint8_t direction_processing( Node _node1, Node _node2 )
 		{
 			if ( ( _node1.get_position().get_x() >= _node2.get_position().get_x() ) && ( _node1.get_position().get_y() >= _node2.get_position().get_y() ) )
@@ -1582,6 +1660,78 @@ namespace wiselib
 		{
 			status = _st;
 		}
+		// -----------------------------------------------------------------------
+#ifdef DEBUG_PLTT_STATS
+		void pltt_stats_daemon( void* _userdata = NULL )
+		{
+#ifdef CONFIG_PLTT_PRIVACY
+		uint32_t privacy_inhibition_bytes_send;
+		uint32_t privacy_inhibition_messages_send;
+		uint32_t privacy_spread_bytes_send;
+		uint32_t privacy_spread_messages_send;
+		uint32_t privacy_decryptions_requests_bytes_send;
+		uint32_t privacy_decryptions_requests_messages_send;
+		uint32_t privacy_inhibition_bytes_received;
+		uint32_t privacy_inhibition_messages_received;
+		uint32_t privacy_spread_bytes_received;
+		uint32_t privacy_spread_messages_received;
+		uint32_t privacy_decryptions_replies_bytes_received;
+		uint32_t privacy_decryptions_replies_messages_received;
+#endif
+
+#ifndef CONFIG_PLTT_PRIVACY
+		debug().debug
+				(
+					"STATS_VD:%d:%d:%d:%d:%d:%d:%d:%d:%d:%d:%f:%f\n",
+					radio().id(),
+					stats_counter,
+					spread_bytes_send,
+					spread_messages_send,
+					inhibition_bytes_send,
+					inhibition_messages_send,
+					spread_bytes_received,
+					spread_messages_received,
+					inhibition_bytes_received,
+					inhibition_messages_received,
+					self.get_node().get_position().get_x(),
+					self.get_node().get_position().get_y()
+				);
+#else
+		debug().debug
+				(
+					"STATS_PD:%d:%d:%d:%d:%d:%d:%d:%d:%d:%d:%d:%d:%d:%d:%f:%f\n",
+					radio().id(),
+					stats_counter,
+					privacy_inhibition_bytes_send,
+					privacy_inhibition_messages_send,
+					privacy_spread_bytes_send,
+					privacy_spread_messages_send,
+					privacy_decryptions_requests_bytes_send,
+					privacy_decryptions_requests_messages_send,
+					privacy_inhibition_bytes_received,
+					privacy_inhibition_messages_received,
+					privacy_spread_bytes_received,
+					privacy_spread_messages_received,
+					privacy_decryptions_replies_bytes_received,
+					privacy_decryptions_replies_messages_received,
+					self.get_node().get_position().get_x(),
+					self.get_node().get_position().get_y()
+				);
+#endif
+			stats_counter = stats_counter + 1;
+			timer().template set_timer<self_type, &self_type::pltt_stats_daemon>( stats_daemon_period, this, 0 );
+		}
+		// -----------------------------------------------------------------------
+		millis_t get_stats_daemon_period()
+		{
+			return stats_daemon_period;
+		}
+		// -----------------------------------------------------------------------
+		void set_stats_daemon_period( millis_t _sdp )
+		{
+			stats_daemon_period = _sdp;
+		}
+#endif
 		// -----------------------------------------------------------------------
 	private:
 		Radio& radio()
@@ -1673,6 +1823,32 @@ namespace wiselib
 		millis_t decryption_request_timer;
 		millis_t decryption_request_offset;
 		uint8_t decryption_max_retries;
+#endif
+#ifdef DEBUG_PLTT_STATS
+		uint32_t spread_bytes_send;
+		uint32_t spread_messages_send;
+		uint32_t inhibition_bytes_send;
+		uint32_t inhibition_messages_send;
+		uint32_t spread_bytes_received;
+		uint32_t spread_messages_received;
+		uint32_t inhibition_bytes_received;
+		uint32_t inhibition_messages_received;
+#ifdef CONFIG_PLTT_PRIVACY
+		uint32_t privacy_inhibition_bytes_send;
+		uint32_t privacy_inhibition_messages_send;
+		uint32_t privacy_spread_bytes_send;
+		uint32_t privacy_spread_messages_send;
+		uint32_t privacy_decryptions_requests_bytes_send;
+		uint32_t privacy_decryptions_requests_messages_send;
+		uint32_t privacy_inhibition_bytes_received;
+		uint32_t privacy_inhibition_messages_received;
+		uint32_t privacy_spread_bytes_received;
+		uint32_t privacy_spread_messages_received;
+		uint32_t privacy_decryptions_replies_bytes_received;
+		uint32_t privacy_decryptions_replies_messages_received;
+#endif
+		millis_t stats_daemon_period;
+		uint32_t stats_counter;
 #endif
 		PLTT_Node self;
 		int old_con;

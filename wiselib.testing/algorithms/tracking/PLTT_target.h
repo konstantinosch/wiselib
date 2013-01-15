@@ -274,7 +274,7 @@ namespace wiselib
 					message.set_message_id( PLTT_SPREAD_ID );
 					block_data_t buffer[Radio::MAX_MESSAGE_LENGTH];
 					block_data_t* buff = buffer;
-#ifdef DEBUG_PLTT_TARGET_H_STATS
+#ifdef DEBUG_PLTT_STATS
 					debug().debug( "TAR:%d:%d:%d:%f:%f:%d\n", radio().id(),  clock().seconds( clock().time() ) * 1000 + clock().milliseconds( clock().time() ), target_trace.get_start_time(), self.get_position().get_x(), self.get_position().get_y(), transmission_power_dB );
 					//debug().debug( "TAR:%x:%d:%f:%f\n", radio().id(),  target_trace.get_start_time(), self.get_position().get_x(), self.get_position().get_y() );
 #endif
