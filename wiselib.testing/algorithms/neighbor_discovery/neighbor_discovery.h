@@ -515,31 +515,45 @@ namespace wiselib
 							new_neighbor.set_beacon_period_update_counter( beacon.get_beacon_period_update_counter() );
 							new_neighbor.set_last_beacon( current_time );
 						}
+						uint8_t instab_found_flag = 0;
 						for ( Neighbor_vector_iterator nit = beacon.get_neighborhood_ref()->begin(); nit != beacon.get_neighborhood_ref()->end(); ++nit )
 						{
 							if ( radio().id() == nit->get_id() )
 							{
 #ifdef DEBUG_NEIGHBOR_DISCOVERY_H_RECEIVE
-								debug().debug( "NeighborDiscovery - receive %x - Neighbor %x was aware of node for protocol %i.\n", _from, pit->get_protocol_id() );
+								debug().debug( "NeighborDiscovery - receive %d - Neighbor %d was aware of node for protocol %i nn %d - [%d:%d].\n", radio().id(), _from, pit->get_protocol_id(), new_neighbor.get_id(), new_neighbor.get_link_stab_ratio(), new_neighbor.get_link_stab_ratio_inverse() );
 #endif
-#ifdef CONFIG_NEIBHBOR_DISCOVERY_H_LQI_FILTERING
-								new_neighbor.set_avg_LQI_inverse( nit->get_avg_LQI() );
-#endif
-#ifdef CONFIG_NEIBHBOR_DISCOVERY_H_RSSI_FILTERING
-								new_neighbor.set_avg_RSSI_inverse( nit->get_avg_RSSI() );
-#endif
+								uint8_t instab_found_flag = 1;
 #ifdef CONFIG_NEIGHBOR_DISCOVERY_H_EFFECTIVE_INVERSE_FILTER
 								if ( ( new_neighbor.get_link_stab_ratio() >= effective_inverse_filter_ratio ) && ( new_neighbor.get_total_beacons() >= pit->get_protocol_settings_ref()->get_min_required_beacons() ) )
 								{
+#endif
 									new_neighbor.set_link_stab_ratio_inverse( nit->get_link_stab_ratio() );
 									//new_neighbor.update_link_stab_ratio_inverse( pit->resolve_beacon_weight( _from ), pit->resolve_lost_beacon_weight( _from ) );
+#ifdef CONFIG_NEIBHBOR_DISCOVERY_H_RSSI_FILTERING
+									new_neighbor.set_avg_RSSI_inverse( nit->get_avg_RSSI() );
+#endif
+#ifdef CONFIG_NEIBHBOR_DISCOVERY_H_LQI_FILTERING
+									new_neighbor.set_avg_LQI_inverse( nit->get_avg_LQI() );
+#endif
+#ifdef CONFIG_NEIGHBOR_DISCOVERY_H_EFFECTIVE_INVERSE_FILTER
 								}
 								else
 								{
 									new_neighbor.set_link_stab_ratio_inverse( 0 );
+#ifdef CONFIG_NEIBHBOR_DISCOVERY_H_RSSI_FILTERING
+									new_neighbor.set_avg_RSSI_inverse( 0 );
+#endif
+#ifdef CONFIG_NEIBHBOR_DISCOVERY_H_LQI_FILTERING
+									new_neighbor.set_avg_LQI_inverse( 0 );
+#endif
 								}
 #endif
 							}
+						}
+						if ( instab_found_flag == 0 )
+						{
+							debug().debug( "NB:%d[:]%d[:]%i[:]%d[%d:%d].\n", radio().id(), _from, pit->get_protocol_id(), new_neighbor.get_id(), new_neighbor.get_link_stab_ratio(), new_neighbor.get_link_stab_ratio_inverse() );
 						}
 						uint8_t events_flag = 0;
 						if	(
@@ -795,17 +809,39 @@ namespace wiselib
 #endif
 							nit->inc_total_beacons_expected( dead_time / nit->get_beacon_period() * ( pit->resolve_lost_beacon_weight( nit->get_id() ) ) );
 							nit->update_link_stab_ratio();
+#ifdef CONFIG_NEIGHBOR_DISCOVERY_H_EFFECTIVE_INVERSE_FILTER
 							if ( nit->get_link_stab_ratio() < effective_inverse_filter_ratio )
 							{
 								nit->set_link_stab_ratio_inverse( 0 );
+#ifdef CONFIG_NEIBHBOR_DISCOVERY_H_RSSI_FILTERING
+								nit->set_avg_RSSI_inverse( 0);
+#endif
+#ifdef CONFIG_NEIBHBOR_DISCOVERY_H_LQI_FILTERING
+								nit->set_avg_LQI_inverse( 0 );
+#endif
 							}
+#endif
 							nit->set_beacon_period( nit->get_beacon_period() );
 							nit->set_last_beacon( current_time );
 							uint8_t events_flag = 0;
-							if 	( ( nit->get_link_stab_ratio() <= pit->get_protocol_settings_ref()->get_max_link_stab_ratio_threshold() ) &&
-								( nit->get_link_stab_ratio() >= pit->get_protocol_settings_ref()->get_min_link_stab_ratio_threshold() ) &&
-								( nit->get_link_stab_ratio_inverse() <= pit->get_protocol_settings_ref()->get_max_link_stab_ratio_inverse_threshold() ) &&
-								( nit->get_link_stab_ratio_inverse() >= pit->get_protocol_settings_ref()->get_min_link_stab_ratio_inverse_threshold() ) )
+							if 	(
+#ifdef CONFIG_NEIBHBOR_DISCOVERY_H_LQI_FILTERING
+									( nit->get_avg_LQI() <= pit->get_protocol_settings_ref()->get_max_avg_LQI_threshold() ) &&
+									( nit->get_avg_LQI() >= pit->get_protocol_settings_ref()->get_min_avg_LQI_threshold() ) &&
+									( nit->get_avg_LQI_inverse() <= pit->get_protocol_settings_ref()->get_max_avg_LQI_inverse_threshold() ) &&
+									( nit->get_avg_LQI_inverse() >= pit->get_protocol_settings_ref()->get_min_avg_LQI_inverse_threshold() ) &&
+#endif
+#ifdef CONFIG_NEIBHBOR_DISCOVERY_H_RSSI_FILTERING
+									( nit->get_avg_RSSI() <= pit->get_protocol_settings_ref()->get_max_avg_RSSI_threshold() ) &&
+									( nit->get_avg_RSSI() >= pit->get_protocol_settings_ref()->get_min_avg_RSSI_threshold() ) &&
+									( nit->get_avg_RSSI_inverse() <= pit->get_protocol_settings_ref()->get_max_avg_RSSI_inverse_threshold() ) &&
+									( nit->get_avg_RSSI_inverse() >= pit->get_protocol_settings_ref()->get_min_avg_RSSI_inverse_threshold() ) &&
+#endif
+									( nit->get_link_stab_ratio() <= pit->get_protocol_settings_ref()->get_max_link_stab_ratio_threshold() ) &&
+									( nit->get_link_stab_ratio() >= pit->get_protocol_settings_ref()->get_min_link_stab_ratio_threshold() ) &&
+									( nit->get_link_stab_ratio_inverse() <= pit->get_protocol_settings_ref()->get_max_link_stab_ratio_inverse_threshold() ) &&
+									( nit->get_link_stab_ratio_inverse() >= pit->get_protocol_settings_ref()->get_min_link_stab_ratio_inverse_threshold() )
+								)
 							{
 								nit->set_active();
 								events_flag = events_flag | ProtocolSettings::UPDATE_NB;
