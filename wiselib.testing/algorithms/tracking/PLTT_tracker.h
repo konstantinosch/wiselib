@@ -248,7 +248,6 @@ namespace wiselib
 				debug().debug("XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX\n");
 				debug().debug( "PLTT_Tracker - receive %x- Received agent from %x.\n", radio().id(), _from );
 				a.print( debug(), radio() );
-				debug().debug( "PLTT_Tracker - receive - Received agent millis diff [%d vs %d = %d] %x.\n", _from, a.get_start_millis(), retrieve_agent( a )->get_start_millis(), _from, ( a.get_start_millis() - retrieve_agent( a )->get_start_millis() ) );
 				debug().debug( "PLTT_Tracker - receive %x - Received agent millis diff [%d vs %d = %d] %x.\n",  radio().id(), a.get_start_millis(), end_millis, ( end_millis - a.get_start_millis()  ), _from );
 				debug().debug("XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX\n");
 #endif

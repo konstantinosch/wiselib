@@ -287,7 +287,7 @@ namespace wiselib
 #ifdef DEBUG_PLTT_PASSIVE_H_NEIGHBOR_DISCOVERY_DISABLE_TASK
 			debug().debug( "PLTT_Passive - neighbor_discovery_unregister_task %x - Entering.\n", radio().id() );
 #endif
-#ifdef DEBUG_PLTT_PASSIVE_H_NEIGHBOR_DISCOVERY_DISABLE_TASK
+//#ifdef DEBUG_PLTT_PASSIVE_H_NEIGHBOR_DISCOVERY_DISABLE_TASK
 			debug().debug("$$$$$$$$$$$$$[ %d, %d TR LOCAL]$$$$$$$$$$$$$$$$$$$$$$$$\n", radio().id(), transmission_power_dB );
 			for ( PLTT_NodeListIterator i = neighbors.begin(); i != neighbors.end(); ++i )
 			{
@@ -301,7 +301,7 @@ namespace wiselib
 			debug().debug("$$$$$$$$$$$$$[ %d, %d NB NB]$$$$$$$$$$$$$$$$$$$$$$$$\n", radio().id(), transmission_power_dB );
 			prot_ref->print( debug(), radio() );
 			debug().debug("$$$$$$$$$$$$$[ %d, %d END]$$$$$$$$$$$$$$$$$$$$$$$$\n", radio().id(), transmission_power_dB );
-#endif
+//#endif
 			radio_callback_id = radio().template reg_recv_callback<self_type, &self_type::receive> (this);
 			reliable_radio_callback_id = reliable_radio().template reg_recv_callback<self_type, &self_type::receive> (this);
 			update_traces();
@@ -455,10 +455,10 @@ namespace wiselib
 				if	( ( privacy_trace.get_recipient_1_id() == self.get_node().get_id() ) || ( privacy_trace.get_recipient_2_id() == self.get_node().get_id() ) ||
 					( ( privacy_trace.get_recipient_1_id() == 0 ) && (  privacy_trace.get_recipient_2_id() == 0 ) ) )
 				{
-#ifdef DEBUG_PLTT_PASSIVE_H_RECEIVE
-					debug().debug( "PLTT_Passive - receive %x - Received encrypted trace from unknown target %x of size %i and intensity %i vs %i - Encrypted trace is detection or direct spread - inhibition: 0. [%d, %d ]\n", radio().id(), _from, message->get_payload_size(), privacy_trace.get_intensity(), privacy_trace.get_max_intensity(), _exdata.get_rssi(), _exdata.get_lqi()  );
-					privacy_trace.print( debug(), radio() );
-#endif
+//#ifdef DEBUG_PLTT_PASSIVE_H_RECEIVE
+//					debug().debug( "PLTT_Passive - receive %x - Received encrypted trace from unknown target %x of size %i and intensity %i vs %i - Encrypted trace is detection or direct spread - inhibition: 0. [%d, %d ]\n", radio().id(), _from, message->get_payload_size(), privacy_trace.get_intensity(), privacy_trace.get_max_intensity(), _exdata.get_rssi(), _exdata.get_lqi()  );
+					//privacy_trace.print( debug(), radio() );
+//#endif
 					prepare_spread_trace( store_inhibit_trace( privacy_trace ), _exdata );
 				}
 			}
@@ -469,9 +469,9 @@ namespace wiselib
 				privacy_inhibition_messages_received = privacy_inhibition_messages_received + 1;
 #endif
 				PLTT_PrivacyTrace privacy_trace = PLTT_PrivacyTrace( message->get_payload() );
-#ifdef DEBUG_PLTT_PASSIVE_H_RECEIVE
-				debug().debug( "PLTT_Passive - receive %x - Received encrypted inhibition message from unknown target of size %i and intensity %i vs %i- Encrypted trace is indirect spread - inhibition: 1.\n", radio().id(), message->get_payload_size(), privacy_trace.get_intensity(), privacy_trace.get_max_intensity() );
-#endif
+//#ifdef DEBUG_PLTT_PASSIVE_H_RECEIVE
+//				debug().debug( "PLTT_Passive - receive %x - Received encrypted inhibition message from unknown target of size %i and intensity %i vs %i- Encrypted trace is indirect spread - inhibition: 1.\n", radio().id(), message->get_payload_size(), privacy_trace.get_intensity(), privacy_trace.get_max_intensity() );
+//#endif
 				store_inhibit_trace( privacy_trace, 1 );
 			}
 			else if ( msg_id == PRIVACY_DECRYPTION_REPLY_ID )
@@ -481,9 +481,9 @@ namespace wiselib
 				privacy_decryptions_replies_messages_received = privacy_decryptions_replies_messages_received + 1;
 #endif
 				PrivacyMessage* pm = ( PrivacyMessage* ) _data;
-#ifdef DEBUG_PLTT_PASSIVE_H_RECEIVE
-				debug().debug( "PLTT_Passive - receive %x - Received decryption reply from helper %x of size %i.\n", radio().id(), _from, pm->buffer_size() );
-#endif
+//#ifdef DEBUG_PLTT_PASSIVE_H_RECEIVE
+//				debug().debug( "PLTT_Passive - receive %x - Received decryption reply from helper %x of size %i.\n", radio().id(), _from, pm->buffer_size() );
+//#endif
 				for ( PLTT_PrivacyTraceListIterator i = privacy_traces.begin(); i != privacy_traces.end(); ++i )
 				{
 					if ( ( pm->request_id() == i->get_request_id() ) && ( i->get_decryption_retries() <= decryption_max_retries ) )
@@ -491,9 +491,9 @@ namespace wiselib
 						node_id_t id = read<Os, block_data_t, node_id_t>( pm->payload() );
 						PLTT_Trace t;
 						t.set_target_id( id );
-#ifdef DEBUG_PLTT_PASSIVE_H_RECEIVE
-						debug().debug( "PLTT_Passive - receive %x - Received decryption reply from helper %x with trace id : %x and %d retries.\n", radio().id(), _from, id, i->get_decryption_retries() );
-#endif
+//#ifdef DEBUG_PLTT_PASSIVE_H_RECEIVE
+//						debug().debug( "PLTT_Passive - receive %x - Received decryption reply from helper %x with trace id : %x and %d retries.\n", radio().id(), _from, id, i->get_decryption_retries() );
+//#endif
 						t.set_start_time( i->get_start_time() );
 						t.set_inhibited( i->get_inhibited() );
 						t.set_diminish_seconds( i->get_diminish_seconds() );
@@ -537,7 +537,7 @@ namespace wiselib
 			{
 #ifdef DEBUG_PLTT_PASSIVE_H_RECEIVE
 				AgentID aid = read<Os, block_data_t, AgentID>( message->get_payload() );
-				debug().debug( "PLTT_Passive - receive %x - %x - PLTT_TRACKER_ECHO_ID from %x.\n", radio().id(), aid, _from );
+//				debug().debug( "PLTT_Passive - receive %x - %x - PLTT_TRACKER_ECHO_ID from %x.\n", radio().id(), aid, _from );
 #endif
 				send( _from, message->get_payload_size(), message->get_payload(), PLTT_TRACKER_ECHO_REPLY_ID );
 			}
@@ -1664,21 +1664,6 @@ namespace wiselib
 #ifdef DEBUG_PLTT_STATS
 		void pltt_stats_daemon( void* _userdata = NULL )
 		{
-#ifdef CONFIG_PLTT_PRIVACY
-		uint32_t privacy_inhibition_bytes_send;
-		uint32_t privacy_inhibition_messages_send;
-		uint32_t privacy_spread_bytes_send;
-		uint32_t privacy_spread_messages_send;
-		uint32_t privacy_decryptions_requests_bytes_send;
-		uint32_t privacy_decryptions_requests_messages_send;
-		uint32_t privacy_inhibition_bytes_received;
-		uint32_t privacy_inhibition_messages_received;
-		uint32_t privacy_spread_bytes_received;
-		uint32_t privacy_spread_messages_received;
-		uint32_t privacy_decryptions_replies_bytes_received;
-		uint32_t privacy_decryptions_replies_messages_received;
-#endif
-
 #ifndef CONFIG_PLTT_PRIVACY
 		debug().debug
 				(

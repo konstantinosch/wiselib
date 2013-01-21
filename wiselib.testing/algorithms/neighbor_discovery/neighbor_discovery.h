@@ -528,7 +528,6 @@ namespace wiselib
 #ifdef CONFIG_NEIBHBOR_DISCOVERY_H_RSSI_FILTERING
 								new_neighbor.set_avg_RSSI_inverse( nit->get_avg_RSSI() );
 #endif
-
 #ifdef CONFIG_NEIGHBOR_DISCOVERY_H_EFFECTIVE_INVERSE_FILTER
 								if ( ( new_neighbor.get_link_stab_ratio() >= effective_inverse_filter_ratio ) && ( new_neighbor.get_total_beacons() >= pit->get_protocol_settings_ref()->get_min_required_beacons() ) )
 								{
@@ -796,6 +795,10 @@ namespace wiselib
 #endif
 							nit->inc_total_beacons_expected( dead_time / nit->get_beacon_period() * ( pit->resolve_lost_beacon_weight( nit->get_id() ) ) );
 							nit->update_link_stab_ratio();
+							if ( nit->get_link_stab_ratio() < effective_inverse_filter_ratio )
+							{
+								nit->set_link_stab_ratio_inverse( 0 );
+							}
 							nit->set_beacon_period( nit->get_beacon_period() );
 							nit->set_last_beacon( current_time );
 							uint8_t events_flag = 0;
