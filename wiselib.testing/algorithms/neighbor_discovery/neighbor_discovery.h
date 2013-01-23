@@ -515,6 +515,7 @@ namespace wiselib
 							new_neighbor.set_beacon_period_update_counter( beacon.get_beacon_period_update_counter() );
 							new_neighbor.set_last_beacon( current_time );
 						}
+						new_neighbor.inc_trust_counter();
 						uint8_t instab_found_flag = 0;
 						for ( Neighbor_vector_iterator nit = beacon.get_neighborhood_ref()->begin(); nit != beacon.get_neighborhood_ref()->end(); ++nit )
 						{
@@ -525,7 +526,7 @@ namespace wiselib
 #endif
 								uint8_t instab_found_flag = 1;
 #ifdef CONFIG_NEIGHBOR_DISCOVERY_H_EFFECTIVE_INVERSE_FILTER
-								if ( ( new_neighbor.get_link_stab_ratio() >= effective_inverse_filter_ratio ) && ( new_neighbor.get_total_beacons() >= pit->get_protocol_settings_ref()->get_min_required_beacons() ) )
+								if ( ( new_neighbor.get_link_stab_ratio() >= effective_inverse_filter_ratio ) && ( new_neighbor.get_trust_counter() >= ND_TRUST_COUNTER_THRESHOLD ) )
 								{
 #endif
 									new_neighbor.set_link_stab_ratio_inverse( nit->get_link_stab_ratio() );
@@ -553,7 +554,7 @@ namespace wiselib
 						}
 						if ( instab_found_flag == 0 )
 						{
-							debug().debug( "NB:%d[:]%d[:]%i[:]%d[%d:%d].\n", radio().id(), _from, pit->get_protocol_id(), new_neighbor.get_id(), new_neighbor.get_link_stab_ratio(), new_neighbor.get_link_stab_ratio_inverse() );
+						//	debug().debug( "NB:[%d] - %d[:]%d[:]%i[:]%d[%d:%d] -(%d).\n", transmission_power_dB, radio().id(), _from, pit->get_protocol_id(), new_neighbor.get_id(), new_neighbor.get_link_stab_ratio(), new_neighbor.get_link_stab_ratio_inverse(), new_neighbor.get_trust_counter() );
 						}
 						uint8_t events_flag = 0;
 						if	(
@@ -808,9 +809,14 @@ namespace wiselib
 							debug().debug("NeighborDiscovery-nb_daemon %x - Teasing node %x.", radio().id(), nit->get_id() );
 #endif
 							nit->inc_total_beacons_expected( dead_time / nit->get_beacon_period() * ( pit->resolve_lost_beacon_weight( nit->get_id() ) ) );
+							//nit->update_link_stab_ratio_inverse( pit->resolve_beacon_weight( nit->get_id() ), pit->resolve_lost_beacon_weight( nit->get_id() ) );
 							nit->update_link_stab_ratio();
 #ifdef CONFIG_NEIGHBOR_DISCOVERY_H_EFFECTIVE_INVERSE_FILTER
-							if ( nit->get_link_stab_ratio() < effective_inverse_filter_ratio )
+							for ( uint16_t b=0; b < ( dead_time / nit->get_beacon_period() ); b++ )
+							{
+								nit->dec_trust_counter();
+							}
+							if ( ( nit->get_link_stab_ratio() < effective_inverse_filter_ratio ) || ( nit->get_trust_counter() < ND_TRUST_COUNTER_THRESHOLD ) )
 							{
 								nit->set_link_stab_ratio_inverse( 0 );
 #ifdef CONFIG_NEIBHBOR_DISCOVERY_H_RSSI_FILTERING

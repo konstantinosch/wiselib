@@ -208,6 +208,7 @@ namespace wiselib
 								}
 							}
 //#endif
+							//this loop could be included only for res 1... due to the fact that the reliable node partners might go into an endless ping pong loop (no buffer - no knowledge...)
 							for ( RegisteredCallbacks_vector_iterator i = callbacks.begin(); i != callbacks.end(); ++i )
 							{
 								(*i)( _from, reliable_radio_message.get_payload_size(), reliable_radio_message.get_payload(), _ex);

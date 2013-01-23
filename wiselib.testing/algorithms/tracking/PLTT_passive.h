@@ -784,7 +784,7 @@ namespace wiselib
 #ifdef DEBUG_PLTT_PASSIVE_H_PROCCESS_QUERY_REPORT
 					for ( PLTT_NodeListIterator i = neighbors.begin(); i != neighbors.end(); ++i )
 					{
-						debug().debug( "nb:%d:[%f,%f,%d] %d:[%f,%f] [%f]\n", radio().id(), self.get_node().get_position().get_x(), self.get_node().get_position().get_y(), transmission_power_dB, i->get_node().get_id(), i->get_node().get_position().get_x(), i->get_node().get_position().get_y(), i->get_node().get_position().distsq( self.get_node().get_position() ) );
+						debug().debug( "nb:%d:%d [%f,%f,%d] %d:[%f,%f] [%f]\n", radio().id(), i->get_node().get_id(), self.get_node().get_position().get_x(), self.get_node().get_position().get_y(), transmission_power_dB, i->get_node().get_id(), i->get_node().get_position().get_x(), i->get_node().get_position().get_y(), i->get_node().get_position().distsq( self.get_node().get_position() ) );
 					}
 #endif
 #ifdef DEBUG_PLTT_PASSIVE_H_PROCCESS_QUERY_REPORT
