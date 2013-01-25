@@ -97,9 +97,6 @@ namespace wiselib
 			clock_paradox_message_drops			( 0 ),
 			counter								( 0 )
 #endif
-#ifdef CONFIG_NEIGHBOR_DISCOVERY_H_EFFECTIVE_INVERSE_FILTER
-			,effective_inverse_filter_ratio		( ND_EFFECTIVE_INVERSE_FILTER_RATIO )
-#endif
 		{};
 		// --------------------------------------------------------------------
 		~NeighborDiscovery_Type()
@@ -160,7 +157,6 @@ namespace wiselib
 									ProtocolSettings::R_NR_WEIGHTED,
 									ND_BEACON_WEIGHT,
 									ND_LOST_BEACON_WEIGHT,
-									ND_MIN_REQUIRED_BEACONS,
 									pp
 								);
 			p.set_protocol_id( ND_PROTOCOL_ID );
@@ -262,11 +258,11 @@ namespace wiselib
 						beacon.set_beacon_period( bp );
 						beacon.set_beacon_period_update_counter( n->get_beacon_period_update_counter() );
 #ifdef CONFIG_NEIGHBOR_DISCOVERY_H_SMALL_PAYLOAD
-						Neighbor_vector nv_tmp = p_ptr->get_neighborhood();
 						Neighbor_vector nv;
 						for ( Neighbor_vector_iterator i = p_ptr->get_neighborhood_ref()->begin(); i != p_ptr->get_neighborhood_ref()->end(); ++i )
 						{
 							if (		( 1 )
+									&&	( i->get_trust_counter() >= ND_TRUST_COUNTER_THRESHOLD )
 #ifdef CONFIG_NEIGHBOR_DISCOVERY_H_SMALL_PAYLOAD_LINK_STAB
 									&&	( i->get_link_stab_ratio() >= ND_PAYLOAD_MIN_LINK_STAB_RATIO_THRESHOLD )
 									&&	( i->get_link_stab_ratio() <= ND_PAYLOAD_MAX_LINK_STAB_RATIO_THRESHOLD )
@@ -287,6 +283,7 @@ namespace wiselib
 #else
 						Neighbor_vector nv = p_ptr->get_neighborhood();
 #endif
+						debug().debug("NB_BUFF:%d:%d\n",radio().id(), nv.size() );
 						beacon.set_neighborhood( nv, radio().id() );
 						block_data_t buff[Radio::MAX_MESSAGE_LENGTH];
 						send( Radio::BROADCAST_ADDRESS, beacon.serial_size(), beacon.serialize( buff ), ND_MESSAGE );
@@ -516,44 +513,48 @@ namespace wiselib
 							new_neighbor.set_last_beacon( current_time );
 						}
 						new_neighbor.inc_trust_counter();
-						uint8_t instab_found_flag = 0;
+						uint8_t inverse_found_flag = 0;
 						for ( Neighbor_vector_iterator nit = beacon.get_neighborhood_ref()->begin(); nit != beacon.get_neighborhood_ref()->end(); ++nit )
 						{
 							if ( radio().id() == nit->get_id() )
 							{
 #ifdef DEBUG_NEIGHBOR_DISCOVERY_H_RECEIVE
-								debug().debug( "NeighborDiscovery - receive %d - Neighbor %d was aware of node for protocol %i nn %d - [%d:%d].\n", radio().id(), _from, pit->get_protocol_id(), new_neighbor.get_id(), new_neighbor.get_link_stab_ratio(), new_neighbor.get_link_stab_ratio_inverse() );
+								debug().debug( "NeighborDiscovery - receive %d - 1- Neighbor %d was aware of node for protocol %i nn %d - [%d:%d] [%d:%d].\n", radio().id(), _from, pit->get_protocol_id(), new_neighbor.get_id(), new_neighbor.get_link_stab_ratio(), new_neighbor.get_link_stab_ratio_inverse(), new_neighbor.get_trust_counter(), new_neighbor.get_trust_counter_inverse() );
 #endif
-								uint8_t instab_found_flag = 1;
-#ifdef CONFIG_NEIGHBOR_DISCOVERY_H_EFFECTIVE_INVERSE_FILTER
-								if ( ( new_neighbor.get_link_stab_ratio() >= effective_inverse_filter_ratio ) && ( new_neighbor.get_trust_counter() >= ND_TRUST_COUNTER_THRESHOLD ) )
+								inverse_found_flag = 1;
+								new_neighbor.inc_trust_counter_inverse();
+#ifdef DEBUG_NEIGHBOR_DISCOVERY_H_RECEIVE
+								debug().debug( "NeighborDiscovery - receive %d - 2 - Neighbor %d was aware of node for protocol %i nn %d - [%d:%d] [%d:%d].\n", radio().id(), _from, pit->get_protocol_id(), new_neighbor.get_id(), new_neighbor.get_link_stab_ratio(), new_neighbor.get_link_stab_ratio_inverse(), new_neighbor.get_trust_counter(), new_neighbor.get_trust_counter_inverse() );
+#endif
+								if ( new_neighbor.get_trust_counter_inverse() >= ND_TRUST_COUNTER_THRESHOLD_INVERSE )
 								{
-#endif
 									new_neighbor.set_link_stab_ratio_inverse( nit->get_link_stab_ratio() );
-									//new_neighbor.update_link_stab_ratio_inverse( pit->resolve_beacon_weight( _from ), pit->resolve_lost_beacon_weight( _from ) );
 #ifdef CONFIG_NEIBHBOR_DISCOVERY_H_RSSI_FILTERING
 									new_neighbor.set_avg_RSSI_inverse( nit->get_avg_RSSI() );
 #endif
 #ifdef CONFIG_NEIBHBOR_DISCOVERY_H_LQI_FILTERING
 									new_neighbor.set_avg_LQI_inverse( nit->get_avg_LQI() );
 #endif
-#ifdef CONFIG_NEIGHBOR_DISCOVERY_H_EFFECTIVE_INVERSE_FILTER
-								}
-								else
-								{
-									new_neighbor.set_link_stab_ratio_inverse( 0 );
-#ifdef CONFIG_NEIBHBOR_DISCOVERY_H_RSSI_FILTERING
-									new_neighbor.set_avg_RSSI_inverse( 0 );
-#endif
-#ifdef CONFIG_NEIBHBOR_DISCOVERY_H_LQI_FILTERING
-									new_neighbor.set_avg_LQI_inverse( 0 );
+#ifdef DEBUG_NEIGHBOR_DISCOVERY_H_RECEIVE
+									debug().debug( "NeighborDiscovery - receive %d - Neighbor %d was aware of node for protocol %i nn %d INCREASING INVERSE- [%d:%d] [%d:%d].\n", radio().id(), _from, pit->get_protocol_id(), new_neighbor.get_id(), new_neighbor.get_link_stab_ratio(), new_neighbor.get_link_stab_ratio_inverse(), new_neighbor.get_trust_counter(), new_neighbor.get_trust_counter_inverse() );
 #endif
 								}
-#endif
+
 							}
 						}
-						if ( instab_found_flag == 0 )
+						if ( inverse_found_flag == 0 )
 						{
+							new_neighbor.dec_trust_counter_inverse();
+							if ( new_neighbor.get_trust_counter_inverse() < ND_TRUST_COUNTER_THRESHOLD_INVERSE )
+							{
+								new_neighbor.set_link_stab_ratio_inverse( 0 );
+#ifdef CONFIG_NEIBHBOR_DISCOVERY_H_RSSI_FILTERING
+								new_neighbor.set_avg_RSSI_inverse( 0 );
+#endif
+#ifdef CONFIG_NEIBHBOR_DISCOVERY_H_LQI_FILTERING
+								new_neighbor.set_avg_LQI_inverse( 0 );
+#endif
+							}
 						//	debug().debug( "NB:[%d] - %d[:]%d[:]%i[:]%d[%d:%d] -(%d).\n", transmission_power_dB, radio().id(), _from, pit->get_protocol_id(), new_neighbor.get_id(), new_neighbor.get_link_stab_ratio(), new_neighbor.get_link_stab_ratio_inverse(), new_neighbor.get_trust_counter() );
 						}
 						uint8_t events_flag = 0;
@@ -573,8 +574,7 @@ namespace wiselib
 								( new_neighbor.get_link_stab_ratio() <= pit->get_protocol_settings_ref()->get_max_link_stab_ratio_threshold() ) &&
 								( new_neighbor.get_link_stab_ratio() >= pit->get_protocol_settings_ref()->get_min_link_stab_ratio_threshold() ) &&
 								( new_neighbor.get_link_stab_ratio_inverse() <= pit->get_protocol_settings_ref()->get_max_link_stab_ratio_inverse_threshold() ) &&
-								( new_neighbor.get_link_stab_ratio_inverse() >= pit->get_protocol_settings_ref()->get_min_link_stab_ratio_inverse_threshold() ) &&
-								( new_neighbor.get_total_beacons() >= pit->get_protocol_settings_ref()->get_min_required_beacons() ) )
+								( new_neighbor.get_link_stab_ratio_inverse() >= pit->get_protocol_settings_ref()->get_min_link_stab_ratio_inverse_threshold() ) )
 						{
 							new_neighbor.set_active();
 							if ( found_flag == 1 )
@@ -809,24 +809,32 @@ namespace wiselib
 							debug().debug("NeighborDiscovery-nb_daemon %x - Teasing node %x.", radio().id(), nit->get_id() );
 #endif
 							nit->inc_total_beacons_expected( dead_time / nit->get_beacon_period() * ( pit->resolve_lost_beacon_weight( nit->get_id() ) ) );
-							//nit->update_link_stab_ratio_inverse( pit->resolve_beacon_weight( nit->get_id() ), pit->resolve_lost_beacon_weight( nit->get_id() ) );
 							nit->update_link_stab_ratio();
-#ifdef CONFIG_NEIGHBOR_DISCOVERY_H_EFFECTIVE_INVERSE_FILTER
-							for ( uint16_t b=0; b < ( dead_time / nit->get_beacon_period() ); b++ )
+							for ( uint16_t b = 0; b < ( dead_time / nit->get_beacon_period() ); b++ )
 							{
 								nit->dec_trust_counter();
+								nit->dec_trust_counter_inverse();
 							}
-							if ( ( nit->get_link_stab_ratio() < effective_inverse_filter_ratio ) || ( nit->get_trust_counter() < ND_TRUST_COUNTER_THRESHOLD ) )
+							if ( nit->get_trust_counter() < ND_TRUST_COUNTER_THRESHOLD )
+							{
+								nit->set_link_stab_ratio( 0 );
+#ifdef CONFIG_NEIBHBOR_DISCOVERY_H_LQI_FILTERING
+								nit->set_avg_LQI( 0 );
+#endif
+#ifdef CONFIG_NEIBHBOR_DISCOVERY_H_RSSI_FILTERING
+								nit->set_avg_RSSI( 0 );
+#endif
+							}
+							if ( nit->get_trust_counter_inverse() < ND_TRUST_COUNTER_THRESHOLD_INVERSE )
 							{
 								nit->set_link_stab_ratio_inverse( 0 );
-#ifdef CONFIG_NEIBHBOR_DISCOVERY_H_RSSI_FILTERING
-								nit->set_avg_RSSI_inverse( 0);
-#endif
 #ifdef CONFIG_NEIBHBOR_DISCOVERY_H_LQI_FILTERING
 								nit->set_avg_LQI_inverse( 0 );
 #endif
-							}
+#ifdef CONFIG_NEIBHBOR_DISCOVERY_H_RSSI_FILTERING
+								nit->set_avg_RSSI_inverse( 0 );
 #endif
+							}
 							nit->set_beacon_period( nit->get_beacon_period() );
 							nit->set_last_beacon( current_time );
 							uint8_t events_flag = 0;
@@ -1290,18 +1298,6 @@ namespace wiselib
 		}
 #endif
 		// --------------------------------------------------------------------
-#ifdef CONFIG_NEIGHBOR_DISCOVERY_H_EFFECTIVE_INVERSE_FILTER
-		uint8_t get_effective_inverse_filter_ratio()
-		{
-			return effective_inverse_filter_ratio;
-		}
-		// --------------------------------------------------------------------
-		void set_effective_inverse_filter_ratio( uint8_t _eifr )
-		{
-			effective_inverse_filter_ratio = _eifr;
-		}
-#endif
-		// --------------------------------------------------------------------
 		void init( Radio& _radio, Timer& _timer, Debug& _debug, Clock& _clock, Rand& _rand )
 		{
 			radio_ = &_radio;
@@ -1385,16 +1381,16 @@ namespace wiselib
 		};
 	private:
 		uint32_t recv_callback_id_;
-        uint8_t status;
-        millis_t beacon_period;
-        int8_t transmission_power_dB;
-        Protocol_vector protocols;
-        size_t protocol_max_payload_size;
-        uint8_t transmission_power_dB_strategy;
-        uint8_t protocol_max_payload_size_strategy;
-        uint8_t beacon_period_strategy;
-        millis_t relax_millis;
-        millis_t nd_daemon_period;
+		uint8_t status;
+		millis_t beacon_period;
+		int8_t transmission_power_dB;
+		Protocol_vector protocols;
+		size_t protocol_max_payload_size;
+		uint8_t transmission_power_dB_strategy;
+		uint8_t protocol_max_payload_size_strategy;
+		uint8_t beacon_period_strategy;
+		millis_t relax_millis;
+		millis_t nd_daemon_period;
 #ifdef DEBUG_NEIGHBOR_DISCOVERY_STATS
 		uint32_t messages_received;
 		uint32_t bytes_received;
@@ -1409,9 +1405,6 @@ namespace wiselib
 #endif
 #ifdef NEIGHBOR_DISCOVERY_COORD_SUPPORT
 		Position position;
-#endif
-#ifdef CONFIG_NEIGHBOR_DISCOVERY_H_EFFECTIVE_INVERSE_FILTER
-		uint8_t effective_inverse_filter_ratio;
 #endif
         Radio * radio_;
         Clock * clock_;

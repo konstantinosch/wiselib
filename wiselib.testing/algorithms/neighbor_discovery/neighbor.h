@@ -74,7 +74,8 @@ namespace wiselib
 			beacon_period					( 0 ),
 			beacon_period_update_counter	( 0 ),
 			active							( 0 ),
-			trust_counter					( ND_MIN_TRUST_COUNTER )
+			trust_counter					( ND_MIN_TRUST_COUNTER ),
+			trust_counter_inverse			( ND_MIN_TRUST_COUNTER_INVERSE )
 		{}
 		// --------------------------------------------------------------------
 		Neighbor_Type(	node_id_t _id,
@@ -116,6 +117,7 @@ namespace wiselib
 			}
 			last_beacon = _lb;
 			trust_counter = ND_MIN_TRUST_COUNTER;
+			trust_counter_inverse = ND_MIN_TRUST_COUNTER_INVERSE;
 		}
 		// --------------------------------------------------------------------
 		~Neighbor_Type()
@@ -349,6 +351,34 @@ namespace wiselib
 			}
 		}
 		// --------------------------------------------------------------------
+		int8_t get_trust_counter_inverse()
+		{
+			return trust_counter_inverse;
+		}
+		// --------------------------------------------------------------------
+		void set_trust_counter_inverse( int8_t _itc )
+		{
+			trust_counter_inverse = _itc;
+		}
+		// --------------------------------------------------------------------
+		void inc_trust_counter_inverse()
+		{
+			trust_counter_inverse = trust_counter_inverse + 1;
+			if ( trust_counter_inverse > ND_MAX_TRUST_COUNTER_INVERSE )
+			{
+				trust_counter_inverse = ND_MAX_TRUST_COUNTER_INVERSE;
+			}
+		}
+		// --------------------------------------------------------------------
+		void dec_trust_counter_inverse()
+		{
+			trust_counter_inverse = trust_counter_inverse - 1;
+			if ( trust_counter_inverse < ND_MIN_TRUST_COUNTER_INVERSE )
+			{
+				trust_counter_inverse = ND_MIN_TRUST_COUNTER_INVERSE;
+			}
+		}
+		// --------------------------------------------------------------------
 #ifdef NEIGHBOR_DISCOVERY_COORD_SUPPORT
 		Position get_position()
 		{
@@ -381,6 +411,7 @@ namespace wiselib
 			last_beacon = _n.last_beacon;
 			active = _n.active;
 			trust_counter = _n.trust_counter;
+			trust_counter_inverse = _n.trust_counter_inverse;
 #ifdef NEIGHBOR_DISCOVERY_COORD_SUPPORT
 			position = _n.position;
 #endif
@@ -499,6 +530,7 @@ namespace wiselib
 			debug.debug( "beacon_period (size %i) : %d\n", sizeof(beacon_period), beacon_period );
 			debug.debug( "beacon_period_update_counter (size %i) : %d\n", sizeof(beacon_period_update_counter), beacon_period_update_counter );
 			debug.debug( "trust_counter (size %i) : %d\n", sizeof(trust_counter), trust_counter );
+			debug.debug( "trust_counter_inverse (size %i) : %d\n", sizeof(trust_counter_inverse), trust_counter_inverse );
 			debug.debug( "active (size %i) : %d\n", sizeof(active), active );
 			debug.debug( "-------------------------------------------------------\n" );
 #else
@@ -506,13 +538,13 @@ namespace wiselib
 			{
 #ifdef NEIGHBOR_DISCOVERY_COORD_SUPPORT
 #ifdef NEIGHBOR_DISCOVERY_COORD_SUPPORT_SHAWN
-				debug.debug( "NB:%x:%x:%d:%d:%d:%d:%d:%d:%d:%d:%d:%d:%d:%f:%f:%f:%f:%d\n",
+				debug.debug( "NB:%x:%x:%d:%d:%d:%d:%d:%d:%d:%d:%d:%d:%d:%f:%f:%f:%f:%d:%d\n",
 #endif
 #ifdef NEIGHBOR_DISCOVERY_COORD_SUPPORT_ISENSE
-				debug.debug( "NB:%x:%x:%d:%d:%d:%d:%d:%d:%d:%d:%d:%d:%d:%d:%d:%d:%d:%d\n",
+				debug.debug( "NB:%x:%x:%d:%d:%d:%d:%d:%d:%d:%d:%d:%d:%d:%d:%d:%d:%d:%d:%d\n",
 #endif
 #else
-				debug.debug( "NB:%d:%d:%d:%d:%d:%d:%d:%d:%d:%d:%d:%d:%d:%d\n",
+				debug.debug( "NB:%d:%d:%d:%d:%d:%d:%d:%d:%d:%d:%d:%d:%d:%d:%d\n",
 #endif
 					radio.id(),
 					id,
@@ -542,6 +574,7 @@ namespace wiselib
 					( position.get_z() - pos.get_z() ) * ( position.get_z() - pos.get_z() ) )
 #endif
 					,trust_counter
+					,trust_counter_inverse
 				);
 			}
 #endif
@@ -567,6 +600,7 @@ namespace wiselib
 		uint8_t active;
 		time_t last_beacon;
 		int8_t trust_counter;
+		int8_t trust_counter_inverse;
 #ifdef NEIGHBOR_DISCOVERY_COORD_SUPPORT
 		Position position;
 #endif

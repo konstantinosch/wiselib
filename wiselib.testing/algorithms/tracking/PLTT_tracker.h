@@ -286,6 +286,20 @@ namespace wiselib
 					current_link_metric = _exdata.link_metric();
 				}
 			}
+			else if ( msg_id == ReliableRadio::RR_UNDELIVERED)
+			{
+				block_data_t* buff = message->get_payload();
+				Message *message_inner = (Message*) buff;
+				if ( message_inner->get_message_id() == PLTT_AGENT_QUERY_ID )
+				{
+					PLTT_Agent a;
+					a.de_serialize( message_inner->get_payload() );
+#ifdef DEBUG_PLTT_STATS
+					debug().debug( "ZTR:%d:%d:%d:%x\n", radio().id(), target_id, tracker_mini_run_counter, a.get_agent_id() );
+#endif
+				}
+
+			}
 		}
 		// -----------------------------------------------------------------------
 #ifdef CONFIG_PLTT_TRACKER_H_AGENT_BUFFERING
