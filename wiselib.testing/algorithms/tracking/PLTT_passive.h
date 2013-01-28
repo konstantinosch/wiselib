@@ -1367,6 +1367,8 @@ namespace wiselib
 					power.set_dB( transmission_power_dB);
 					radio().set_power( power );
 					radio().send( Radio::BROADCAST_ADDRESS, pm.buffer_size(), pm.buffer() );
+					privacy_spread_bytes_send = privacy_spread_bytes_send + 1;
+					privacy_spread_messages_send = privacy_spread_messages_send + 1;
 #ifdef DEBUG_PASSIVE_H_SEND_DECTRYPTION_REQUEST
 					debug().debug( "TR:SDR %x -> *\n", radio().id() );
 #endif
@@ -1405,6 +1407,8 @@ namespace wiselib
 						power.set_dB( transmission_power_dB );
 						radio().set_power( power );
 						radio().send( Radio::BROADCAST_ADDRESS, pm.buffer_size(), pm.buffer() );
+						privacy_spread_bytes_send = privacy_spread_bytes_send + 1;
+						privacy_spread_messages_send = privacy_spread_messages_send + 1;
 					}
 					else
 					{
@@ -1695,10 +1699,10 @@ namespace wiselib
 					"STATS_PD:%d:%d:%d:%d:%d:%d:%d:%d:%d:%d:%d:%d:%d:%d:%f:%f\n",
 					radio().id(),
 					stats_counter,
-					privacy_inhibition_bytes_send,
-					privacy_inhibition_messages_send,
 					privacy_spread_bytes_send,
 					privacy_spread_messages_send,
+					privacy_inhibition_bytes_send,
+					privacy_inhibition_messages_send,
 					privacy_decryptions_requests_bytes_send,
 					privacy_decryptions_requests_messages_send,
 					privacy_inhibition_bytes_received,
