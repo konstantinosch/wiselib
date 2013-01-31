@@ -283,7 +283,7 @@ namespace wiselib
 #else
 						Neighbor_vector nv = p_ptr->get_neighborhood();
 #endif
-						debug().debug("NB_BUFF:%d:%d\n",radio().id(), nv.size() );
+						//debug().debug("NB_BUFF:%d:%d\n",radio().id(), nv.size() );
 						beacon.set_neighborhood( nv, radio().id() );
 						block_data_t buff[Radio::MAX_MESSAGE_LENGTH];
 						send( Radio::BROADCAST_ADDRESS, beacon.serial_size(), beacon.serialize( buff ), ND_MESSAGE );
