@@ -356,7 +356,17 @@ namespace wiselib
 #ifdef DEBUG_PLTT_PASSIVE_H_NEIGHBOR_DISCOVERY_DISABLE_TASK
 			debug().debug( "PLTT_Passive - neighbor_discovery_unregister_task %x - Exiting.\n", radio().id() );
 #endif
+#ifdef CONFIG_PLTT_PASSIVE_H_END_EXP
+			timer().template set_timer<self_type, &self_type::end_exp> ( PLTT_PASSIVE_H_END_EXP_TIMER, this, 0 );
+#endif
 		}
+		// -----------------------------------------------------------------------
+#ifdef CONFIG_PLTT_PASSIVE_H_END_EXP
+		void end_exp(void* user_data = NULL )
+		{
+			radio().disable_radio();
+		}
+#endif
 		// -----------------------------------------------------------------------
 		void disable( void )
 		{
@@ -1708,57 +1718,68 @@ namespace wiselib
 #ifdef DEBUG_PLTT_STATS
 		void pltt_stats_daemon( void* _userdata = NULL )
 		{
+#ifdef CONFIG_PLTT_PASSIVE_H_END_EXP
+			if ( stats_counter <= PLTT_PASSIVE_H_STATS_COUNTER_LIMIT )
+			{
+#endif
 #ifndef CONFIG_PLTT_PRIVACY
-		debug().debug
+				debug().debug
 				(
 #ifdef DEBUG_PLTT_STATS_SHAWN
-					"STATS_VD:%d:%d:%d:%d:%d:%d:%d:%d:%d:%d:%f:%f\n",
+						"STATS_VD:%d:%d:%d:%d:%d:%d:%d:%d:%d:%d:%f:%f\n",
 #endif
 #ifdef DEBUG_PLTT_STATS_ISENSE
-					"STATS_VD:%x:%d:%d:%d:%d:%d:%d:%d:%d:%d:%d:%d\n",
+						"STATS_VD:%x:%d:%d:%d:%d:%d:%d:%d:%d:%d:%d:%d\n",
 #endif
-					radio().id(),
-					stats_counter,
-					spread_bytes_send,
-					spread_messages_send,
-					inhibition_bytes_send,
-					inhibition_messages_send,
-					spread_bytes_received,
-					spread_messages_received,
-					inhibition_bytes_received,
-					inhibition_messages_received,
-					self.get_node().get_position().get_x(),
-					self.get_node().get_position().get_y()
-				);
+						radio().id(),
+						stats_counter,
+						spread_bytes_send,
+						spread_messages_send,
+						inhibition_bytes_send,
+						inhibition_messages_send,
+						spread_bytes_received,
+						spread_messages_received,
+						inhibition_bytes_received,
+						inhibition_messages_received,
+						self.get_node().get_position().get_x(),
+						self.get_node().get_position().get_y()
+					);
 #else
-		debug().debug
-				(
+			debug().debug
+					(
 #ifdef DEBUG_PLTT_STATS_SHAWN
-					"STATS_PD:%d:%d:%d:%d:%d:%d:%d:%d:%d:%d:%d:%d:%d:%d:%f:%f\n",
+						"STATS_PD:%d:%d:%d:%d:%d:%d:%d:%d:%d:%d:%d:%d:%d:%d:%f:%f\n",
 #endif
 #ifdef DEBUG_PLTT_STATS_ISENSE
 					"STATS_PD:%d:%d:%d:%d:%d:%d:%d:%d:%d:%d:%d:%d:%d:%d:%d:%d\n",
 #endif
-					radio().id(),
-					stats_counter,
-					privacy_spread_bytes_send,
-					privacy_spread_messages_send,
-					privacy_inhibition_bytes_send,
-					privacy_inhibition_messages_send,
-					privacy_decryptions_requests_bytes_send,
-					privacy_decryptions_requests_messages_send,
-					privacy_inhibition_bytes_received,
-					privacy_inhibition_messages_received,
-					privacy_spread_bytes_received,
-					privacy_spread_messages_received,
-					privacy_decryptions_replies_bytes_received,
-					privacy_decryptions_replies_messages_received,
-					self.get_node().get_position().get_x(),
-					self.get_node().get_position().get_y()
-				);
+						radio().id(),
+						stats_counter,
+						privacy_spread_bytes_send,
+						privacy_spread_messages_send,
+						privacy_inhibition_bytes_send,
+						privacy_inhibition_messages_send,
+						privacy_decryptions_requests_bytes_send,
+						privacy_decryptions_requests_messages_send,
+						privacy_inhibition_bytes_received,
+						privacy_inhibition_messages_received,
+						privacy_spread_bytes_received,
+						privacy_spread_messages_received,
+						privacy_decryptions_replies_bytes_received,
+						privacy_decryptions_replies_messages_received,
+						self.get_node().get_position().get_x(),
+						self.get_node().get_position().get_y()
+					);
 #endif
-			stats_counter = stats_counter + 1;
-			timer().template set_timer<self_type, &self_type::pltt_stats_daemon>( stats_daemon_period, this, 0 );
+				stats_counter = stats_counter + 1;
+				timer().template set_timer<self_type, &self_type::pltt_stats_daemon>( stats_daemon_period, this, 0 );
+#ifdef CONFIG_PLTT_PASSIVE_H_END_EXP
+			}
+			else
+			{
+				radio().disable_radio();
+			}
+#endif
 		}
 		// -----------------------------------------------------------------------
 		millis_t get_stats_daemon_period()
