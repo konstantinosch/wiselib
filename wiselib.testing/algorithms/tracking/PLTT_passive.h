@@ -257,7 +257,7 @@ namespace wiselib
 			if ( neighbors.size() < nb_connections_low )
 			{
 				int8_t old_transmission_power_dB = transmission_power_dB;
-				transmission_power_dB = transmission_power_dB + 6;
+				//transmission_power_dB = transmission_power_dB + 6;
 				if ( transmission_power_dB > PLTT_PASSIVE_H_NB_INTER_TASK_MAX_DB )
 				{
 					transmission_power_dB = PLTT_PASSIVE_H_NB_INTER_TASK_MAX_DB;
@@ -272,7 +272,7 @@ namespace wiselib
 			else if ( neighbors.size() > nb_connections_high )
 			{
 				int8_t old_transmission_power_dB = transmission_power_dB;
-				transmission_power_dB = transmission_power_dB - 6;
+				//transmission_power_dB = transmission_power_dB - 6;
 				if ( transmission_power_dB < PLTT_PASSIVE_H_NB_INTER_TASK_MIN_DB )
 				{
 					transmission_power_dB = PLTT_PASSIVE_H_NB_INTER_TASK_MIN_DB;
@@ -324,11 +324,11 @@ namespace wiselib
 			prot_ref->print( debug(), radio() );
 			debug().debug("$$$$$$$$$$$$$[ %d, %d END]$$$$$$$$$$$$$$$$$$$$$$$$\n", radio().id(), transmission_power_dB );
 #endif
-			radio_callback_id = radio().template reg_recv_callback<self_type, &self_type::receive> (this);
-			reliable_radio_callback_id = reliable_radio().template reg_recv_callback<self_type, &self_type::receive> (this);
-			update_traces();
+			//radio_callback_id = radio().template reg_recv_callback<self_type, &self_type::receive> (this);
+			//reliable_radio_callback_id = reliable_radio().template reg_recv_callback<self_type, &self_type::receive> (this);
+			//update_traces();
 #ifdef DEBUG_PLTT_STATS
-			timer().template set_timer<self_type, &self_type::pltt_stats_daemon>( stats_daemon_period, this, 0 );
+			//timer().template set_timer<self_type, &self_type::pltt_stats_daemon>( stats_daemon_period, this, 0 );
 			if ( neighbors.size() < nb_connections_low )
 			{
 				debug().debug( "LOCAL_MINIMUM:NB:%d:%d\n", radio().id(), neighbors.size() );
@@ -356,9 +356,9 @@ namespace wiselib
 #ifdef DEBUG_PLTT_PASSIVE_H_NEIGHBOR_DISCOVERY_DISABLE_TASK
 			debug().debug( "PLTT_Passive - neighbor_discovery_unregister_task %x - Exiting.\n", radio().id() );
 #endif
-#ifdef CONFIG_PLTT_PASSIVE_H_END_EXP
-			timer().template set_timer<self_type, &self_type::end_exp> ( PLTT_PASSIVE_H_END_EXP_TIMER, this, 0 );
-#endif
+//#ifdef CONFIG_PLTT_PASSIVE_H_END_EXP
+//			timer().template set_timer<self_type, &self_type::end_exp> ( PLTT_PASSIVE_H_END_EXP_TIMER, this, 0 );
+//#endif
 		}
 		// -----------------------------------------------------------------------
 #ifdef CONFIG_PLTT_PASSIVE_H_END_EXP
