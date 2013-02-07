@@ -257,7 +257,9 @@ namespace wiselib
 			if ( neighbors.size() < nb_connections_low )
 			{
 				int8_t old_transmission_power_dB = transmission_power_dB;
+#ifdef CONFIG_PLTT_PASSIVE_H_FLEXIBLE_DB
 				transmission_power_dB = transmission_power_dB + 6;
+#endif
 				if ( transmission_power_dB > PLTT_PASSIVE_H_NB_INTER_TASK_MAX_DB )
 				{
 					transmission_power_dB = PLTT_PASSIVE_H_NB_INTER_TASK_MAX_DB;
@@ -272,7 +274,9 @@ namespace wiselib
 			else if ( neighbors.size() > nb_connections_high )
 			{
 				int8_t old_transmission_power_dB = transmission_power_dB;
+#ifdef CONFIG_PLTT_PASSIVE_H_FLEXIBLE_DB
 				transmission_power_dB = transmission_power_dB - 6;
+#endif
 				if ( transmission_power_dB < PLTT_PASSIVE_H_NB_INTER_TASK_MIN_DB )
 				{
 					transmission_power_dB = PLTT_PASSIVE_H_NB_INTER_TASK_MIN_DB;
@@ -284,8 +288,6 @@ namespace wiselib
 #endif
 				}
 			}
-
-
 			for ( PLTT_NodeListIterator i = neighbors.begin(); i != neighbors.end(); ++i )
 			{
 #ifdef	DEBUG_PLTT_STATS_SHAWN
@@ -1064,7 +1066,7 @@ namespace wiselib
 					{
 						_trace.set_start_time( 0 );
 					}
-					debug().debug("TR:SIT:%x:trace in\n", radio().id() );
+					//debug().debug("TR:SIT:%x:trace in\n", radio().id() );
 					traces.push_back( _trace );
 					traces_iterator = traces.end() - 1;
 					return &(*traces_iterator);
