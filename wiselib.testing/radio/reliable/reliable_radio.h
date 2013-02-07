@@ -310,7 +310,7 @@ namespace wiselib
 //#ifdef DEBUG_RELIABLE_RADIO_H
 //								if ( ( mmmmm.get_message_id() == 41 ) || ( mmmmm.get_message_id() == 51 ) )
 //								{
-									debug().debug("ReliableRadio - daemon %d - Increasing radius [%d, %d], for re-transmission...\n", radio().id(), old_db, old_db + 6 );
+//									debug().debug("ReliableRadio - daemon %d - Increasing radius [%d, %d], for re-transmission...\n", radio().id(), old_db, old_db + 6 );
 //								}
 //#endif
 								TxPower tp;
@@ -328,7 +328,7 @@ namespace wiselib
 //#ifdef DEBUG_RELIABLE_RADIO_H
 //							if ( ( mmmmm.get_message_id() == 41 ) || ( mmmmm.get_message_id() == 51 ) )
 //							{
-								debug().debug( "ReliableRadio - daemon %d - An RR_MESSAGE exists with less than max retries... - Sending again to %d [%d]...\n", radio().id(), i->get_destination(), i->get_message_id() );
+//								debug().debug( "ReliableRadio - daemon %d - An RR_MESSAGE exists with less than max retries... - Sending again to %d [%d]...\n", radio().id(), i->get_destination(), i->get_message_id() );
 //							}
 //#endif
 							radio().send( i->get_destination(), message.serial_size(), message.serialize() );

@@ -209,7 +209,7 @@ namespace wiselib
 			if ( prot_ref != NULL )
 			{
 //#ifdef DEBUB_PLTT_PASSIVE_H_NEIGHBOR_DISCOVERY_ENABLE_TASK
-				debug().debug( "PLTT_Passive : neighbor_discovery_enable_task %x - All good with protocol inside.\n", radio().id() );
+//				debug().debug( "PLTT_Passive : neighbor_discovery_enable_task %x - All good with protocol inside.\n", radio().id() );
 //#endif
 				neighbor_discovery().enable();
 #ifdef CONFIG_PLTT_PASSIVE_H_ND_INTER_TASK
@@ -257,7 +257,7 @@ namespace wiselib
 			if ( neighbors.size() < nb_connections_low )
 			{
 				int8_t old_transmission_power_dB = transmission_power_dB;
-				//transmission_power_dB = transmission_power_dB + 6;
+				transmission_power_dB = transmission_power_dB + 6;
 				if ( transmission_power_dB > PLTT_PASSIVE_H_NB_INTER_TASK_MAX_DB )
 				{
 					transmission_power_dB = PLTT_PASSIVE_H_NB_INTER_TASK_MAX_DB;
@@ -272,7 +272,7 @@ namespace wiselib
 			else if ( neighbors.size() > nb_connections_high )
 			{
 				int8_t old_transmission_power_dB = transmission_power_dB;
-				//transmission_power_dB = transmission_power_dB - 6;
+				transmission_power_dB = transmission_power_dB - 6;
 				if ( transmission_power_dB < PLTT_PASSIVE_H_NB_INTER_TASK_MIN_DB )
 				{
 					transmission_power_dB = PLTT_PASSIVE_H_NB_INTER_TASK_MIN_DB;
@@ -284,6 +284,39 @@ namespace wiselib
 #endif
 				}
 			}
+
+
+			for ( PLTT_NodeListIterator i = neighbors.begin(); i != neighbors.end(); ++i )
+			{
+#ifdef	DEBUG_PLTT_STATS_SHAWN
+				debug().debug( "NB:%d:%d:%d:%f:%f\n", nb_convergence_time_counter+1, radio().id(), i->get_node().get_id(), self.get_node().get_position().get_x(), self.get_node().get_position().get_y() );
+				debug().debug( "NB:%d:%d:%d:%f:%f\n", nb_convergence_time_counter+1, radio().id(), i->get_node().get_id(), i->get_node().get_position().get_x(), i->get_node().get_position().get_y() );
+#endif
+#ifdef	DEBUG_PLTT_STATS_ISENSE
+				debug().debug( "NB:%d:%x:%x:%d:%d\n", nb_convergence_time_counter+1, radio().id(), i->get_node().get_id(), self.get_node().get_position().get_x(), self.get_node().get_position().get_y() );
+				debug().debug( "NB:%d:%x:%x:%d:%d\n", nb_convergence_time_counter+1, radio().id(), i->get_node().get_id(), i->get_node().get_position().get_x(), i->get_node().get_position().get_y() );
+#endif
+			}
+#ifdef DEBUG_PLTT_STATS
+			if ( neighbors.size() < nb_connections_low )
+			{
+#ifdef	DEBUG_PLTT_STATS_SHAWN
+				debug().debug( "LOCAL_MINIMUM:%d:%d:%d\n", nb_convergence_time_counter, radio().id(), neighbors.size() );
+#endif
+#ifdef	DEBUG_PLTT_STATS_ISENSE
+				debug().debug( "LOCAL_MINIMUM:%d:%x:%d\n", nb_convergence_time_counter, radio().id(), neighbors.size() );
+#endif
+			}
+			else if ( neighbors.size() > nb_connections_high )
+			{
+#ifdef	DEBUG_PLTT_STATS_SHAWN
+				debug().debug( "LOCAL_MAXIMUM:%d:%d:%d\n", nb_convergence_time_counter, radio().id(), neighbors.size() );
+#endif
+#ifdef	DEBUG_PLTT_STATS_ISENSE
+				debug().debug( "LOCAL_MINIMUM:%d:%x:%d\n", nb_convergence_time_counter, radio().id(), neighbors.size() );
+#endif
+			}
+#endif
 			neighbor_discovery().set_transmission_power_dB( transmission_power_dB );
 			nb_convergence_time_counter = nb_convergence_time_counter + 1;
 #ifdef CONFIG_PLTT_PASSIVE_H_MEMORYLESS_STATISTICS
@@ -324,20 +357,41 @@ namespace wiselib
 			prot_ref->print( debug(), radio() );
 			debug().debug("$$$$$$$$$$$$$[ %d, %d END]$$$$$$$$$$$$$$$$$$$$$$$$\n", radio().id(), transmission_power_dB );
 #endif
-			//radio_callback_id = radio().template reg_recv_callback<self_type, &self_type::receive> (this);
-			//reliable_radio_callback_id = reliable_radio().template reg_recv_callback<self_type, &self_type::receive> (this);
-			//update_traces();
+			for ( PLTT_NodeListIterator i = neighbors.begin(); i != neighbors.end(); ++i )
+			{
+#ifdef	DEBUG_PLTT_STATS_SHAWN
+				debug().debug( "NB:%d:%d:%d:%f:%f\n", nb_convergence_time_counter, radio().id(), i->get_node().get_id(), self.get_node().get_position().get_x(), self.get_node().get_position().get_y() );
+				debug().debug( "NB:%d:%d:%d:%f:%f\n", nb_convergence_time_counter, radio().id(), i->get_node().get_id(), i->get_node().get_position().get_x(), i->get_node().get_position().get_y() );
+#endif
+#ifdef	DEBUG_PLTT_STATS_ISENSE
+				debug().debug( "NB:%d:%x:%x:%d:%d\n", nb_convergence_time_counter, radio().id(), i->get_node().get_id(), self.get_node().get_position().get_x(), self.get_node().get_position().get_y() );
+				debug().debug( "NB:%d:%x:%x:%d:%d\n", nb_convergence_time_counter, radio().id(), i->get_node().get_id(), i->get_node().get_position().get_x(), i->get_node().get_position().get_y() );
+#endif
+			}
 #ifdef DEBUG_PLTT_STATS
-			//timer().template set_timer<self_type, &self_type::pltt_stats_daemon>( stats_daemon_period, this, 0 );
+			timer().template set_timer<self_type, &self_type::pltt_stats_daemon>( stats_daemon_period, this, 0 );
 			if ( neighbors.size() < nb_connections_low )
 			{
-				debug().debug( "LOCAL_MINIMUM:NB:%d:%d\n", radio().id(), neighbors.size() );
+#ifdef	DEBUG_PLTT_STATS_SHAWN
+				debug().debug( "LOCAL_MINIMUM:%d:%d:%d\n", nb_convergence_time_counter, radio().id(), neighbors.size() );
+#endif
+#ifdef	DEBUG_PLTT_STATS_ISENSE
+				debug().debug( "LOCAL_MINIMUM:%d:%x:%d\n", nb_convergence_time_counter, radio().id(), neighbors.size() );
+#endif
 			}
 			else if ( neighbors.size() > nb_connections_high )
 			{
-				debug().debug( "LOCAL_MAXIMUM:NB:%d:%d\n", radio().id(), neighbors.size() );
+#ifdef	DEBUG_PLTT_STATS_SHAWN
+				debug().debug( "LOCAL_MAXIMUM:%d:%d:%d\n", nb_convergence_time_counter, radio().id(), neighbors.size() );
+#endif
+#ifdef	DEBUG_PLTT_STATS_ISENSE
+				debug().debug( "LOCAL_MINIMUM:%d:%x:%d\n", nb_convergence_time_counter, radio().id(), neighbors.size() );
+#endif
 			}
 #endif
+			radio_callback_id = radio().template reg_recv_callback<self_type, &self_type::receive> (this);
+			reliable_radio_callback_id = reliable_radio().template reg_recv_callback<self_type, &self_type::receive> (this);
+			update_traces();
 #ifdef CONFIG_PLTT_PRIVACY
 			decryption_request_daemon();
 #endif
@@ -356,9 +410,9 @@ namespace wiselib
 #ifdef DEBUG_PLTT_PASSIVE_H_NEIGHBOR_DISCOVERY_DISABLE_TASK
 			debug().debug( "PLTT_Passive - neighbor_discovery_unregister_task %x - Exiting.\n", radio().id() );
 #endif
-//#ifdef CONFIG_PLTT_PASSIVE_H_END_EXP
-//			timer().template set_timer<self_type, &self_type::end_exp> ( PLTT_PASSIVE_H_END_EXP_TIMER, this, 0 );
-//#endif
+#ifdef CONFIG_PLTT_PASSIVE_H_END_EXP
+			timer().template set_timer<self_type, &self_type::end_exp> ( PLTT_PASSIVE_H_END_EXP_TIMER, this, 0 );
+#endif
 		}
 		// -----------------------------------------------------------------------
 #ifdef CONFIG_PLTT_PASSIVE_H_END_EXP
@@ -437,7 +491,7 @@ namespace wiselib
 //#ifdef DEBUG_PLTT_PASSIVE_H_RECEIVE
 //				debug().debug( "PLTT_Passive - receive - Received spread message from %x of rssi %i and lqi %i and size %i.\n", _from, _exdata.get_rssi(), _exdata.get_lqi(), _len );
 //				debug().debug( "PLTT_Passive - receive %x - Received spread message %d - %x vs [%x, %x]\n", radio().id(), trace.get_start_time(),self.get_node().get_id(), trace.get_recipient_1_id(), trace.get_recipient_2_id() );
-				debug().debug("TR:R %x -> %x\n", _from, radio().id() );
+//				debug().debug("TR:R %x -> %x\n", _from, radio().id() );
 //#endif
 					prepare_spread_trace( store_inhibit_trace( trace ) , _exdata );
 				}
@@ -451,7 +505,7 @@ namespace wiselib
 				PLTT_Trace trace = PLTT_Trace( message->get_payload() );
 //#ifdef DEBUG_PLTT_PASSIVE_H_RECEIVE
 //				debug().debug( "PLTT_Passive - receive %x - Received inhibition message %d %x vs [%x, %x]\n", radio().id(), trace.get_start_time(), self.get_node().get_id(), trace.get_recipient_1_id(), trace.get_recipient_2_id() );
-				debug().debug("TR:R %x -| %x\n", _from, radio().id() );
+//				debug().debug("TR:R %x -| %x\n", _from, radio().id() );
 //#endif
 				store_inhibit_trace( trace, 1 );
 			}
@@ -960,7 +1014,7 @@ namespace wiselib
 						return NULL;
 					}
 //#ifdef DEBUG_PLTT_PASSIVE_H_STORE_INHIBIT_TRACE
-					debug().debug( "PLTT_Passive - store_inhibit_trace %x - New trace intensity and start time (%i, %i ) vs current (%i, %i, %i)\n", radio().id(), _trace.get_intensity(), _trace.get_start_time(), traces_iterator->get_intensity(), traces_iterator->get_start_time(), traces_iterator->get_inhibited() );
+//					debug().debug( "PLTT_Passive - store_inhibit_trace %x - New trace intensity and start time (%i, %i ) vs current (%i, %i, %i)\n", radio().id(), _trace.get_intensity(), _trace.get_start_time(), traces_iterator->get_intensity(), traces_iterator->get_start_time(), traces_iterator->get_inhibited() );
 //#endif
 					if (
 							(
@@ -973,14 +1027,14 @@ namespace wiselib
 						)
 					{
 //#ifdef DEBUG_PLTT_PASSIVE_H_STORE_INHIBIT_TRACE
-						if ( _trace.get_start_time() >= traces_iterator->get_start_time() )
-						{
-							debug().debug("TR:RF %x->%x\n", _trace.get_current().get_id(), radio().id() );
-						}
-						else
-						{
-							debug().debug("TR:RAF %x->%x\n", _trace.get_current().get_id(), radio().id() );
-						}
+//						if ( _trace.get_start_time() >= traces_iterator->get_start_time() )
+//						{
+//							debug().debug("TR:RF %x->%x\n", _trace.get_current().get_id(), radio().id() );
+//						}
+//						else
+//						{
+//							debug().debug("TR:RAF %x->%x\n", _trace.get_current().get_id(), radio().id() );
+//						}
 //#endif
 						if ( _trace.get_start_time() == max_times_number )
 						{
@@ -993,7 +1047,7 @@ namespace wiselib
 					else
 					{
 //#ifdef DEBUG_PLTT_PASSIVE_H_STORE_INHIBIT_TRACE
-						debug().debug("TR:RPPP %x->%x\n",  _trace.get_current().get_id(), radio().id() );
+//						debug().debug("TR:RPPP %x->%x\n",  _trace.get_current().get_id(), radio().id() );
 //#endif
 						return NULL;
 					}
@@ -1015,14 +1069,14 @@ namespace wiselib
 					traces_iterator = traces.end() - 1;
 					return &(*traces_iterator);
 				}
-//#ifdef DEBUG_PLTT_PASSIVE_H_STORE_INHIBIT_TRACE
 
 				else
 				{
+#ifdef DEBUG_PLTT_PASSIVE_H_STORE_INHIBIT_TRACE
 					debug().debug("TR:SIT:full trace buffer:%x", radio().id() );
+#endif
 					return NULL;
 				}
-//#endif
 #else
 				if ( privacy_traces.size() < privacy_traces.max_size() )
 				{
@@ -1174,7 +1228,7 @@ namespace wiselib
 				if ( recipient_candidates.size() == 0 )
 				{
 //#ifdef DEBUG_PLTT_PASSIVE_H_PREPARE_SPREAD_TRACE
-					debug().debug("TR:S %x -> CL0\n", radio().id() );
+//					debug().debug("TR:S %x -> CL0\n", radio().id() );
 //					debug().debug( "PLTT_Passive - prepare_spread_trace %x - Exited due to 0 element candidate list.\n", radio().id() );
 //#endif
 					_t->set_inhibited();
@@ -1183,7 +1237,7 @@ namespace wiselib
 				else if ( recipient_candidates.size() == 1 )
 				{
 //#ifdef DEBUG_PLTT_PASSIVE_H_PREPARE_SPREAD_TRACE
-					debug().debug("TR:S %x -> CL1\n", radio().id() );
+//					debug().debug("TR:S %x -> CL1\n", radio().id() );
 //					debug().debug( "PLTT_Passive - prepare_spread_trace %x - Candidate list of size 1 - Imposing 1000ms delay.\n", radio().id() );
 //#endif
 					r = r + backoff_candidate_list_weight;
@@ -1311,7 +1365,7 @@ namespace wiselib
 				buff = (*t).serialize( buff );
 //#ifdef DEBUG_PLTT_PASSIVE_H_SPREAD_TRACE
 				//debug().debug( "PLTT_Passive - spread_inhibition %x - Inhibition for trace was spread.\n", radio().id() );
-				debug().debug("TR:S %x -> *\n", radio().id() );
+//				debug().debug("TR:S %x -> *\n", radio().id() );
 //#endif
 				send( Radio::BROADCAST_ADDRESS, len, (uint8_t*) buff, msg_id );
 			}
@@ -1319,7 +1373,7 @@ namespace wiselib
 			{
 //#ifdef DEBUG_PLTT_PASSIVE_H_SPREAD_TRACE
 //				debug().debug( "PLTT_Passive - spread_inhibition %x - Inhbition Trace was NOT spread\n.", radio().id() );
-				debug().debug("TR:SI %x->X\n", self.get_node().get_id() );
+//				debug().debug("TR:SI %x->X\n", self.get_node().get_id() );
 //#endif
 			}
 #ifdef DEBUG_PLTT_PASSIVE_H_SPREAD_TRACE
@@ -1356,7 +1410,7 @@ namespace wiselib
 					send( t->get_recipient_1_id(), len, (uint8_t*) buff, msg_id );
 //#ifdef DEBUG_PLTT_PASSIVE_H_SPREAD_TRACE
 //					debug().debug("TR:S %x -> %x\n", radio().id(), t->get_recipient_1_id() );
-					debug().debug("%x->%x : %d \n", self.get_node().get_id(), (*t).get_recipient_1_id(), (*t).get_intensity() );
+//					debug().debug("%x->%x : %d \n", self.get_node().get_id(), (*t).get_recipient_1_id(), (*t).get_intensity() );
 //#endif
 				}
 				if ( t->get_recipient_2_id() )
@@ -1364,7 +1418,7 @@ namespace wiselib
 					send( t->get_recipient_2_id(), len, (uint8_t*) buff, msg_id );
 //#ifdef DEBUG_PLTT_PASSIVE_H_SPREAD_TRACE
 //					debug().debug("TR:S %x -> %x\n", radio().id(), t->get_recipient_2_id() );
-					debug().debug("%x->%x : %d \n", self.get_node().get_id(), (*t).get_recipient_2_id(), (*t).get_intensity() );
+//					debug().debug("%x->%x : %d \n", self.get_node().get_id(), (*t).get_recipient_2_id(), (*t).get_intensity() );
 //#endif
 				}
 #ifdef CONFIG_PLTT_PRIVACY
@@ -1379,7 +1433,7 @@ namespace wiselib
 //#ifdef DEBUG_PLTT_PASSIVE_H_SPREAD_TRACE
 //				debug().debug( "PLTT_Passive - spread_trace %x - Trace was not spread due to inhibition.\n.", radio().id() );
 //				debug().debug("TR:SS %x->X\n", self.get_node().get_id() );
-				debug().debug("TR:%x->|| \n", self.get_node().get_id() );
+//				debug().debug("TR:%x->|| \n", self.get_node().get_id() );
 //#endif
 			}
 #ifdef DEBUG_PLTT_PASSIVE_H_SPREAD_TRACE
