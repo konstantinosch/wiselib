@@ -972,7 +972,7 @@ namespace wiselib
 #endif
 		{
 #ifdef DEBUG_PLTT_PASSIVE_H_STORE_INHIBIT_TRACE
-			//debug().debug( "PLTT_Passive - store_inhibit_trace %x - Entering.\n", radio().id() );
+			debug().debug( "PLTT_Passive - store_inhibit_trace %x - Entering.\n", radio().id() );
 #endif
 #ifndef CONFIG_PLTT_PRIVACY
 			PLTT_TraceListIterator traces_iterator = traces.begin();
@@ -1015,9 +1015,9 @@ namespace wiselib
 						}
 						return NULL;
 					}
-//#ifdef DEBUG_PLTT_PASSIVE_H_STORE_INHIBIT_TRACE
-//					debug().debug( "PLTT_Passive - store_inhibit_trace %x - New trace intensity and start time (%i, %i ) vs current (%i, %i, %i)\n", radio().id(), _trace.get_intensity(), _trace.get_start_time(), traces_iterator->get_intensity(), traces_iterator->get_start_time(), traces_iterator->get_inhibited() );
-//#endif
+#ifdef DEBUG_PLTT_PASSIVE_H_STORE_INHIBIT_TRACE
+					debug().debug( "PLTT_Passive - store_inhibit_trace %x - New trace intensity and start time (%i, %i ) vs current (%i, %i, %i)\n", radio().id(), _trace.get_intensity(), _trace.get_start_time(), traces_iterator->get_intensity(), traces_iterator->get_start_time(), traces_iterator->get_inhibited() );
+#endif
 					if (
 							(
 									( traces_iterator->get_send() == 1 ) &&
@@ -1028,16 +1028,16 @@ namespace wiselib
 							( _trace.get_start_time() > traces_iterator->get_start_time() )// && ( traces_iterator->get_inhibited() == 0 ) )
 						)
 					{
-//#ifdef DEBUG_PLTT_PASSIVE_H_STORE_INHIBIT_TRACE
-//						if ( _trace.get_start_time() >= traces_iterator->get_start_time() )
-//						{
-//							debug().debug("TR:RF %x->%x\n", _trace.get_current().get_id(), radio().id() );
-//						}
-//						else
-//						{
-//							debug().debug("TR:RAF %x->%x\n", _trace.get_current().get_id(), radio().id() );
-//						}
-//#endif
+#ifdef DEBUG_PLTT_PASSIVE_H_STORE_INHIBIT_TRACE
+						if ( _trace.get_start_time() >= traces_iterator->get_start_time() )
+						{
+							debug().debug("TR:RF %x->%x\n", _trace.get_current().get_id(), radio().id() );
+						}
+						else
+						{
+							debug().debug("TR:RAF %x->%x\n", _trace.get_current().get_id(), radio().id() );
+						}
+#endif
 						if ( _trace.get_start_time() == max_times_number )
 						{
 							_trace.set_start_time( 0 );
@@ -1048,9 +1048,9 @@ namespace wiselib
 					}
 					else
 					{
-//#ifdef DEBUG_PLTT_PASSIVE_H_STORE_INHIBIT_TRACE
-//						debug().debug("TR:RPPP %x->%x\n",  _trace.get_current().get_id(), radio().id() );
-//#endif
+#ifdef DEBUG_PLTT_PASSIVE_H_STORE_INHIBIT_TRACE
+						debug().debug("TR:RPPP %x->%x\n",  _trace.get_current().get_id(), radio().id() );
+#endif
 						return NULL;
 					}
 				}
@@ -1066,7 +1066,9 @@ namespace wiselib
 					{
 						_trace.set_start_time( 0 );
 					}
-					//debug().debug("TR:SIT:%x:trace in\n", radio().id() );
+#ifdef DEBUG_PLTT_PASSIVE_H_STORE_INHIBIT_TRACE
+					debug().debug("TR:SIT:%x:trace in\n", radio().id() );
+#endif
 					traces.push_back( _trace );
 					traces_iterator = traces.end() - 1;
 					return &(*traces_iterator);
