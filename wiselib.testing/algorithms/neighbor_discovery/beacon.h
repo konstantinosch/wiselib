@@ -136,6 +136,43 @@ namespace wiselib
 			}
 		}
 		// --------------------------------------------------------------------
+#ifdef CONFIG_NEIGHBOR_DISCOVERY_H_ACTIVE_CONNECTIVITY_FILTERING
+		void q_sort_neigh_active_con( int8_t _left, int8_t _right )
+		{
+			int8_t i = _left;
+			int8_t j = _right;
+			Neighbor tmp;
+			Neighbor pivot = neighborhood[ ( _left + _right ) / 2 ];
+			while (i <= j)
+			{
+				while ( neighborhood[i].get_active_connectivity() < pivot.get_active_connectivity() )
+				{
+					i++;
+				}
+				while ( neighborhood[j].get_active_connectivity() > pivot.get_active_connectivity() )
+				{
+					j--;
+				}
+				if ( i <= j )
+				{
+					tmp = neighborhood[i];
+					neighborhood[i] = neighborhood[j];
+					neighborhood[j] = tmp;
+					i++;
+					j--;
+				}
+			};
+			if ( _left < j )
+			{
+				q_sort_neigh_active_con( _left, j );
+			}
+			if ( i < _right )
+			{
+				q_sort_neigh_active_con( i, _right);
+			}
+		}
+#endif
+		// --------------------------------------------------------------------
 		Beacon_Type& operator=( const Beacon_Type& _b )
 		{
 			beacon_period_update_counter = _b.beacon_period_update_counter;
@@ -170,6 +207,7 @@ namespace wiselib
 			}
 			debug.debug( "beacon_period (size %i) : %d\n", sizeof(beacon_period), beacon_period );
 			debug.debug( "beacon_period_update_counter (size %i) : %d\n", sizeof(beacon_period_update_counter), beacon_period_update_counter );
+			debug.debug( "active_connectivity (size %i) : %d\n", sizeof(active_connectivity), active_connectivity );
 			debug.debug( "-------------------------------------------------------\n" );
 		}
 #endif

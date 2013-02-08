@@ -1,8 +1,3 @@
-//default link information
-#define ND_ENABLE_LQI
-#define ND_ENABLE_RSSI
-#define ND_ENABLE_LINK_STAB_RATIO
-
 //default ND protocol settings
 //#define ND_MAX_NEIGHBORS 500 shawn setting
 #define ND_MAX_NEIGHBORS 25

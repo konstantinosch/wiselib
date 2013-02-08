@@ -283,8 +283,20 @@ namespace wiselib
 #else
 						Neighbor_vector nv = p_ptr->get_neighborhood();
 #endif
-						//debug().debug("NB_BUFF:%d:%d\n",radio().id(), nv.size() );
 						beacon.set_neighborhood( nv, radio().id() );
+#ifdef CONFIG_NEIGHBOR_DISCOVERY_H_ACTIVE_CONNECTIVITY_FILTERING
+						if ( beacon.get_neighborhood_ref()->size() > 0 )
+						{
+							beacon.q_sort_neigh_active_con( 0, beacon.get_neighborhood_ref()->size() - 1 );
+						}
+#ifdef DEBUG_NEIGHBOR_DISCOVERY_H_BEACONS
+						debug().debug("ND:BEAC:%x:%d:%d:%d,\n", radio().id(), Radio::MAX_MESSAGE_LENGTH, nv.size(), beacon.serial_size() );
+						for ( Neighbor_vector_iterator i = beacon.get_neighborhood_ref()->begin(); i != beacon.get_neighborhood_ref()->end(); ++i )
+						{
+							debug().debug("ND:BEAC:NEIGH:%x:%x:%d:%d \n", radio().id(), i->get_id(), i->get_active_connectivity(), i->serial_size() );
+						}
+#endif
+#endif
 						block_data_t buff[Radio::MAX_MESSAGE_LENGTH];
 						send( Radio::BROADCAST_ADDRESS, beacon.serial_size(), beacon.serialize( buff ), ND_MESSAGE );
 #ifdef DEBUG_NEIGHBOR_DISCOVERY_H_BEACONS
@@ -492,6 +504,9 @@ namespace wiselib
 								}
 							}
 						}
+#ifdef CONFIG_NEIGHBOR_DISCOVERY_H_ACTIVE_CONNECTIVITY_FILTERING
+						new_neighbor.set_active_connectivity( beacon.get_neighborhood_ref()->size() );
+#endif
 						if ( found_flag == 0 )
 						{
 #ifdef DEBUG_NEIGHBOR_DISCOVERY_H_RECEIVE

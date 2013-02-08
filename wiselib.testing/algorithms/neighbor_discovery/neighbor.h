@@ -69,6 +69,9 @@ namespace wiselib
 			avg_RSSI						( ND_MAX_AVG_RSSI_THRESHOLD / 2 ),
 			avg_RSSI_inverse				( ND_MAX_AVG_RSSI_INVERSE_THRESHOLD / 2 ),
 #endif
+#ifdef CONFIG_NEIGHBOR_DISCOVERY_H_ACTIVE_CONNECTIVITY_FILTERING
+			active_connectivity				( 0 ),
+#endif
 			link_stab_ratio					( 0 ),
 			link_stab_ratio_inverse			( 0 ),
 			beacon_period					( 0 ),
@@ -89,6 +92,9 @@ namespace wiselib
 						uint8_t _arssi,
 						uint8_t	_arssi_in,
 #endif
+#ifdef CONFIG_NEIGHBOR_DISCOVERY_H_ACTIVE_CONNECTIVITY_FILTERING
+						uint8_t _ac,
+#endif
 						uint8_t _lsratio,
 						uint8_t _lsratio_in,
 						millis_t _bp,
@@ -106,6 +112,9 @@ namespace wiselib
 #ifdef CONFIG_NEIBHBOR_DISCOVERY_H_RSSI_FILTERING
 			avg_RSSI = _arssi;
 			avg_RSSI_inverse = _arssi_in;
+#endif
+#ifdef CONFIG_NEIGHBOR_DISCOVERY_H_ACTIVE_CONNECTIVITY_FILTERING
+			active_connectivity = _ac;
 #endif
 			link_stab_ratio = _lsratio;
 			link_stab_ratio_inverse = _lsratio_in;
@@ -379,6 +388,18 @@ namespace wiselib
 			}
 		}
 		// --------------------------------------------------------------------
+#ifdef CONFIG_NEIGHBOR_DISCOVERY_H_ACTIVE_CONNECTIVITY_FILTERING
+		uint8_t get_active_connectivity()
+		{
+			return active_connectivity;
+		}
+		// --------------------------------------------------------------------
+		void set_active_connectivity( uint8_t _ac )
+		{
+			active_connectivity = _ac;
+		}
+		// --------------------------------------------------------------------
+#endif
 #ifdef NEIGHBOR_DISCOVERY_COORD_SUPPORT
 		Position get_position()
 		{
@@ -403,6 +424,9 @@ namespace wiselib
 #ifdef CONFIG_NEIBHBOR_DISCOVERY_H_RSSI_FILTERING
 			avg_RSSI = _n.avg_RSSI;
 			avg_RSSI_inverse = _n.avg_RSSI_inverse;
+#endif
+#ifdef CONFIG_NEIGHBOR_DISCOVERY_H_ACTIVE_CONNECTIVITY_FILTERING
+			active_connectivity = _n.active_connectivity;
 #endif
 			link_stab_ratio = _n.link_stab_ratio;
 			link_stab_ratio_inverse = _n.link_stab_ratio_inverse;
@@ -525,6 +549,9 @@ namespace wiselib
 			debug.debug( "avg_RSSI (size %i) : %d\n", sizeof(avg_RSSI), avg_RSSI );
 			debug.debug( "avg_RSSI_inverse (size %i) : %i\n", sizeof(avg_RSSI_inverse), avg_RSSI_inverse );
 #endif
+#ifdef CONFIG_NEIGHBOR_DISCOVERY_H_ACTIVE_CONNECTIVITY_FILTERING
+			debug.debug( "active_connectivity (size %i) : %i\n", sizeof(active_connectivity), active_connectivity );
+#endif
 			debug.debug( "link_stab_ratio (size %i) : %i\n", sizeof(link_stab_ratio), link_stab_ratio );
 			debug.debug( "link_stab_ratio_inverse (size %i) : %i\n", sizeof(link_stab_ratio_inverse), link_stab_ratio_inverse );
 			debug.debug( "beacon_period (size %i) : %d\n", sizeof(beacon_period), beacon_period );
@@ -538,13 +565,13 @@ namespace wiselib
 			{
 #ifdef NEIGHBOR_DISCOVERY_COORD_SUPPORT
 #ifdef NEIGHBOR_DISCOVERY_COORD_SUPPORT_SHAWN
-				debug.debug( "NB:%x:%x:%d:%d:%d:%d:%d:%d:%d:%d:%d:%d:%d:%f:%f:%f:%f:%d:%d\n",
+				debug.debug( "NB:%x:%x:%d:%d:%d:%d:%d:%d:%d:%d:%d:%d:%d:%d:%f:%f:%f:%f:%d:%d\n",
 #endif
 #ifdef NEIGHBOR_DISCOVERY_COORD_SUPPORT_ISENSE
-				debug.debug( "NB:%x:%x:%d:%d:%d:%d:%d:%d:%d:%d:%d:%d:%d:%d:%d:%d:%d:%d:%d\n",
+				debug.debug( "NB:%x:%x:%d:%d:%d:%d:%d:%d:%d:%d:%d:%d:%d:%d:%d:%d:%d:%d:%d:%d\n",
 #endif
 #else
-				debug.debug( "NB:%x:%x:%d:%d:%d:%d:%d:%d:%d:%d:%d:%d:%d:%d:%d\n",
+				debug.debug( "NB:%x:%x:%d:%d:%d:%d:%d:%d:%d:%d:%d:%d:%d:%d:%d:%d\n",
 #endif
 					radio.id(),
 					id,
@@ -561,6 +588,11 @@ namespace wiselib
 					avg_RSSI_inverse,
 #else
 					0,0,
+#endif
+#ifdef CONFIG_NEIGHBOR_DISCOVERY_H_ACTIVE_CONNECTIVITY_FILTERING
+					active_connectivity,
+#else
+					0,
 #endif
 					link_stab_ratio,
 					link_stab_ratio_inverse,
@@ -593,6 +625,9 @@ namespace wiselib
 		uint8_t avg_RSSI;
 		uint8_t avg_RSSI_inverse;
 #endif
+#ifdef CONFIG_NEIGHBOR_DISCOVERY_H_ACTIVE_CONNECTIVITY_FILTERING
+		uint8_t active_connectivity;
+#endif
 		uint8_t link_stab_ratio;
 		uint8_t link_stab_ratio_inverse;
 		millis_t beacon_period;
@@ -601,6 +636,7 @@ namespace wiselib
 		time_t last_beacon;
 		int8_t trust_counter;
 		int8_t trust_counter_inverse;
+
 #ifdef NEIGHBOR_DISCOVERY_COORD_SUPPORT
 		Position position;
 #endif
