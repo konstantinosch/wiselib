@@ -188,6 +188,14 @@ namespace wiselib
 				max_times_number = 2 * max_times_number;
 			}
 			max_times_number = max_times_number - 1;
+#ifdef DEBUG_PLTT_STATS
+#ifdef	DEBUG_PLTT_STATS_SHAWN
+			debug().debug("COORD:%d:%d:%f:%f\n", nb_convergence_time_max_counter, radio().id(), self.get_node().get_position().get_x(), self.get_node().get_position().get_y() );
+#endif
+#ifdef	DEBUG_PLTT_STATS_ISENSE
+			debug().debug("COORD:%d:%x:%d:%d\n", nb_convergence_time_max_counter, radio().id(), self.get_node().get_position().get_x(), self.get_node().get_position().get_y() );
+#endif
+#endif
 		}
 		// -----------------------------------------------------------------------
 		void neighbor_discovery_enable_task( void* _userdata = NULL )
@@ -315,7 +323,7 @@ namespace wiselib
 				debug().debug( "LOCAL_MAXIMUM:%d:%d:%d\n", nb_convergence_time_counter, radio().id(), neighbors.size() );
 #endif
 #ifdef	DEBUG_PLTT_STATS_ISENSE
-				debug().debug( "LOCAL_MINIMUM:%d:%x:%d\n", nb_convergence_time_counter, radio().id(), neighbors.size() );
+				debug().debug( "LOCAL_MAXIMUM:%d:%x:%d\n", nb_convergence_time_counter, radio().id(), neighbors.size() );
 #endif
 			}
 #endif
@@ -387,13 +395,13 @@ namespace wiselib
 				debug().debug( "LOCAL_MAXIMUM:%d:%d:%d\n", nb_convergence_time_counter, radio().id(), neighbors.size() );
 #endif
 #ifdef	DEBUG_PLTT_STATS_ISENSE
-				debug().debug( "LOCAL_MINIMUM:%d:%x:%d\n", nb_convergence_time_counter, radio().id(), neighbors.size() );
+				debug().debug( "LOCAL_MAXIMUM:%d:%x:%d\n", nb_convergence_time_counter, radio().id(), neighbors.size() );
 #endif
 			}
 #endif
-			radio_callback_id = radio().template reg_recv_callback<self_type, &self_type::receive> (this);
-			reliable_radio_callback_id = reliable_radio().template reg_recv_callback<self_type, &self_type::receive> (this);
-			update_traces();
+			//radio_callback_id = radio().template reg_recv_callback<self_type, &self_type::receive> (this);
+			//reliable_radio_callback_id = reliable_radio().template reg_recv_callback<self_type, &self_type::receive> (this);
+			//update_traces();
 #ifdef CONFIG_PLTT_PRIVACY
 			decryption_request_daemon();
 #endif
