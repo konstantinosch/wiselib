@@ -399,9 +399,9 @@ namespace wiselib
 #endif
 			}
 #endif
-			//radio_callback_id = radio().template reg_recv_callback<self_type, &self_type::receive> (this);
-			//reliable_radio_callback_id = reliable_radio().template reg_recv_callback<self_type, &self_type::receive> (this);
-			//update_traces();
+			radio_callback_id = radio().template reg_recv_callback<self_type, &self_type::receive> (this);
+			reliable_radio_callback_id = reliable_radio().template reg_recv_callback<self_type, &self_type::receive> (this);
+			update_traces();
 #ifdef CONFIG_PLTT_PRIVACY
 			decryption_request_daemon();
 #endif

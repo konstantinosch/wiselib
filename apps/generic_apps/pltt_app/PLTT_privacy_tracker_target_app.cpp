@@ -6,6 +6,7 @@
 #include "algorithms/tracking/PLTT_trace.h"
 #include "radio/reliable/reliable_radio.h"
 #define CONFIG_PLTT_TARGET
+#define CONFIG_PLTT_TRACKER
 #ifdef CONFIG_PLTT_TARGET
 #include "algorithms/tracking/PLTT_target.h"
 #endif
@@ -38,7 +39,7 @@ typedef wiselib::Position2DType<Os, Radio, CoordinatesNumber, Debug> Position;
 typedef wiselib::NodeType<Os, Radio, node_id_t, Position, Debug> Node;
 #ifdef CONFIG_PLTT_TRACKER
 typedef uint32 AgentID;
-typedef wiselib::PLTT_AgentType< Os, Radio, AgentID, IntensityNumber, Debug> PLTT_Agent;
+typedef wiselib::PLTT_AgentType< Os, Radio, AgentID, IntensityNumber,  Position, TimesNumber, Debug> PLTT_Agent;
 typedef wiselib::PLTT_TrackerType<Os, PLTT_Agent, Node, Position, IntensityNumber, Timer, Radio, ReliableRadio, Rand, Clock, Debug> PLTT_Tracker;
 #endif
 typedef wiselib::PLTT_TraceType<Os, Radio, TimesNumber, SecondsNumber, IntensityNumber, Node, node_id_t, Debug> PLTT_Trace;
@@ -59,7 +60,8 @@ PLTT_Target target( PLTT_Trace( PLTT_TRACE_DIMINISH_SECONDS, PLTT_TRACE_DIMINISH
 #endif
 #endif
 #ifdef CONFIG_PLTT_TRACKER
-PLTT_Tracker tracker( PLTT_TARGET_ID, PLTT_TRACE_START_INTENSITY );
+PLTT_Tracker tracker( PLTT_TARGET_ID, PLTT_TRACE_START_INTENSITY, PLTT_TRACKER_H_TRANSMISSION_POWER_DB, PLTT_TRACKER_H_INIT_TRACKING_MILLIS, PLTT_TRACKER_H_GENERATE_AGENT_PERIOD, PLTT_TRACKER_H_GENERATE_AGENT_PERIOD_OFFSET_RATIO, PLTT_TRACKER_H_MINI_RUN_TIMES );
+//PLTT_Tracker tracker( PLTT_TARGET_ID, PLTT_TRACE_START_INTENSITY );
 ReliableRadio reliable_radio;
 #endif
 #ifdef CONFIG_PLTT_PRIVACY
