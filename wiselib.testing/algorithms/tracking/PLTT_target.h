@@ -263,9 +263,9 @@ namespace wiselib
 		{
 			if ( status == ACTIVE_STATUS )
 			{
-#ifdef DEBUG_PLTT_TARGET_H_SEND_TRACE
-				debug().debug( "PLTT_Target - send_trace %x - Entering.\n", radio().id() );
-#endif
+//#ifdef DEBUG_PLTT_TARGET_H_SEND_TRACE
+				//debug().debug( "PLTT_Target - send_trace %x - Entering.\n", radio().id() );
+//#endif
 #ifdef CONFIG_PLTT_TARGET_H_MINI_RUN
 				if ( target_trace.get_start_time() < target_mini_run_times )
 				{
@@ -275,7 +275,7 @@ namespace wiselib
 					block_data_t buffer[Radio::MAX_MESSAGE_LENGTH];
 					block_data_t* buff = buffer;
 #ifdef DEBUG_PLTT_STATS
-					debug().debug( "TAR:%d:%d:%d:%f:%f:%d\n", radio().id(),  clock().seconds( clock().time() ) * 1000 + clock().milliseconds( clock().time() ), target_trace.get_start_time(), self.get_position().get_x(), self.get_position().get_y(), transmission_power_dB );
+					//debug().debug( "TAR:%d:%d:%d:%f:%f:%d\n", radio().id(),  clock().seconds( clock().time() ) * 1000 + clock().milliseconds( clock().time() ), target_trace.get_start_time(), self.get_position().get_x(), self.get_position().get_y(), transmission_power_dB );
 					//debug().debug( "TAR:%x:%d:%f:%f\n", radio().id(),  target_trace.get_start_time(), self.get_position().get_x(), self.get_position().get_y() );
 #endif
 					message.set_payload( target_trace.serial_size(), target_trace.serialize( buff ) );
@@ -290,9 +290,9 @@ namespace wiselib
 #ifdef CONFIG_PLTT_TARGET_H_MINI_RUN
 				}
 #endif
-#ifdef DEBUG_PLTT_TARGET_H_SEND_TRACE
-				debug().debug( "PLTT_Target - send_trace %x - Exiting.\n", radio().id() );
-#endif
+//#ifdef DEBUG_PLTT_TARGET_H_SEND_TRACE
+				//debug().debug( "PLTT_Target - send_trace %x - Exiting.\n", radio().id() );
+//#endif
 			}
 		}
 		// -----------------------------------------------------------------------

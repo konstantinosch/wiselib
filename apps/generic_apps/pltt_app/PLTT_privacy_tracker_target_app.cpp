@@ -5,8 +5,8 @@
 #include "internal_interface/node/node_new.h"
 #include "algorithms/tracking/PLTT_trace.h"
 #include "radio/reliable/reliable_radio.h"
-#define CONFIG_PLTT_TARGET
-#define CONFIG_PLTT_TRACKER
+//#define CONFIG_PLTT_TARGET
+//#define CONFIG_PLTT_TRACKER
 #ifdef CONFIG_PLTT_TARGET
 #include "algorithms/tracking/PLTT_target.h"
 #endif
