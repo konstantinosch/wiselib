@@ -146,7 +146,7 @@ namespace wiselib
 						mmmmm.de_serialize( buffff );
 						if ( ( mmmmm.get_message_id() == 41 ) || ( mmmmm.get_message_id() == 51 ) )
 						{
-							debug().debug( "ReliableRadio - receive %d - Received RR_MESSAGE from %x of size %d.\n", radio().id(), _from, _len );
+							debug().debug( "ReliableRadio - receive %x - Received RR_MESSAGE of [%x] from %x of size %d.\n", radio().id(), reliable_radio_message.get_message_id(), _from, _len );
 						}
 //#endif
 						ReliableRadioMessage reliable_radio_reply;
@@ -180,9 +180,8 @@ namespace wiselib
 //#ifdef DEBUG_RELIABLE_RADIO_H
 						if ( ( mmmmm.get_message_id() == 41 ) || ( mmmmm.get_message_id() == 51 ) )
 						{
-							debug().debug( "ReliableRadio - receive %d - Sending RR_REPLY of %d to %x vs %x with sizes[%d + %d, %d].\n", radio().id(), reliable_radio_reply.get_message_id(), _from, reliable_radio_reply.get_destination(), olds, sizeof(node_id_t) + sizeof(uint32_t), reliable_radio_reply.serial_size() );
 							reliable_radio_reply.reply_destination_read();
-							debug().debug( "ReliableRadio - receive %d - Sending RR_REPLY of %d to %x vs %x with sizes[%d + %d, %d].\n", radio().id(), reliable_radio_reply.get_message_id(), _from, reliable_radio_reply.get_destination(), olds, sizeof(node_id_t) + sizeof(uint32_t), reliable_radio_reply.serial_size() );
+							debug().debug( "ReliableRadio - receive %x - Sending RR_REPLY of [%x] to %x vs %x with sizes[%d + %d, %d].\n", radio().id(), reliable_radio_reply.get_message_id(), _from, reliable_radio_reply.get_destination(), olds, sizeof(node_id_t) + sizeof(uint32_t), reliable_radio_reply.serial_size() );
 						}
 //#endif
 						radio().send( _from, message.serial_size(), message.serialize() );
@@ -191,7 +190,7 @@ namespace wiselib
 //#ifdef DEBUG_RELIABLE_RADIO_H
 							if ( ( mmmmm.get_message_id() == 41 ) || ( mmmmm.get_message_id() == 51 ) )
 							{
-								debug().debug( "ReliableRadio-receive %d - RR_MESSAGE WAS NEW of [%d] from %x, going for storing.\n", radio().id(), reliable_radio_message.get_message_id(), _from );
+								debug().debug( "ReliableRadio-receive %x - RR_MESSAGE WAS NEW of [%x] from %x, going for storing.\n", radio().id(), reliable_radio_message.get_message_id(), _from );
 							}
 //#endif
 //#ifdef DEBUG_RELIABLE_RADIO_H
@@ -200,11 +199,11 @@ namespace wiselib
 							{
 								if ( res == 1 )
 								{
-									debug().debug( "ReliableRadio-receive %d - RR_MESSAGE WAS NEW of [%d] from %x, STORED.\n", radio().id(), reliable_radio_message.get_message_id(), _from );
+									debug().debug( "ReliableRadio-receive %x - RR_MESSAGE WAS NEW of [%x] from %x, STORED.\n", radio().id(), reliable_radio_message.get_message_id(), _from );
 								}
 								else
 								{
-									debug().debug( "ReliableRadio-receive %d - RR_MESSAGE WAS NEW of [%d] from %x, NOT STORED.\n", radio().id(), reliable_radio_message.get_message_id(), _from );
+									debug().debug( "ReliableRadio-receive %x - RR_MESSAGE WAS NEW of [%x] from %x, NOT STORED.\n", radio().id(), reliable_radio_message.get_message_id(), _from );
 								}
 							}
 //#endif
@@ -219,7 +218,7 @@ namespace wiselib
 						{
 							if ( ( mmmmm.get_message_id() == 41 ) || ( mmmmm.get_message_id() == 51 ) )
 							{
-								debug().debug( "ReliableRadio - receive %d - RR_MESSAGE WAS NOT!!!! NEW of [%d] from %x.\n", radio().id(), reliable_radio_message.get_message_id(), _from );
+								debug().debug( "ReliableRadio - receive %x - RR_MESSAGE WAS NOT!!!! NEW of [%x] from %x.\n", radio().id(), reliable_radio_message.get_message_id(), _from );
 							}
 						}
 //#endif
@@ -236,7 +235,7 @@ namespace wiselib
 //#ifdef DEBUG_RELIABLE_RADIO_H
 						if ( ( reliable_radio_reply.reply_internal_message_id_read() == 41 ) ||  ( reliable_radio_reply.reply_internal_message_id_read() == 51 ) )
 						{
-							debug().debug( "ReliableRadio - receive %d - Received RR_REPLY.\n", radio().id() );
+							debug().debug( "ReliableRadio - receive %x - Received RR_REPLY [%x].\n", radio().id(), reliable_radio_reply.get_message_id() );
 						}
 						uint8_t found_flag = 0;
 //#endif
@@ -245,7 +244,7 @@ namespace wiselib
 //#ifdef DEBUG_RELIABLE_RADIO_H
 							if ( ( reliable_radio_reply.reply_internal_message_id_read() == 41 ) ||  ( reliable_radio_reply.reply_internal_message_id_read() == 51 ) )
 							{
-								debug().debug( "ReliableRadio - receive %d - Received RR_REPLY - in the loops with [%d vs %d] with deliver status [%d] from %x.\n", radio().id(), i->get_message_id(), reliable_radio_reply.get_message_id(), i->get_delivered(), _from );
+								debug().debug( "ReliableRadio - receive %x - Received RR_REPLY [%x] - in the loops with [%x vs %x] with deliver status [%d] from %x.\n", radio().id(),  reliable_radio_reply.get_message_id(), i->get_message_id(), reliable_radio_reply.get_message_id(), i->get_delivered(), _from );
 							}
 //#endif
 							if ( ( i->get_message_id() == reliable_radio_reply.get_message_id() ) && ( i->get_delivered() == 0 ) && ( i->get_destination() == _from ) )
@@ -254,7 +253,7 @@ namespace wiselib
 //#ifdef DEBUG_RELIABLE_RADIO_H
 								if ( ( reliable_radio_reply.reply_internal_message_id_read() == 41 ) ||  ( reliable_radio_reply.reply_internal_message_id_read() == 51 ) )
 								{
-									debug().debug( "ReliableRadio - receive %d - Exiting with mark of %d message from %x.\n", radio().id(), i->get_message_id(), _from );
+									debug().debug( "ReliableRadio - receive %x - Received RR_REPLY [%x] - Exiting as delivered from %x.\n", radio().id(), i->get_message_id(), _from );
 									found_flag = 1;
 								}
 //#endif
@@ -264,9 +263,9 @@ namespace wiselib
 //#ifdef DEBUG_RELIABLE_RADIO_H
 						if ( ( found_flag == 0 ) && ( ( reliable_radio_reply.reply_internal_message_id_read() == 41 ) ||  ( reliable_radio_reply.reply_internal_message_id_read() == 51 ) ) )
 						{
-							debug().debug( "ReliableRadio - receive %d - Exiting from %x with possible obsolete reply.\n", radio().id(), _from );
+							debug().debug( "ReliableRadio - receive %x - Received RR_REPLY [%x] - Exiting not found from %x with possible obsolete reply.\n", radio().id(),  reliable_radio_reply.get_message_id(), _from );
 						}
-						debug().debug( "ReliableRadio - receive %d - Exiting from %x with possible obsolete reply.\n", radio().id(), _from );
+						//debug().debug( "ReliableRadio - receive %x - Exiting from %x with possible obsolete reply.\n", radio().id(), _from );
 //#endif
 					}
 				}
@@ -285,19 +284,19 @@ namespace wiselib
 			{
 				for ( ReliableRadioMessage_vector_iterator i = reliable_radio_messages.begin(); i != reliable_radio_messages.end(); ++i )
 				{
-#ifdef DEBUG_RELIABLE_RADIO_H
+//#ifdef DEBUG_RELIABLE_RADIO_H
 					block_data_t* buffff = i->get_payload();
 					Message mmmmm;
 					mmmmm.de_serialize( buffff );
-#endif
+//#endif
 					if ( ( i->get_counter() < max_retries ) && ( i->get_delivered() == 0 ) )
 					{
-#ifdef DEBUG_RELIABLE_RADIO_H
+//#ifdef DEBUG_RELIABLE_RADIO_H
 						if ( ( mmmmm.get_message_id() == 41 ) || ( mmmmm.get_message_id() == 51 ) )
 						{
-							debug().debug( "ReliableRadio - daemon %d - An RR_MESSAGE exists with less than max retries...\n", radio().id() );
+							debug().debug( "ReliableRadio - daemon %x - An RR_MESSAGE [%x] exists with less than max retries...\n", radio().id(), i->get_message_id() );
 						}
-#endif
+//#endif
 						Message message;
 						message.set_message_id( RR_MESSAGE );
 						block_data_t buff[Radio::MAX_MESSAGE_LENGTH];
@@ -308,10 +307,10 @@ namespace wiselib
 							if ( old_db < -6 )
 							{
 //#ifdef DEBUG_RELIABLE_RADIO_H
-//								if ( ( mmmmm.get_message_id() == 41 ) || ( mmmmm.get_message_id() == 51 ) )
-//								{
-//									debug().debug("ReliableRadio - daemon %d - Increasing radius [%d, %d], for re-transmission...\n", radio().id(), old_db, old_db + 6 );
-//								}
+								if ( ( mmmmm.get_message_id() == 41 ) || ( mmmmm.get_message_id() == 51 ) )
+								{
+									debug().debug("ReliableRadio - daemon %x - [%x], Increasing radius [%d, %d], for re-transmission...\n", radio().id(), i->get_message_id(), old_db, old_db + 6 );
+								}
 //#endif
 								TxPower tp;
 								tp.set_dB( old_db + 6 );
@@ -326,10 +325,10 @@ namespace wiselib
 						else
 						{
 //#ifdef DEBUG_RELIABLE_RADIO_H
-//							if ( ( mmmmm.get_message_id() == 41 ) || ( mmmmm.get_message_id() == 51 ) )
-//							{
-//								debug().debug( "ReliableRadio - daemon %d - An RR_MESSAGE exists with less than max retries... - Sending again to %d [%d]...\n", radio().id(), i->get_destination(), i->get_message_id() );
-//							}
+							if ( ( mmmmm.get_message_id() == 41 ) || ( mmmmm.get_message_id() == 51 ) )
+							{
+								debug().debug( "ReliableRadio - daemon %x - An RR_MESSAGE [%x] exists with less than max retries... - Sending again to %d [%d]...\n", radio().id(),  i->get_message_id(), i->get_destination(), i->get_message_id() );
+							}
 //#endif
 							radio().send( i->get_destination(), message.serial_size(), message.serialize() );
 							i->inc_counter();
@@ -337,12 +336,12 @@ namespace wiselib
 					}
 					else if ( ( i->get_counter() ==  max_retries ) && ( i->get_delivered() == 0 ) )
 					{
-#ifdef DEBUG_RELIABLE_RADIO_H
+//#ifdef DEBUG_RELIABLE_RADIO_H
 						if ( ( mmmmm.get_message_id() == 41 ) || ( mmmmm.get_message_id() == 51 ) )
 						{
-							debug().debug( "ReliableRadio - daemon %d - An RR_MESSAGE exists with max retries %d of [%d] with deliver status [%d] from %x... - Undelivered...\n", radio().id() , max_retries + 1, i->get_message_id(), i->get_delivered(), i->get_destination() );
+							debug().debug( "ReliableRadio - daemon %d - An RR_MESSAGE [%x] exists with max retries %d of [%d] with deliver status [%d] from %x... - Undelivered...\n", radio().id() ,  i->get_message_id(), max_retries + 1, i->get_message_id(), i->get_delivered(), i->get_destination() );
 						}
-#endif
+//#endif
 						for ( RegisteredCallbacks_vector_iterator j = callbacks.begin(); j != callbacks.end(); ++j )
 						{
 							ExData ex;
