@@ -733,7 +733,14 @@ namespace wiselib
 			}
 #endif
 			uint8_t found = 0;
-			debug().debug("%x----%x[%d]", _from, radio().id(), _a.get_hop_count() );
+			if ( _msg_id == PLTT_AGENT_QUERY_ID )
+			{
+				debug().debug("Q %x----%x[%d]", _from, radio().id(), _a.get_hop_count() );
+			}
+			else if ( _msg_id == PLTT_AGENT_REPORT_ID )
+			{
+				debug().debug("R %x----%x[%d]", _from, radio().id(), _a.get_hop_count() );
+			}
 			for ( PLTT_TraceListIterator traces_iterator = traces.begin(); traces_iterator != traces.end(); ++traces_iterator )
 			{
 				if	(

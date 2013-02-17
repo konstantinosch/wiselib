@@ -245,6 +245,7 @@ namespace wiselib
 				a.de_serialize( message->get_payload() );
 				uint32_t end_millis = (clock().milliseconds( clock().time() ) + clock().seconds( clock().time() ) * 1000 );
 #ifdef DEBUG_PLTT_TRACKER_H_RECEIVE
+				uint32_t end_millis = (clock().milliseconds( clock().time() ) + clock().seconds( clock().time() ) * 1000 );
 				debug().debug("XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX\n");
 				debug().debug( "PLTT_Tracker - receive %x- Received agent from %x.\n", radio().id(), _from );
 				a.print( debug(), radio() );
