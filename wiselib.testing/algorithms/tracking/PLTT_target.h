@@ -276,7 +276,7 @@ namespace wiselib
 					block_data_t* buff = buffer;
 #ifdef DEBUG_PLTT_STATS
 					//debug().debug( "TAR:%d:%d:%d:%f:%f:%d\n", radio().id(),  clock().seconds( clock().time() ) * 1000 + clock().milliseconds( clock().time() ), target_trace.get_start_time(), self.get_position().get_x(), self.get_position().get_y(), transmission_power_dB );
-					//debug().debug( "TAR:%x:%d:%f:%f\n", radio().id(),  target_trace.get_start_time(), self.get_position().get_x(), self.get_position().get_y() );
+					debug().debug( "TAR:%x:%d:%d:%d\n", radio().id(),  target_trace.get_start_time(), self.get_position().get_x(), self.get_position().get_y() );
 #endif
 					message.set_payload( target_trace.serial_size(), target_trace.serialize( buff ) );
 					trans_power.set_dB( transmission_power_dB );

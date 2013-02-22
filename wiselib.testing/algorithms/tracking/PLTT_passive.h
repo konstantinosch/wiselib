@@ -173,7 +173,7 @@ namespace wiselib
 			radio().enable_radio();
 
 			set_status( ACTIVE_STATUS );
-#ifndef CONFIG_PLTT_PASSIVE_RANDOM_BOOT
+#ifndef CONFIG_PLTT_PASSIVE_H_RANDOM_BOOT
 			neighbor_discovery_enable_task();
 #else
 			millis_t r = rand()() % random_enable_timer_range;
@@ -1365,6 +1365,7 @@ namespace wiselib
 #endif
 					if ( ( _t->get_recipient_1_id() != 0 ) || ( _t->get_recipient_2_id() != 0 ) )
 					{
+						debug().debug("s:%x:%d:%d\n", radio().id(), r, r + ( (r * inhibition_spread_offset_millis_ratio ) / 100 ) );
 						timer().template set_timer<self_type, &self_type::spread_inhibition> (r, this, (void*) _t );
 						timer().template set_timer<self_type, &self_type::spread_trace> (r + ( ( r * inhibition_spread_offset_millis_ratio ) / 100 ), this, (void*) _t );
 					}

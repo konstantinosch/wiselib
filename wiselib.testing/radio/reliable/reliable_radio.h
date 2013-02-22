@@ -41,6 +41,8 @@ namespace wiselib
 		typedef ReliableRadioMessage_Type<Os, Radio, Debug> ReliableRadioMessage;
 		typedef vector_static<Os, ReliableRadioMessage, RR_MAX_BUFFERED_MESSAGES> ReliableRadioMessage_vector;
 		typedef typename ReliableRadioMessage_vector::iterator ReliableRadioMessage_vector_iterator;
+		typedef vector_static<Os, ReliableRadioMessage, RR_MAX_BUFFERED_REPLIES> ReliableRadioReply_vector;
+		typedef typename ReliableRadioReply_vector::iterator ReliableRadioReply_vector_iterator;
 		typedef ReliableRadio_Type<Os, Radio, Clock, Timer, Rand, Debug> self_t;
 		// --------------------------------------------------------------------
 		ReliableRadio_Type() :
@@ -185,9 +187,6 @@ namespace wiselib
 						}
 						//**
 //#endif
-						Message message;
-						message.set_message_id( RR_REPLY );
-						message.set_payload( reliable_radio_reply.serial_size(), reliable_radio_reply.serialize( buff2 ) );
 //@
 //#ifdef DEBUG_RELIABLE_RADIO_H
 						if ( ( mmmmm.get_message_id() == 41 ) || ( mmmmm.get_message_id() == 51 ) )
@@ -196,7 +195,6 @@ namespace wiselib
 							debug().debug( "ReliableRadio - receive %x - Sending RR_REPLY of [%x] to %x vs %x with sizes[%d + %d, %d].\n", radio().id(), reliable_radio_reply.get_message_id(), _from, reliable_radio_reply.get_destination(), olds, sizeof(node_id_t) + sizeof(uint32_t), reliable_radio_reply.serial_size() );
 						}
 //#endif
-						radio().send( _from, message.serial_size(), message.serialize() );
 						if ( replies_check( reliable_radio_reply.get_message_id(), _from ) == 0 )
 						{
 //@
@@ -224,6 +222,10 @@ namespace wiselib
 							//this loop could be included only for res 1... due to the fact that the reliable node partners might go into an endless ping pong loop (no buffer - no knowledge...)
 							if ( res == 1 )
 							{
+								Message message;
+								message.set_message_id( RR_REPLY );
+								message.set_payload( reliable_radio_reply.serial_size(), reliable_radio_reply.serialize( buff2 ) );
+								radio().send( _from, message.serial_size(), message.serialize() );
 								for ( RegisteredCallbacks_vector_iterator i = callbacks.begin(); i != callbacks.end(); ++i )
 								{
 									(*i)( _from, reliable_radio_message.get_payload_size(), reliable_radio_message.get_payload(), _ex);
@@ -337,7 +339,7 @@ namespace wiselib
 //#ifdef DEBUG_RELIABLE_RADIO_H
 								if ( ( mmmmm.get_message_id() == 41 ) || ( mmmmm.get_message_id() == 51 ) )
 								{
-									debug().debug("ReliableRadio - daemon %x - [%x], Increasing radius [%d, %d], for re-transmission...\n", radio().id(), i->get_message_id(), old_db, old_db + 6 );
+									debug().debug("ReliableRadio - daemon %x - [%x], Inc rad [%d, %d], for re-trans\n", radio().id(), i->get_message_id(), old_db, old_db + 6 );
 								}
 //#endif
 								TxPower tp;
@@ -356,7 +358,7 @@ namespace wiselib
 //#ifdef DEBUG_RELIABLE_RADIO_H
 							if ( ( mmmmm.get_message_id() == 41 ) || ( mmmmm.get_message_id() == 51 ) )
 							{
-								debug().debug( "ReliableRadio - daemon %x - An RR_MESSAGE [%x] exists with less than max retries... - Sending again to %d [%d]...\n", radio().id(),  i->get_message_id(), i->get_destination(), i->get_message_id() );
+								debug().debug( "ReliableRadio - daemon %x - An RR_MESSAGE [%x] exists with less than max retries. - Sending again to %d [%d]\n", radio().id(),  i->get_message_id(), i->get_destination(), i->get_message_id() );
 							}
 //#endif
 							radio().send( i->get_destination(), message.serial_size(), message.serialize() );
@@ -369,7 +371,7 @@ namespace wiselib
 //#ifdef DEBUG_RELIABLE_RADIO_H
 						if ( ( mmmmm.get_message_id() == 41 ) || ( mmmmm.get_message_id() == 51 ) )
 						{
-							debug().debug( "ReliableRadio - daemon %d - An RR_MESSAGE [%x] exists with max retries %d of [%d] with deliver status [%d] from %x... - Undelivered...\n", radio().id() ,  i->get_message_id(), max_retries + 1, i->get_message_id(), i->get_delivered(), i->get_destination() );
+							debug().debug( "ReliableRadio - daemon %d - An RR_MESSAGE [%x] exists with max retries %d of [%d] with deliver status [%d] from %x - Undeliv\n", radio().id() ,  i->get_message_id(), max_retries + 1, i->get_message_id(), i->get_delivered(), i->get_destination() );
 						}
 //#endif
 						for ( RegisteredCallbacks_vector_iterator j = callbacks.begin(); j != callbacks.end(); ++j )
@@ -405,13 +407,13 @@ namespace wiselib
 		// --------------------------------------------------------------------
 		uint8_t insert_reliable_radio_message( ReliableRadioMessage _rrm )
 		{
-#ifdef DEBUG_RELIABLE_RADIO_H
-			debug().debug( "ReliableRadio - insert_reliable_radio_message %x - Entering.\n", radio().id() );
-			//
-//			Message mmm;
-//			mmm.de_serialize( _rrm.get_payload() );
-//
-#endif
+//#ifdef DEBUG_RELIABLE_RADIO_H
+//			debug().debug( "ReliableRadio - insert_reliable_radio_message %x - Entering.\n", radio().id() );
+
+			Message mmm;
+			mmm.de_serialize( _rrm.get_payload() );
+
+//#endif
 			if ( reliable_radio_messages.max_size() > reliable_radio_messages.size() )
 			{
 				reliable_radio_messages.push_back( _rrm );
@@ -445,7 +447,7 @@ namespace wiselib
 				}
 			}
 //#ifdef DEBUG_RELIABLE_RADIO_H
-			debug().debug( "insert_r_r_message %x- Exiting with failure [%x].\n", radio().id(), _rrm.get_message_id() );
+			debug().debug( "ins_r_r_mes %x- Exit with fail [%x].\n", radio().id(), _rrm.get_message_id(), mmm.get_message_id()  );
 //#endif
 			return 0;
 		}
@@ -465,7 +467,7 @@ namespace wiselib
 			}
 			for ( ReliableRadioMessage_vector_iterator i = reliable_radio_replies.begin(); i != reliable_radio_replies.end(); ++i )
 			{
-				if ( i->get_counter() >=  max_retries )
+				if ( i->get_counter() >=  max_retries - 1 )
 				{
 #ifdef DEBUG_RELIABLE_RADIO_H
 					debug().debug( "ReliableRadio - insert_reliable_radio_reply %x - Found an obsolete entry, replacing and exiting with success.\n", radio().id() );
@@ -475,7 +477,7 @@ namespace wiselib
 				}
 			}
 //#ifdef DEBUG_RELIABLE_RADIO_H
-			debug().debug( "insert_r_reply %x - Exiting with failure [%x].\n", radio().id(), _rrr.get_message_id() );
+			debug().debug( "ins_r_rep %x - Exit fail [%x].\n", radio().id(), _rrr.get_message_id() );
 //#endif
 			return 0;
 		}
