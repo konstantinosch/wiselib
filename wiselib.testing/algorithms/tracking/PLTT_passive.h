@@ -674,49 +674,73 @@ namespace wiselib
 				}
 				process_query_report( a, PLTT_AGENT_REPORT_ID, _from );
 			}
-			else if ( msg_id == ReliableRadio::RR_UNDELIVERED)
+//			else if ( msg_id == ReliableRadio::RR_UNDELIVERED)
+//			{
+//				block_data_t* buff = message->get_payload();
+//				Message *message_inner = (Message*) buff;
+//#ifdef DEBUG_PLTT_PASSIVE_H_RECEIVE
+//				debug().debug( "PLTT_Passive - receive %x - ReliableRadio::RR_UNDELIVERED to %x with msg_id %d.\n", radio().id(), _from, message_inner->get_message_id() );
+//#endif
+//				if ( message_inner->get_message_id() == PLTT_AGENT_QUERY_ID )
+//				{
+//					PLTT_Agent a;
+//					a.de_serialize( message_inner->get_payload() );
+//#ifdef DEBUG_PLTT_PASSIVE_H_RECEIVE
+//					debug().debug( "PLTT_Passive - receive %d - Received ReliableRadio::RR_UNDELIVERED::PLTT_AGENT_QUERY_ID [%x].\n", radio().id(), a.get_agent_id() );
+//#endif
+//				}
+//				else if ( message_inner->get_message_id() == PLTT_AGENT_REPORT_ID )
+//				{
+//					PLTT_Agent a;
+//					a.de_serialize( message_inner->get_payload() );
+//#ifdef DEBUG_PLTT_PASSIVE_H_RECEIVE
+//					debug().debug( "PLTT_Passive - receive %d - Received ReliableRadio::RR_UNDELIVERED::PLTT_AGENT_REPORT_ID [%x].\n", radio().id(), a.get_agent_id() );
+//#endif
+//				}
+//#ifndef CONFIG_PLTT_PRIVACY
+//
+//				else if ( message_inner->get_message_id() == PLTT_SPREAD_ID )
+//				{
+//#ifdef DEBUG_PLTT_PASSIVE_H_RECEIVE
+//					debug().debug("TR:S %x->?", radio().id() );
+//					debug().debug( "PLTT_Passive - receive %x - Received ReliableRadio::RR_UNDELIVERED::PLTT_SPREAD_ID.\n", radio().id() );
+//#endif
+//					PLTT_Trace trace = PLTT_Trace( message_inner->get_payload() );
+//				}
+//#else
+//				else if ( message_inner->get_message_id() == PLTT_PRIVACY_SPREAD_ID )
+//				{
+//#ifdef DEBUG_PLTT_PASSIVE_H_RECEIVE
+//					debug().debug("TR:S %x->?", radio().id() );
+//					debug().debug( "PLTT_Passive - receive %x - Received ReliableRadio::RR_UNDELIVERED::PLTT_PRIVACY_SPREAD_ID to %x.\n", radio().id(), _from );
+//#endif
+//					PLTT_PrivacyTrace trace = PLTT_PrivacyTrace( message_inner->get_payload() );
+//				}
+//#endif
+//			}
+//			else if ( msg_id == ReliableRadio::RR_REPLY_BUFFER_FULL )
+//			{
+//				block_data_t* buff = message->get_payload();
+//				Message *message_inner = (Message*) buff;
+//			}
+			else if ( msg_id == ReliableRadio::RR_MESSAGE_BUFFER_FULL )
 			{
 				block_data_t* buff = message->get_payload();
 				Message *message_inner = (Message*) buff;
-#ifdef DEBUG_PLTT_PASSIVE_H_RECEIVE
-				debug().debug( "PLTT_Passive - receive %x - ReliableRadio::RR_UNDELIVERED to %x with msg_id %d.\n", radio().id(), _from, message_inner->get_message_id() );
-#endif
-				if ( message_inner->get_message_id() == PLTT_AGENT_QUERY_ID )
+				debug().debug("%x:[%d]", radio().id(), message_inner->get_message_id() );
+				if ( message_inner->get_message_id() == PLTT_SPREAD_ID )
 				{
-					PLTT_Agent a;
-					a.de_serialize( message_inner->get_payload() );
-#ifdef DEBUG_PLTT_PASSIVE_H_RECEIVE
-					debug().debug( "PLTT_Passive - receive %d - Received ReliableRadio::RR_UNDELIVERED::PLTT_AGENT_QUERY_ID [%x].\n", radio().id(), a.get_agent_id() );
-#endif
+					TxPower power;
+					power.set_dB( transmission_power_dB );
+					radio().set_power( power );
+					radio().send( _from, message_inner->serial_size(), (uint8_t*) &message_inner );
+//#ifdef DEBUG_PLTT_PASSIVE_H_RECEIVE
+					PLTT_Trace trace( message_inner->get_payload() );
+					debug().debug("rr_mbf:%x:%x:[%x:%x:[%x]] - %d:%d:%d - [%x:%x:%x]\n", radio().id(), _from, trace.get_recipient_1_id(), trace.get_recipient_2_id(), trace.get_target_id(),
+							trace.get_start_time(), trace.get_max_intensity(), trace.get_intensity(),
+							trace.get_current().get_id(), trace.get_parent().get_id(), trace.get_grandparent().get_id() );
+//#endif
 				}
-				else if ( message_inner->get_message_id() == PLTT_AGENT_REPORT_ID )
-				{
-					PLTT_Agent a;
-					a.de_serialize( message_inner->get_payload() );
-#ifdef DEBUG_PLTT_PASSIVE_H_RECEIVE
-					debug().debug( "PLTT_Passive - receive %d - Received ReliableRadio::RR_UNDELIVERED::PLTT_AGENT_REPORT_ID [%x].\n", radio().id(), a.get_agent_id() );
-#endif
-				}
-#ifndef CONFIG_PLTT_PRIVACY
-
-				else if ( message_inner->get_message_id() == PLTT_SPREAD_ID )
-				{
-#ifdef DEBUG_PLTT_PASSIVE_H_RECEIVE
-					debug().debug("TR:S %x->?", radio().id() );
-					debug().debug( "PLTT_Passive - receive %x - Received ReliableRadio::RR_UNDELIVERED::PLTT_SPREAD_ID.\n", radio().id() );
-#endif
-					PLTT_Trace trace = PLTT_Trace( message->get_payload() );
-				}
-#else
-				else if ( message_inner->get_message_id() == PLTT_PRIVACY_SPREAD_ID )
-				{
-#ifdef DEBUG_PLTT_PASSIVE_H_RECEIVE
-					debug().debug("TR:S %x->?", radio().id() );
-					debug().debug( "PLTT_Passive - receive %x - Received ReliableRadio::RR_UNDELIVERED::PLTT_PRIVACY_SPREAD_ID to %x.\n", radio().id(), _from );
-#endif
-					PLTT_PrivacyTrace trace = PLTT_PrivacyTrace( message->get_payload() );
-				}
-#endif
 			}
 		}
 		// -----------------------------------------------------------------------
@@ -1365,7 +1389,7 @@ namespace wiselib
 #endif
 					if ( ( _t->get_recipient_1_id() != 0 ) || ( _t->get_recipient_2_id() != 0 ) )
 					{
-						debug().debug("s:%x:%d:%d\n", radio().id(), r, r + ( (r * inhibition_spread_offset_millis_ratio ) / 100 ) );
+						//debug().debug("s:%x:%d:%d\n", radio().id(), r, r + ( (r * inhibition_spread_offset_millis_ratio ) / 100 ) );
 						timer().template set_timer<self_type, &self_type::spread_inhibition> (r, this, (void*) _t );
 						timer().template set_timer<self_type, &self_type::spread_trace> (r + ( ( r * inhibition_spread_offset_millis_ratio ) / 100 ), this, (void*) _t );
 					}

@@ -164,9 +164,9 @@ namespace wiselib
 		// -----------------------------------------------------------------------
 		void send_query( void* _userdata )
 		{
-//#ifdef DEBUG_PLTT_TRACKER_H_SEND_QUERY
+#ifdef DEBUG_PLTT_TRACKER_H_SEND_QUERY
 			debug().debug( "PLTT_Tracker - send_query - Entering.\n" );
-//#endif
+#endif
 			if ( current_link_metric != 0 )
 			{
 				PLTT_Agent agent = PLTT_Agent( current_agent_id, target_id, radio().id(), target_max_inten );
@@ -182,29 +182,29 @@ namespace wiselib
 #endif
 				reliable_radio().send( current_query_destination, message.serial_size(), message.serialize() );
 				current_link_metric = 0;
-//#ifdef DEBUG_PLTT_TRACKER_H_SEND_QUERY
+#ifdef DEBUG_PLTT_TRACKER_H_SEND_QUERY
 				debug().debug( "PLTT_Tracker - send_query - A track query was routed to %x.\n", current_query_destination );
-//#endif
+#endif
 			}
 			else
 			{
-//#ifdef DEBUG_PLTT_TRACKER_H_SEND_QUERY
+#ifdef DEBUG_PLTT_TRACKER_H_SEND_QUERY
 				debug().debug( "PLTT_Tracker - send_query - No echo replies for %x query.\n", current_agent_id );
-//#endif
+#endif
 #ifdef DEBUG_PLTT_STATS
 				debug().debug( "XTR:%d:%d:%d:X\n", radio().id(), target_id, tracker_mini_run_counter );
 #endif
 			}
-//#ifdef DEBUG_PLTT_TRACKER_H_SEND_QUERY
+#ifdef DEBUG_PLTT_TRACKER_H_SEND_QUERY
 			debug().debug( "PLTT_Tracker - send_query - Exiting.\n" );
-//#endif
+#endif
 		}
 		// -----------------------------------------------------------------------
 		void send_echo( void* _userdata )
 		{
-//#ifdef DEBUG_PLTT_TRACKER_H_SEND_ECHO
+#ifdef DEBUG_PLTT_TRACKER_H_SEND_ECHO
 			debug().debug( "PLTT_Tracker - send_echo %x - Entering.\n", radio().id() );
-//#endif
+#endif
 #ifdef CONFIG_PLTT_TRACKER_H_MINI_RUN
 			if ( tracker_mini_run_counter < tracker_mini_run_times )
 			{
@@ -213,26 +213,26 @@ namespace wiselib
 #endif
 #endif
 				current_agent_id = ( rand()() % ( 0xffffffff -1 ) + 1 );
-//#ifdef DEBUG_PLTT_TRACKER_H_SEND_ECHO
+#ifdef DEBUG_PLTT_TRACKER_H_SEND_ECHO
 				debug().debug( "PLTT_Tracker - send_echo - Generated a new rand id : %x \n", current_agent_id );
-//#endif
+#endif
 				size_t len = sizeof( AgentID );
 				block_data_t buf[Radio::MAX_MESSAGE_LENGTH];
 				block_data_t* buff = buf;
 				write<Os, block_data_t, AgentID> ( buff, current_agent_id );
 				send( Radio::BROADCAST_ADDRESS, len, buff, PLTT_TRACKER_ECHO_ID );
-//#ifdef DEBUG_PLTT_TRACKER_H_SEND_ECHO
+#ifdef DEBUG_PLTT_TRACKER_H_SEND_ECHO
 				debug().debug("tracker data %d : %d \n", generate_agent_period, ( generate_agent_period_offset_ratio * generate_agent_period ) / 100 );
-//#endif
+#endif
 				timer().template set_timer<self_type, &self_type::send_echo> ( generate_agent_period, this, 0);
 				timer().template set_timer<self_type, &self_type::send_query> ( ( generate_agent_period_offset_ratio * generate_agent_period ) / 100, this, 0);
 #ifdef CONFIG_PLTT_TRACKER_H_MINI_RUN
 				tracker_mini_run_counter = tracker_mini_run_counter + 1;
 			}
 #endif
-//#ifdef DEBUG_PLTT_TRACKER_H_SEND_ECHO
+#ifdef DEBUG_PLTT_TRACKER_H_SEND_ECHO
 			debug().debug( "PLTT_Tracker - send_echo %x - Exiting.\n", radio().id() );
-//#endif
+#endif
 		}
 		// -----------------------------------------------------------------------
 		void receive( node_id_t _from, size_t _len, block_data_t* _data, const ExtendedData& _exdata )
@@ -275,14 +275,14 @@ namespace wiselib
 			else if( msg_id == PLTT_TRACKER_ECHO_REPLY_ID )
 			{
 				AgentID aid = read<Os, block_data_t, AgentID>( message->get_payload() );
-//#ifdef DEBUG_PLTT_TRACKER_H_RECEIVE
+#ifdef DEBUG_PLTT_TRACKER_H_RECEIVE
 				debug().debug( "PLTT_Tracker - receive - Received echo reply [%x vs %x] from %x of lm [%d vs %d].\n", aid, current_agent_id, _from, _exdata.link_metric(), current_link_metric );
-//#endif
+#endif
 				if ( ( aid == current_agent_id ) && ( _exdata.link_metric() > current_link_metric ) )
 				{
-//#ifdef DEBUG_PLTT_TRACKER_H_RECEIVE
+#ifdef DEBUG_PLTT_TRACKER_H_RECEIVE
 					debug().debug( "PLTT_Tracker - receive - Node %x was chosen for the final candidate.\n", _from );
-//#endif
+#endif
 					current_query_destination = _from;
 					current_link_metric = _exdata.link_metric();
 				}
