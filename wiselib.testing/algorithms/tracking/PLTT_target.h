@@ -263,9 +263,9 @@ namespace wiselib
 		{
 			if ( status == ACTIVE_STATUS )
 			{
-//#ifdef DEBUG_PLTT_TARGET_H_SEND_TRACE
-				//debug().debug( "PLTT_Target - send_trace %x - Entering.\n", radio().id() );
-//#endif
+#ifdef DEBUG_PLTT_TARGET_H_SEND_TRACE
+				debug().debug( "PLTT_Target - send_trace %x - Entering.\n", radio().id() );
+#endif
 #ifdef CONFIG_PLTT_TARGET_H_MINI_RUN
 				if ( target_trace.get_start_time() < target_mini_run_times )
 				{
@@ -290,9 +290,9 @@ namespace wiselib
 #ifdef CONFIG_PLTT_TARGET_H_MINI_RUN
 				}
 #endif
-//#ifdef DEBUG_PLTT_TARGET_H_SEND_TRACE
-				//debug().debug( "PLTT_Target - send_trace %x - Exiting.\n", radio().id() );
-//#endif
+#ifdef DEBUG_PLTT_TARGET_H_SEND_TRACE
+				debug().debug( "PLTT_Target - send_trace %x - Exiting.\n", radio().id() );
+#endif
 			}
 		}
 		// -----------------------------------------------------------------------

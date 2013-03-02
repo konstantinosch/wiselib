@@ -14,12 +14,12 @@
 #ifdef CONFIG_PLTT_PRIVACY
 #include "algorithms/tracking/PLTT_privacy_trace.h"
 #endif
-#ifdef UNIGE_TESTBED
-#include "../topologies/UNIGE_ISENSE_topology.h"
-#endif
-#ifdef CTI_TESTBED
-#include "../topologies/CTI_ISENSE_topology.h"
-#endif
+//#ifdef UNIGE_TESTBED
+//#include "../topologies/UNIGE_ISENSE_topology.h"
+//#endif
+//#ifdef CTI_TESTBED
+//#include "../topologies/CTI_ISENSE_topology.h"
+//#endif
 
 typedef wiselib::OSMODEL Os;
 typedef Os::TxRadio Radio;

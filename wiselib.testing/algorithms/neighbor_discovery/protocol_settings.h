@@ -43,13 +43,13 @@ namespace wiselib
 		typedef ProtocolSettings_Type<Os, Radio, Timer, Debug> self_type;
 		// --------------------------------------------------------------------
 		ProtocolSettings_Type()	:
-#ifdef CONFIG_NEIBHBOR_DISCOVERY_H_LQI_FILTERING
+#ifdef CONFIG_NEIGHBOR_DISCOVERY_H_LQI_FILTERING
 			max_avg_LQI_threshold 					( ND_MAX_AVG_LQI_THRESHOLD ),
 			min_avg_LQI_threshold 					( ND_MIN_AVG_LQI_THRESHOLD ),
 			max_avg_LQI_inverse_threshold 			( ND_MAX_AVG_LQI_INVERSE_THRESHOLD ),
 			min_avg_LQI_inverse_threshold 			( ND_MIN_AVG_LQI_INVERSE_THRESHOLD ),
 #endif
-#ifdef CONFIG_NEIBHBOR_DISCOVERY_H_RSSI_FILTERING
+#ifdef CONFIG_NEIGHBOR_DISCOVERY_H_RSSI_FILTERING
 			max_avg_RSSI_threshold 					( ND_MAX_AVG_RSSI_THRESHOLD ),
 			min_avg_RSSI_threshold 					( ND_MIN_AVG_RSSI_THRESHOLD ),
 			max_avg_RSSI_inverse_threshold 			( ND_MAX_AVG_RSSI_INVERSE_THRESHOLD ),
@@ -75,13 +75,13 @@ namespace wiselib
 		{}
 		// --------------------------------------------------------------------
 		ProtocolSettings_Type(
-#ifdef CONFIG_NEIBHBOR_DISCOVERY_H_LQI_FILTERING
+#ifdef CONFIG_NEIGHBOR_DISCOVERY_H_LQI_FILTERING
 								uint8_t _maxLQI,
 								uint8_t _minLQI,
 								uint8_t _maxLQI_in,
 								uint8_t _minLQI_in,
 #endif
-#ifdef CONFIG_NEIBHBOR_DISCOVERY_H_RSSI_FILTERING
+#ifdef CONFIG_NEIGHBOR_DISCOVERY_H_RSSI_FILTERING
 								uint8_t _maxRSSI,
 								uint8_t _minRSSI,
 								uint8_t _maxRSSI_in,
@@ -106,13 +106,13 @@ namespace wiselib
 								uint32_t _lb_w,
 								ProtocolPayload _pp )
 		{
-#ifdef CONFIG_NEIBHBOR_DISCOVERY_H_LQI_FILTERING
+#ifdef CONFIG_NEIGHBOR_DISCOVERY_H_LQI_FILTERING
 			max_avg_LQI_threshold = _maxLQI;
 			min_avg_LQI_threshold = _minLQI;
 			max_avg_LQI_inverse_threshold = _maxLQI_in;
 			min_avg_LQI_inverse_threshold = _minLQI_in;
 #endif
-#ifdef CONFIG_NEIBHBOR_DISCOVERY_H_RSSI_FILTERING
+#ifdef CONFIG_NEIGHBOR_DISCOVERY_H_RSSI_FILTERING
 			max_avg_RSSI_threshold = _maxRSSI;
 			min_avg_RSSI_threshold = _minRSSI;
 			max_avg_RSSI_inverse_threshold = _maxRSSI_in;
@@ -141,7 +141,7 @@ namespace wiselib
 		~ProtocolSettings_Type()
 		{}
 		// --------------------------------------------------------------------
-#ifdef CONFIG_NEIBHBOR_DISCOVERY_H_LQI_FILTERING
+#ifdef CONFIG_NEIGHBOR_DISCOVERY_H_LQI_FILTERING
 		uint8_t get_max_avg_LQI_threshold()
 		{
 			return max_avg_LQI_threshold;
@@ -183,7 +183,7 @@ namespace wiselib
 		}
 #endif
 		// --------------------------------------------------------------------
-#ifdef CONFIG_NEIBHBOR_DISCOVERY_H_RSSI_FILTERING
+#ifdef CONFIG_NEIGHBOR_DISCOVERY_H_RSSI_FILTERING
 		uint8_t get_max_avg_RSSI_threshold()
 		{
 			return max_avg_RSSI_threshold;
@@ -430,13 +430,13 @@ namespace wiselib
 		// --------------------------------------------------------------------
 		ProtocolSettings_Type& operator=( const ProtocolSettings_Type& _psett )
 		{
-#ifdef CONFIG_NEIBHBOR_DISCOVERY_H_LQI_FILTERING
+#ifdef CONFIG_NEIGHBOR_DISCOVERY_H_LQI_FILTERING
 			max_avg_LQI_threshold = _psett.max_avg_LQI_threshold;
 			min_avg_LQI_threshold = _psett.min_avg_LQI_threshold;
 			max_avg_LQI_inverse_threshold = _psett.max_avg_LQI_inverse_threshold;
 			min_avg_LQI_inverse_threshold = _psett.min_avg_LQI_inverse_threshold;
 #endif
-#ifdef CONFIG_NEIBHBOR_DISCOVERY_H_RSSI_FILTERING
+#ifdef CONFIG_NEIGHBOR_DISCOVERY_H_RSSI_FILTERING
 			max_avg_RSSI_threshold = _psett.max_avg_RSSI_threshold;
 			min_avg_RSSI_threshold = _psett.min_avg_RSSI_threshold;
 			max_avg_RSSI_inverse_threshold = _psett.max_avg_RSSI_inverse_threshold;
@@ -468,13 +468,13 @@ namespace wiselib
 		{
 			_debug.debug( "-------------------------------------------------------\n" );
 			_debug.debug( "ProtocolSettings : \n");
-#ifdef CONFIG_NEIBHBOR_DISCOVERY_H_LQI_FILTERING
+#ifdef CONFIG_NEIGHBOR_DISCOVERY_H_LQI_FILTERING
 			_debug.debug( "max_avg_LQI_threshold (size %i) : %d\n", sizeof(max_avg_LQI_threshold), max_avg_LQI_threshold );
 			_debug.debug( "min_avg_LQI_threshold (size %i) : %d\n", sizeof(min_avg_LQI_threshold), min_avg_LQI_threshold );
 			_debug.debug( "max_avg_LQI_inverse_threshold (size %i) : %d\n", sizeof(max_avg_LQI_inverse_threshold), max_avg_LQI_inverse_threshold );
 			_debug.debug( "min_avg_LQI_inverse_threshold (size %i) : %d\n", sizeof(min_avg_LQI_inverse_threshold),min_avg_LQI_inverse_threshold );
 #endif
-#ifdef CONFIG_NEIBHBOR_DISCOVERY_H_RSSI_FILTERING
+#ifdef CONFIG_NEIGHBOR_DISCOVERY_H_RSSI_FILTERING
 			_debug.debug( "max_avg_RSSI_threshold (size %i) : %d\n", sizeof(max_avg_RSSI_threshold), max_avg_RSSI_threshold );
 			_debug.debug( "min_avg_RSSI_threshold (size %i) : %d\n", sizeof(min_avg_RSSI_threshold), min_avg_RSSI_threshold );
 			_debug.debug( "max_avg_RSSI_inverse_threshold (size %i) : %d\n", sizeof(max_avg_RSSI_inverse_threshold), max_avg_RSSI_inverse_threshold );
@@ -543,13 +543,13 @@ namespace wiselib
 			R_NR_STRATEGY_NUM_VALUES
 		};
 	private:
-#ifdef CONFIG_NEIBHBOR_DISCOVERY_H_LQI_FILTERING
+#ifdef CONFIG_NEIGHBOR_DISCOVERY_H_LQI_FILTERING
 		uint8_t max_avg_LQI_threshold;
 		uint8_t min_avg_LQI_threshold;
 		uint8_t max_avg_LQI_inverse_threshold;
 		uint8_t min_avg_LQI_inverse_threshold;
 #endif
-#ifdef CONFIG_NEIBHBOR_DISCOVERY_H_RSSI_FILTERING
+#ifdef CONFIG_NEIGHBOR_DISCOVERY_H_RSSI_FILTERING
 		uint8_t max_avg_RSSI_threshold;
 		uint8_t min_avg_RSSI_threshold;
 		uint8_t max_avg_RSSI_inverse_threshold;

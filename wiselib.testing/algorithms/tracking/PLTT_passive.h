@@ -203,19 +203,19 @@ namespace wiselib
 #ifdef DEBUB_PLTT_PASSIVE_H_NEIGHBOR_DISCOVERY_ENABLE_TASK
 			debug().debug( "PLTT_Passive : neighbor_discovery_enable_task %x - Entering.\n", radio().id() );
 #endif
-			block_data_t buff[100];
-			ProtocolPayload pp( NeighborDiscovery::TRACKING_PROTOCOL_ID, self.get_node().get_position().serial_size(), self.get_node().get_position().serialize( buff ) );
-			uint8_t ef = ProtocolSettings::NEW_PAYLOAD|ProtocolSettings::LOST_NB|ProtocolSettings::NB_REMOVED|ProtocolSettings::NEW_PAYLOAD;
-			ProtocolSettings ps( /*255, 0, 255, 0, 255, 0, 255, 0, */100, 90, 100, 90, ef, -18, 100, 3000, 100, ProtocolSettings::RATIO_DIVIDER, 2, ProtocolSettings::MEAN_DEAD_TIME_PERIOD, 100, 100, ProtocolSettings::R_NR_WEIGHTED, 1, 1, pp );
+			//block_data_t buff[100];
+			//ProtocolPayload pp( NeighborDiscovery::TRACKING_PROTOCOL_ID, self.get_node().get_position().serial_size(), self.get_node().get_position().serialize( buff ) );
+			//uint8_t ef = ProtocolSettings::NEW_PAYLOAD|ProtocolSettings::LOST_NB|ProtocolSettings::NB_REMOVED|ProtocolSettings::NEW_PAYLOAD;
+			//ProtocolSettings ps( 255, 0, 255, 0, 255, 0, 255, 0, 100, 0, 100, 0, ef, -18, 100, 3000, 100, ProtocolSettings::RATIO_DIVIDER, 2, ProtocolSettings::MEAN_DEAD_TIME_PERIOD, 100, 100, ProtocolSettings::R_NR_WEIGHTED, 1, 1, pp );
 			neighbor_discovery().set_transmission_power_dB( transmission_power_dB );
-			uint8_t result = 0;
-			result = neighbor_discovery(). template register_protocol<self_type, &self_type::sync_neighbors>( NeighborDiscovery::TRACKING_PROTOCOL_ID, ps, this  );
-			Protocol* prot_ref = neighbor_discovery().get_protocol_ref( NeighborDiscovery::TRACKING_PROTOCOL_ID );
+			//uint8_t result = 0;
+			//result = neighbor_discovery(). template register_protocol<self_type, &self_type::sync_neighbors>( NeighborDiscovery::TRACKING_PROTOCOL_ID, ps, this  );
+			//Protocol* prot_ref = neighbor_discovery().get_protocol_ref( NeighborDiscovery::TRACKING_PROTOCOL_ID );
 #ifdef DEBUB_PLTT_PASSIVE_H_NEIGHBOR_DISCOVERY_ENABLE_TASK
 			debug().debug( "PLTT_Passive : neighbor_discovery_enable_task %x - All good with protocol Pre-step %d.\n", radio().id() );
 #endif
-			if ( prot_ref != NULL )
-			{
+			//if ( prot_ref != NULL )
+			//{
 #ifdef DEBUB_PLTT_PASSIVE_H_NEIGHBOR_DISCOVERY_ENABLE_TASK
 				debug().debug( "PLTT_Passive : neighbor_discovery_enable_task %x - All good with protocol inside.\n", radio().id() );
 #endif
@@ -235,7 +235,7 @@ namespace wiselib
 #else
 				timer().template set_timer<self_type, &self_type::neighbor_discovery_disable_task> ( nb_convergence_time, this, 0 );
 #endif
-			}
+			//}
 #ifdef DEBUB_PLTT_PASSIVE_H_NEIGHBOR_DISCOVERY_ENABLE_TASK
 			debug().debug( "PLTT_Passive : neighbor_discovery_enable_task - Exiting.\n" );
 #endif
@@ -400,10 +400,11 @@ namespace wiselib
 #endif
 			}
 #endif
-			reliable_radio().enable_radio();
-			radio_callback_id = radio().template reg_recv_callback<self_type, &self_type::receive> (this);
-			reliable_radio_callback_id = reliable_radio().template reg_recv_callback<self_type, &self_type::receive> (this);
-			update_traces();
+			//sans this stuff and keep above to make a daemon for the final topo control with extreme copy pasta skills.
+			//reliable_radio().enable_radio();
+			//radio_callback_id = radio().template reg_recv_callback<self_type, &self_type::receive> (this);
+			//reliable_radio_callback_id = reliable_radio().template reg_recv_callback<self_type, &self_type::receive> (this);
+			//update_traces();
 #ifdef CONFIG_PLTT_PRIVACY
 			decryption_request_daemon();
 #endif
@@ -416,6 +417,8 @@ namespace wiselib
 #ifdef CONFIG_PLTT_PASSIVE_H_DISABLE_NEIGHBOR_DISCOVERY
 			neighbor_discovery().disable();
 #endif
+			Protocol* prot_ref = neighbor_discovery().get_protocol_ref( NeighborDiscovery::ND_PROTOCOL_ID );
+			prot_ref->print( debug(), radio() );
 #ifdef DEBUG_PLTT_PASSIVE_H_STATUS
 			status_daemon();
 #endif

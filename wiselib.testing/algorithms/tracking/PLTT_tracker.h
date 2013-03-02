@@ -138,9 +138,9 @@ namespace wiselib
 			radio().enable_radio();
 			reliable_radio().enable_radio();
 			set_status( ACTIVE_STATUS );
-//#ifdef DEBUG_PLTT_TRACKER_H_ENABLE
+#ifdef DEBUG_PLTT_TRACKER_H_ENABLE
 			debug().debug( "PLTT_Tracker - Enable - Tracking target of id %x.\n", target_id );
-//#endif
+#endif
 			radio_callback_id = radio().template reg_recv_callback<self_type, &self_type::receive> ( this );
 			reliable_radio_callback_id = reliable_radio().template reg_recv_callback<self_type, &self_type::receive> ( this );
 			timer().template set_timer<self_type, &self_type::send_echo> ( init_tracking_millis, this, 0 );
@@ -270,6 +270,9 @@ namespace wiselib
 						a.get_tracker_trace_id(),
 						a.get_target_lqi(),
 						a.get_target_rssi() );
+#endif
+#ifdef DEBUG_TRACK_VIS
+						debug().debug( "%i:%i:%i", a.get_target_id(), a.get_target_position().get_x(), a.get_target_position().get_y() );
 #endif
 			}
 			else if( msg_id == PLTT_TRACKER_ECHO_REPLY_ID )

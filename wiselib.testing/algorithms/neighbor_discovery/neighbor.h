@@ -21,7 +21,7 @@
 #define	__NEIGHBOR_H__
 
 #include "neighbor_discovery_source_config.h"
-#ifdef NEIGHBOR_DISCOVERY_COORD_SUPPORT
+#ifdef CONFIG_NEIGHBOR_DISCOVERY_COORD_SUPPORT
 #include "../../internal_interface/position/position_new.h"
 #endif
 
@@ -45,11 +45,11 @@ namespace wiselib
 		typedef typename Radio::block_data_t block_data_t;
 		typedef typename Timer::millis_t millis_t;
 		typedef typename Clock::time_t time_t;
-#ifdef NEIGHBOR_DISCOVERY_COORD_SUPPORT
-#ifdef NEIGHBOR_DISCOVERY_COORD_SUPPORT_2D
+#ifdef CONFIG_NEIGHBOR_DISCOVERY_COORD_SUPPORT
+#ifdef CONFIG_NEIGHBOR_DISCOVERY_COORD_SUPPORT_2D
 		typedef Position2DType<Os, Radio, PositionNumber, Debug> Position;
 #endif
-#ifdef NEIGHBOR_DISCOVERY_COORD_SUPPORT_3D
+#ifdef CONFIG_NEIGHBOR_DISCOVERY_COORD_SUPPORT_3D
 		typedef Position3DType<Os, Radio, PositionNumber, Debug> Position;
 #endif
 #endif
@@ -61,11 +61,11 @@ namespace wiselib
 			id								( 0 ),
 			total_beacons					( 0 ),
 			total_beacons_expected			( 0 ),
-#ifdef CONFIG_NEIBHBOR_DISCOVERY_H_LQI_FILTERING
+#ifdef CONFIG_NEIGHBOR_DISCOVERY_H_LQI_FILTERING
 			avg_LQI							( ND_MAX_AVG_LQI_THRESHOLD / 2 ),
 			avg_LQI_inverse					( ND_MAX_AVG_LQI_INVERSE_THRESHOLD / 2 ),
 #endif
-#ifdef CONFIG_NEIBHBOR_DISCOVERY_H_RSSI_FILTERING
+#ifdef CONFIG_NEIGHBOR_DISCOVERY_H_RSSI_FILTERING
 			avg_RSSI						( ND_MAX_AVG_RSSI_THRESHOLD / 2 ),
 			avg_RSSI_inverse				( ND_MAX_AVG_RSSI_INVERSE_THRESHOLD / 2 ),
 #endif
@@ -76,19 +76,21 @@ namespace wiselib
 			link_stab_ratio_inverse			( 0 ),
 			beacon_period					( 0 ),
 			beacon_period_update_counter	( 0 ),
-			active							( 0 ),
-			trust_counter					( ND_MIN_TRUST_COUNTER ),
+			active							( 0 )
+#ifdef CONFIG_NEIGHBOR_DISCOVERY_H_TRUST_FILTERING
+			,trust_counter					( ND_MIN_TRUST_COUNTER ),
 			trust_counter_inverse			( ND_MIN_TRUST_COUNTER_INVERSE )
+#endif
 		{}
 		// --------------------------------------------------------------------
 		Neighbor_Type(	node_id_t _id,
 						uint32_t _tbeac,
 						uint32_t _tbeac_exp,
-#ifdef CONFIG_NEIBHBOR_DISCOVERY_H_LQI_FILTERING
+#ifdef CONFIG_NEIGHBOR_DISCOVERY_H_LQI_FILTERING
 						uint8_t _alqi,
 						uint8_t _alqi_in,
 #endif
-#ifdef CONFIG_NEIBHBOR_DISCOVERY_H_RSSI_FILTERING
+#ifdef CONFIG_NEIGHBOR_DISCOVERY_H_RSSI_FILTERING
 						uint8_t _arssi,
 						uint8_t	_arssi_in,
 #endif
@@ -105,11 +107,11 @@ namespace wiselib
 			id = _id;
 			total_beacons = _tbeac;
 			total_beacons_expected = _tbeac_exp;
-#ifdef CONFIG_NEIBHBOR_DISCOVERY_H_LQI_FILTERING
+#ifdef CONFIG_NEIGHBOR_DISCOVERY_H_LQI_FILTERING
 			avg_LQI = _alqi;
 			avg_LQI_inverse = _alqi_in;
 #endif
-#ifdef CONFIG_NEIBHBOR_DISCOVERY_H_RSSI_FILTERING
+#ifdef CONFIG_NEIGHBOR_DISCOVERY_H_RSSI_FILTERING
 			avg_RSSI = _arssi;
 			avg_RSSI_inverse = _arssi_in;
 #endif
@@ -125,8 +127,10 @@ namespace wiselib
 				active = 1;
 			}
 			last_beacon = _lb;
+#ifdef CONFIG_NEIGHBOR_DISCOVERY_H_TRUST_FILTERING
 			trust_counter = ND_MIN_TRUST_COUNTER;
 			trust_counter_inverse = ND_MIN_TRUST_COUNTER_INVERSE;
+#endif
 		}
 		// --------------------------------------------------------------------
 		~Neighbor_Type()
@@ -175,7 +179,7 @@ namespace wiselib
 			total_beacons_expected = _tbeac_exp;
 		}
 		// --------------------------------------------------------------------
-#ifdef CONFIG_NEIBHBOR_DISCOVERY_H_LQI_FILTERING
+#ifdef CONFIG_NEIGHBOR_DISCOVERY_H_LQI_FILTERING
 		uint8_t get_avg_LQI()
 		{
 			return avg_LQI;
@@ -202,7 +206,7 @@ namespace wiselib
 		}
 #endif
 		// --------------------------------------------------------------------
-#ifdef CONFIG_NEIBHBOR_DISCOVERY_H_RSSI_FILTERING
+#ifdef CONFIG_NEIGHBOR_DISCOVERY_H_RSSI_FILTERING
 		uint8_t get_avg_RSSI()
 		{
 			return avg_RSSI;
@@ -332,6 +336,7 @@ namespace wiselib
 			return active;
 		}
 		// --------------------------------------------------------------------
+#ifdef CONFIG_NEIGHBOR_DISCOVERY_H_TRUST_FILTERING
 		int8_t get_trust_counter()
 		{
 			return trust_counter;
@@ -387,6 +392,7 @@ namespace wiselib
 				trust_counter_inverse = ND_MIN_TRUST_COUNTER_INVERSE;
 			}
 		}
+#endif
 		// --------------------------------------------------------------------
 #ifdef CONFIG_NEIGHBOR_DISCOVERY_H_ACTIVE_CONNECTIVITY_FILTERING
 		uint8_t get_active_connectivity()
@@ -400,7 +406,7 @@ namespace wiselib
 		}
 		// --------------------------------------------------------------------
 #endif
-#ifdef NEIGHBOR_DISCOVERY_COORD_SUPPORT
+#ifdef CONFIG_NEIGHBOR_DISCOVERY_COORD_SUPPORT
 		Position get_position()
 		{
 			return position;
@@ -417,11 +423,11 @@ namespace wiselib
 			id = _n.id;
 			total_beacons = _n.total_beacons;
 			total_beacons_expected = _n.total_beacons_expected;
-#ifdef CONFIG_NEIBHBOR_DISCOVERY_H_LQI_FILTERING
+#ifdef CONFIG_NEIGHBOR_DISCOVERY_H_LQI_FILTERING
 			avg_LQI = _n.avg_LQI;
 			avg_LQI_inverse = _n.avg_LQI_inverse;
 #endif
-#ifdef CONFIG_NEIBHBOR_DISCOVERY_H_RSSI_FILTERING
+#ifdef CONFIG_NEIGHBOR_DISCOVERY_H_RSSI_FILTERING
 			avg_RSSI = _n.avg_RSSI;
 			avg_RSSI_inverse = _n.avg_RSSI_inverse;
 #endif
@@ -434,9 +440,11 @@ namespace wiselib
 			beacon_period_update_counter = _n.beacon_period_update_counter;
 			last_beacon = _n.last_beacon;
 			active = _n.active;
+#ifdef CONFIG_NEIGHBOR_DISCOVERY_H_TRUST_FILTERING
 			trust_counter = _n.trust_counter;
 			trust_counter_inverse = _n.trust_counter_inverse;
-#ifdef NEIGHBOR_DISCOVERY_COORD_SUPPORT
+#endif
+#ifdef CONFIG_NEIGHBOR_DISCOVERY_COORD_SUPPORT
 			position = _n.position;
 #endif
 			return *this;
@@ -445,8 +453,8 @@ namespace wiselib
 		block_data_t* serialize( block_data_t* _buff, size_t _offset = 0 )
 		{
 			size_t ID_POS = 0;
-#ifdef CONFIG_NEIBHBOR_DISCOVERY_H_LQI_FILTERING
-#ifdef CONFIG_NEIBHBOR_DISCOVERY_H_RSSI_FILTERING
+#ifdef CONFIG_NEIGHBOR_DISCOVERY_H_LQI_FILTERING
+#ifdef CONFIG_NEIGHBOR_DISCOVERY_H_RSSI_FILTERING
 			size_t AVG_LQI_POS = ID_POS + sizeof(node_id_t);
 			size_t AVG_RSSI_POS = AVG_LQI_POS + sizeof( uint8_t);
 			size_t LINK_STAB_RATIO_POS = AVG_RSSI_POS + sizeof(uint8_t);
@@ -455,7 +463,7 @@ namespace wiselib
 			size_t LINK_STAB_RATIO_POS = AVG_LQI_POS + sizeof(uint8_t);
 #endif
 #else
-#ifdef CONFIG_NEIBHBOR_DISCOVERY_H_RSSI_FILTERING
+#ifdef CONFIG_NEIGHBOR_DISCOVERY_H_RSSI_FILTERING
 			size_t AVG_RSSI_POS = ID_POS + sizeof( node_id_t);
 			size_t LINK_STAB_RATIO_POS = AVG_RSSI_POS + sizeof(uint8_t);
 #else
@@ -463,10 +471,10 @@ namespace wiselib
 #endif
 #endif
 			write<Os, block_data_t, node_id_t> ( _buff + ID_POS + _offset, id );
-#ifdef CONFIG_NEIBHBOR_DISCOVERY_H_LQI_FILTERING
+#ifdef CONFIG_NEIGHBOR_DISCOVERY_H_LQI_FILTERING
 			write<Os, block_data_t, uint8_t> ( _buff + AVG_LQI_POS + _offset, avg_LQI );
 #endif
-#ifdef CONFIG_NEIBHBOR_DISCOVERY_H_RSSI_FILTERING
+#ifdef CONFIG_NEIGHBOR_DISCOVERY_H_RSSI_FILTERING
 			write<Os, block_data_t, uint8_t> ( _buff + AVG_RSSI_POS + _offset, avg_RSSI );
 #endif
 			write<Os, block_data_t, uint8_t> ( _buff + LINK_STAB_RATIO_POS + _offset, link_stab_ratio );
@@ -476,8 +484,8 @@ namespace wiselib
 		void de_serialize( block_data_t* _buff, size_t _offset = 0 )
 		{
 			size_t ID_POS = 0;
-#ifdef CONFIG_NEIBHBOR_DISCOVERY_H_LQI_FILTERING
-#ifdef CONFIG_NEIBHBOR_DISCOVERY_H_RSSI_FILTERING
+#ifdef CONFIG_NEIGHBOR_DISCOVERY_H_LQI_FILTERING
+#ifdef CONFIG_NEIGHBOR_DISCOVERY_H_RSSI_FILTERING
 			size_t AVG_LQI_POS = ID_POS + sizeof(node_id_t);
 			size_t AVG_RSSI_POS = AVG_LQI_POS + sizeof( uint8_t);
 			size_t LINK_STAB_RATIO_POS = AVG_RSSI_POS + sizeof(uint8_t);
@@ -486,7 +494,7 @@ namespace wiselib
 			size_t LINK_STAB_RATIO_POS = AVG_LQI_POS + sizeof(uint8_t);
 #endif
 #else
-#ifdef CONFIG_NEIBHBOR_DISCOVERY_H_RSSI_FILTERING
+#ifdef CONFIG_NEIGHBOR_DISCOVERY_H_RSSI_FILTERING
 			size_t AVG_RSSI_POS = ID_POS + sizeof( node_id_t);
 			size_t LINK_STAB_RATIO_POS = AVG_RSSI_POS + sizeof(uint8_t);
 #else
@@ -494,10 +502,10 @@ namespace wiselib
 #endif
 #endif
 			id = read<Os, block_data_t, node_id_t> ( _buff + ID_POS + _offset );
-#ifdef CONFIG_NEIBHBOR_DISCOVERY_H_LQI_FILTERING
+#ifdef CONFIG_NEIGHBOR_DISCOVERY_H_LQI_FILTERING
 			avg_LQI = read<Os, block_data_t, uint8_t> ( _buff + AVG_LQI_POS + _offset );
 #endif
-#ifdef CONFIG_NEIBHBOR_DISCOVERY_H_RSSI_FILTERING
+#ifdef CONFIG_NEIGHBOR_DISCOVERY_H_RSSI_FILTERING
 			avg_RSSI = read<Os, block_data_t, uint8_t> ( _buff + AVG_RSSI_POS + _offset );
 #endif
 			link_stab_ratio = read<Os, block_data_t, uint8_t> ( _buff + LINK_STAB_RATIO_POS + _offset );
@@ -506,8 +514,8 @@ namespace wiselib
 		size_t serial_size()
 		{
 			size_t ID_POS = 0;
-#ifdef CONFIG_NEIBHBOR_DISCOVERY_H_LQI_FILTERING
-#ifdef CONFIG_NEIBHBOR_DISCOVERY_H_RSSI_FILTERING
+#ifdef CONFIG_NEIGHBOR_DISCOVERY_H_LQI_FILTERING
+#ifdef CONFIG_NEIGHBOR_DISCOVERY_H_RSSI_FILTERING
 			size_t AVG_LQI_POS = ID_POS + sizeof(node_id_t);
 			size_t AVG_RSSI_POS = AVG_LQI_POS + sizeof( uint8_t);
 			size_t LINK_STAB_RATIO_POS = AVG_RSSI_POS + sizeof(uint8_t);
@@ -517,7 +525,7 @@ namespace wiselib
 			size_t LINK_STAB_RATIO_POS = AVG_LQI_POS + sizeof(uint8_t);
 #endif
 #else
-#ifdef CONFIG_NEIBHBOR_DISCOVERY_H_RSSI_FILTERING
+#ifdef CONFIG_NEIGHBOR_DISCOVERY_H_RSSI_FILTERING
 			size_t AVG_RSSI_POS = ID_POS + sizeof( node_id_t);
 			size_t LINK_STAB_RATIO_POS = AVG_RSSI_POS + sizeof(uint8_t);
 #else
@@ -530,7 +538,7 @@ namespace wiselib
 		// --------------------------------------------------------------------
 #ifdef DEBUG_NEIGHBOR_H
 		void print( Debug& debug, Radio& radio
-#ifdef NEIGHBOR_DISCOVERY_COORD_SUPPORT
+#ifdef CONFIG_NEIGHBOR_DISCOVERY_COORD_SUPPORT
 				,Position pos = Position( 0, 0, 0 )
 #endif
 				)
@@ -541,11 +549,11 @@ namespace wiselib
 			debug.debug( "id (size %i) : %x\n", sizeof(node_id_t), id );
 			debug.debug( "total_beacons (size %i) : %d\n", sizeof(total_beacons), total_beacons );
 			debug.debug( "total_beacons_expected (size %i) : %d\n", sizeof(total_beacons_expected), total_beacons_expected );
-#ifdef CONFIG_NEIBHBOR_DISCOVERY_H_LQI_FILTERING
+#ifdef CONFIG_NEIGHBOR_DISCOVERY_H_LQI_FILTERING
 			debug.debug( "avg_LQI (size %i) : %d\n", sizeof(avg_LQI), avg_LQI );
 			debug.debug( "avg_LQI_inverse (size %i) : %i\n", sizeof(avg_LQI_inverse), avg_LQI_inverse );
 #endif
-#ifdef CONFIG_NEIBHBOR_DISCOVERY_H_RSSI_FILTERING
+#ifdef CONFIG_NEIGHBOR_DISCOVERY_H_RSSI_FILTERING
 			debug.debug( "avg_RSSI (size %i) : %d\n", sizeof(avg_RSSI), avg_RSSI );
 			debug.debug( "avg_RSSI_inverse (size %i) : %i\n", sizeof(avg_RSSI_inverse), avg_RSSI_inverse );
 #endif
@@ -563,11 +571,11 @@ namespace wiselib
 #else
 			if ( ( radio.id() != id ) && ( active ) )
 			{
-#ifdef NEIGHBOR_DISCOVERY_COORD_SUPPORT
-#ifdef NEIGHBOR_DISCOVERY_COORD_SUPPORT_SHAWN
+#ifdef CONFIG_NEIGHBOR_DISCOVERY_COORD_SUPPORT
+#ifdef CONFIG_NEIGHBOR_DISCOVERY_COORD_SUPPORT_SHAWN
 				debug.debug( "NB:%x:%x:%d:%d:%d:%d:%d:%d:%d:%d:%d:%d:%d:%d:%f:%f:%f:%f:%d:%d\n",
 #endif
-#ifdef NEIGHBOR_DISCOVERY_COORD_SUPPORT_ISENSE
+#ifdef CONFIG_NEIGHBOR_DISCOVERY_COORD_SUPPORT_ISENSE
 				debug.debug( "NB:%x:%x:%d:%d:%d:%d:%d:%d:%d:%d:%d:%d:%d:%d:%d:%d:%d:%d:%d:%d\n",
 #endif
 #else
@@ -577,13 +585,13 @@ namespace wiselib
 					id,
 					total_beacons,
 					total_beacons_expected,
-#ifdef CONFIG_NEIBHBOR_DISCOVERY_H_LQI_FILTERING
+#ifdef CONFIG_NEIGHBOR_DISCOVERY_H_LQI_FILTERING
 					avg_LQI,
 					avg_LQI_inverse,
 #else
 					0,0,
 #endif
-#ifdef CONFIG_NEIBHBOR_DISCOVERY_H_RSSI_FILTERING
+#ifdef CONFIG_NEIGHBOR_DISCOVERY_H_RSSI_FILTERING
 					avg_RSSI,
 					avg_RSSI_inverse,
 #else
@@ -599,14 +607,16 @@ namespace wiselib
 					beacon_period,
 					beacon_period_update_counter,
 					active
-#ifdef NEIGHBOR_DISCOVERY_COORD_SUPPORT
+#ifdef CONFIG_NEIGHBOR_DISCOVERY_COORD_SUPPORT
 					,position.get_x(), position.get_y(), position.get_z(),
 					( ( position.get_x() - pos.get_x() ) * ( position.get_x() - pos.get_x() ) +
 					( position.get_y() - pos.get_y() ) * ( position.get_y() - pos.get_y() ) +
 					( position.get_z() - pos.get_z() ) * ( position.get_z() - pos.get_z() ) )
 #endif
+#ifdef CONFIG_NEIGHBOR_DISCOVERY_H_TRUST_FILTERING
 					,trust_counter
 					,trust_counter_inverse
+#endif
 				);
 			}
 #endif
@@ -617,11 +627,11 @@ namespace wiselib
 		node_id_t id;
 		uint32_t total_beacons;
 		uint32_t total_beacons_expected;
-#ifdef CONFIG_NEIBHBOR_DISCOVERY_H_LQI_FILTERING
+#ifdef CONFIG_NEIGHBOR_DISCOVERY_H_LQI_FILTERING
 		uint8_t avg_LQI;
 		uint8_t avg_LQI_inverse;
 #endif
-#ifdef CONFIG_NEIBHBOR_DISCOVERY_H_RSSI_FILTERING
+#ifdef CONFIG_NEIGHBOR_DISCOVERY_H_RSSI_FILTERING
 		uint8_t avg_RSSI;
 		uint8_t avg_RSSI_inverse;
 #endif
@@ -634,10 +644,11 @@ namespace wiselib
 		uint32_t beacon_period_update_counter;
 		uint8_t active;
 		time_t last_beacon;
+#ifdef CONFIG_NEIGHBOR_DISCOVERY_H_TRUST_FILTERING
 		int8_t trust_counter;
 		int8_t trust_counter_inverse;
-
-#ifdef NEIGHBOR_DISCOVERY_COORD_SUPPORT
+#endif
+#ifdef CONFIG_NEIGHBOR_DISCOVERY_COORD_SUPPORT
 		Position position;
 #endif
 	};
