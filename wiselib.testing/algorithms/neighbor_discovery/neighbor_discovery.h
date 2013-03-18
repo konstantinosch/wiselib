@@ -300,6 +300,18 @@ namespace wiselib
 #else
 						Neighbor_vector nv = p_ptr->get_neighborhood();
 #endif
+#ifdef CONFIG_NEIGHBOR_DISCOVERY_H_ACTIVE_SCLD
+						uint8_t SCLD=0;
+						for ( Neighbor_vector_iterator i = p_ptr->get_neighborhood_ref()->begin(); i != p_ptr->get_neighborhood_ref()->end(); ++i )
+						{
+							if (	( i->get_trust_counter() >= ND_TRUST_COUNTER_THRESHOLD ) &&
+									( i->get_inverse_trust_counter() >= ND_TRUST_COUNTER_THRESHOLD_INVERSE ) )
+							{
+								SCLD++;
+							}
+						}
+						beacon.set_SCLD(SCLD);
+#endif
 						beacon.set_neighborhood( nv, radio().id() );
 #ifdef CONFIG_NEIGHBOR_DISCOVERY_H_ACTIVE_CONNECTIVITY_FILTERING
 						if ( beacon.get_neighborhood_ref()->size() > 0 )
@@ -522,7 +534,7 @@ namespace wiselib
 							}
 						}
 #ifdef CONFIG_NEIGHBOR_DISCOVERY_H_ACTIVE_CONNECTIVITY_FILTERING
-						new_neighbor.set_active_connectivity( beacon.get_neighborhood_ref()->size() );
+						new_neighbor.set_active_connectivity( beacon.get_SCLD());
 #endif
 						if ( found_flag == 0 )
 						{

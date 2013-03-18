@@ -61,6 +61,9 @@ namespace wiselib
 #endif
 		// --------------------------------------------------------------------
 		Beacon_Type() :
+#ifdef CONFIG_NEIGHBOR_DISCOVERY_H_ACTIVE_SCLD
+			SCLD							( 0 ),
+#endif
 			beacon_period					( 0 ),
 			beacon_period_update_counter	( 0 )
 		{}
@@ -173,8 +176,23 @@ namespace wiselib
 		}
 #endif
 		// --------------------------------------------------------------------
+#ifdef CONFIG_NEIGHBOR_DISCOVERY_H_ACTIVE_SCLD
+		uint8_t get_SCLD()
+		{
+			return SCLD;
+		}
+		// --------------------------------------------------------------------
+		void set_SCLD( uint8_t _s)
+		{
+			SCLD = _s;
+		}
+#endif
+		// --------------------------------------------------------------------
 		Beacon_Type& operator=( const Beacon_Type& _b )
 		{
+#ifdef CONFIG_NEIGHBOR_DISCOVERY_H_ACTIVE_SCLD
+			SCLD = _b;
+#endif
 			beacon_period_update_counter = _b.beacon_period_update_counter;
 			beacon_period = _b.beacon_period;
 			neighborhood = _b.neighborhood;
@@ -192,6 +210,9 @@ namespace wiselib
 			debug.debug( "-------------------------------------------------------\n" );
 			debug.debug( "Beacon : \n");
 			debug.debug( "serial_size : %d\n", serial_size() );
+#ifdef CONFIG_NEIGHBOR_DISCOVERY_H_ACTIVE_SCLD
+			debug.debug( "SCLD (size %i) : %d\n,", sizeof(uint8_t), SCLD);
+#endif
 			for ( ProtocolPayload_vector_iterator it = protocol_payloads.begin(); it != protocol_payloads.end(); ++it )
 			{
 				it->print( debug, radio );
@@ -214,7 +235,13 @@ namespace wiselib
 		// --------------------------------------------------------------------
 		block_data_t* serialize( block_data_t* _buff, size_t _offset = 0 )
 		{
+#ifdef CONFIG_NEIGHBOR_DISCOVERY_H_ACTIVE_SCLD
+			size_t SCLD_POS = 0;
+			write<Os, block_data_t, size_t>( _buff + SCLD_POS + _offset, SCLD );
+			size_t PROTOCOL_PAYLOADS_SIZE_POS = SCLD_POS + sizeof(uint8_t);
+#else
 			size_t PROTOCOL_PAYLOADS_SIZE_POS = 0;
+#endif
 			size_t PROTOCOL_PAYLOADS_POS = PROTOCOL_PAYLOADS_SIZE_POS + sizeof(size_t);
 			size_t pps_size = protocol_payloads.size();
 			write<Os, block_data_t, size_t>( _buff + PROTOCOL_PAYLOADS_SIZE_POS + _offset, pps_size );
@@ -243,7 +270,13 @@ namespace wiselib
 		// --------------------------------------------------------------------
 		void de_serialize( block_data_t* _buff, size_t _offset = 0 )
 		{
+#ifdef CONFIG_NEIGHBOR_DISCOVERY_H_ACTIVE_SCLD
+			size_t SCLD_POS = 0;
+			SCLD = read<Os, block_data_t, size_t>( _buff + SCLD_POS + _offset );
+			size_t PROTOCOL_PAYLOADS_SIZE_POS = SCLD_POS + sizeof(uint8_t);
+#else
 			size_t PROTOCOL_PAYLOADS_SIZE_POS = 0;
+#endif
 			size_t PROTOCOL_PAYLOADS_POS = PROTOCOL_PAYLOADS_SIZE_POS + sizeof(size_t);
 			size_t pps_size = read<Os, block_data_t, size_t>( _buff + PROTOCOL_PAYLOADS_SIZE_POS + _offset );
 			protocol_payloads.clear();
@@ -283,7 +316,12 @@ namespace wiselib
 			{
 				n_size = it->serial_size() + n_size;
 			}
+#ifdef CONFIG_NEIGHBOR_DISCOVERY_H_ACTIVE_SCLD
+			size_t SCLD_POS = 0;
+			size_t PROTOCOL_PAYLOADS_SIZE_POS = SCLD_POS + sizeof(uint8_t);
+#else
 			size_t PROTOCOL_PAYLOADS_SIZE_POS = 0;
+#endif
 			size_t PROTOCOL_PAYLOADS_POS = PROTOCOL_PAYLOADS_SIZE_POS + sizeof(size_t);
 			size_t NEIGHBORHOOD_SIZE_POS = PROTOCOL_PAYLOADS_POS + pp_size;
 			size_t NEIGHBORHOOD_POS = NEIGHBORHOOD_SIZE_POS + sizeof(size_t);
@@ -293,6 +331,9 @@ namespace wiselib
 		}
 		// --------------------------------------------------------------------
 	private:
+#ifdef CONFIG_NEIGHBOR_DISCOVERY_H_ACTIVE_SCLD
+		uint8_t SCLD;
+#endif
 		ProtocolPayload_vector protocol_payloads;
 		Neighbor_vector neighborhood;
 		millis_t beacon_period;
