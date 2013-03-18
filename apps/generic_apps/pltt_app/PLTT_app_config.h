@@ -4,7 +4,8 @@
 #define UNIGE_TESTBED
 //#define CTI_TESTBED
 
-#define PLTT_MAX_NEIGHBORS_SUPPORTED 6
+//#define PLTT_MAX_NEIGHBORS_SUPPORTED 6 //setting for really heavy tracking... worked!
+#define PLTT_MAX_NEIGHBORS_SUPPORTED 25
 #define PLTT_MAX_TARGETS_SUPPORTED 2
 #define PLTT_MAX_TRACKERS_SUPPORTED 2
 #define PLTT_CHANNEL 20
