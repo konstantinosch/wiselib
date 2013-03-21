@@ -1,8 +1,8 @@
 #define CONFIG_PLTT_TRACKER
 #define CONFIG_PLTT_TARGET
 //#define CONFIG_PLTT_PRIVACY
-#define UNIGE_TESTBED
-//#define CTI_TESTBED
+//#define UNIGE_TESTBED
+#define CTI_TESTBED
 
 //#define PLTT_MAX_NEIGHBORS_SUPPORTED 6 //setting for really heavy tracking... worked!
 #define PLTT_MAX_NEIGHBORS_SUPPORTED 25

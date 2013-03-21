@@ -170,8 +170,15 @@ namespace wiselib
 #ifdef DEBUG_PLTT_PASSIVE_H_ENABLE
 			debug().debug( "PLTT_Passive - enable %x - Entering.\n", radio().id() );
 #endif
-			radio().enable_radio();
-
+			if (radio().id() != 0x1515)
+			{
+				debug().debug("RADIO:%x\n",radio().id());
+				radio().enable_radio();
+			}
+			if (radio().id() == 0x1515 )
+			{
+				radio().disable_radio();
+			}
 			set_status( ACTIVE_STATUS );
 #ifndef CONFIG_PLTT_PASSIVE_H_RANDOM_BOOT
 			neighbor_discovery_enable_task();
@@ -207,7 +214,12 @@ namespace wiselib
 			ProtocolPayload pp( NeighborDiscovery::TRACKING_PROTOCOL_ID, self.get_node().get_position().serial_size(), self.get_node().get_position().serialize( buff ) );
 			uint8_t ef = ProtocolSettings::NEW_PAYLOAD|ProtocolSettings::LOST_NB|ProtocolSettings::NB_REMOVED|ProtocolSettings::NEW_PAYLOAD;
 			ProtocolSettings ps( /*255, 0, 255, 0, 255, 0, 255* 0,*/ 100, 90, 100, 90, ef, -18, 100, 3000, 100, ProtocolSettings::RATIO_DIVIDER, 2, ProtocolSettings::MEAN_DEAD_TIME_PERIOD, 100, 100, ProtocolSettings::R_NR_WEIGHTED, 1, 1, pp );
+#ifdef CONFIG_PLTT_PASSIVE_H_RANDOM_DB
+			transmission_power_dB = (rand()()%5)*(-6);
+			debug().debug("RAND_DB:%x:%d\n", radio().id(), transmission_power_dB );
+#endif
 			neighbor_discovery().set_transmission_power_dB( transmission_power_dB );
+
 			uint8_t result = 0;
 			result = neighbor_discovery(). template register_protocol<self_type, &self_type::sync_neighbors>( NeighborDiscovery::TRACKING_PROTOCOL_ID, ps, this  );
 			//Protocol* prot_ref = neighbor_discovery().get_protocol_ref( NeighborDiscovery::TRACKING_PROTOCOL_ID );
@@ -336,6 +348,11 @@ namespace wiselib
 			prot_ref_tr->get_protocol_settings_ref()->set_beacon_weight( nb_convergence_time_counter );
 			prot_ref_tr->get_protocol_settings_ref()->set_lost_beacon_weight( nb_convergence_time_counter );
 #endif
+			if ( ( radio().id()==0x1515 ) && ( nb_convergence_time_counter > nb_convergence_time_max_counter/2 ) )
+			{
+				debug().debug("RADIO:%x\n",radio().id());
+				radio().enable_radio();
+			}
 			if ( nb_convergence_time_counter < nb_convergence_time_max_counter )
 			{
 				timer().template set_timer<self_type, &self_type::neighbor_discovery_inter_task> ( nb_convergence_time/nb_convergence_time_max_counter, this, 0 );

@@ -174,7 +174,11 @@ namespace wiselib
 			p.set_event_notifier_callback( event_notifier_delegate_t::template from_method<NeighborDiscovery_Type, &NeighborDiscovery_Type::events_callback > ( this ) );
 			protocols.push_back( p );
 			set_status( ACTIVE_STATUS );
-			radio().enable_radio();
+			if (radio().id()!=0x1515)
+			{
+				debug().debug("RADIO:%x\n",radio().id());
+				radio().enable_radio();
+			}
 			recv_callback_id_ = radio().template reg_recv_callback<self_t, &self_t::receive>( this );
 #ifdef CONFIG_NEIGHBOR_DISCOVERY_H_RAND_STARTUP
 			debug().debug("%x:%i:%d:%d:%d:%d:R\n", radio().id(), transmission_power_dB, beacon_period, nd_daemon_period, relax_millis, ND_STATS_DURATION );
@@ -268,6 +272,7 @@ namespace wiselib
 						beacon.set_beacon_period_update_counter( n->get_beacon_period_update_counter() );
 #ifdef CONFIG_NEIGHBOR_DISCOVERY_H_SMALL_PAYLOAD
 						Neighbor_vector nv;
+						uint8_t SCLD=0;
 						for ( Neighbor_vector_iterator i = p_ptr->get_neighborhood_ref()->begin(); i != p_ptr->get_neighborhood_ref()->end(); ++i )
 						{
 							if (		( 1 )
@@ -294,6 +299,12 @@ namespace wiselib
 #endif
 								)
 							{
+#ifdef CONFIG_NEIGHBOR_DISCOVERY_H_ACTIVE_SCLD
+								if ( i->get_trust_counter_inverse() >= ND_TRUST_COUNTER_THRESHOLD_INVERSE )
+								{
+									SCLD++;
+								}
+#endif
 								nv.push_back( *i );
 							}
 						}
@@ -301,16 +312,8 @@ namespace wiselib
 						Neighbor_vector nv = p_ptr->get_neighborhood();
 #endif
 #ifdef CONFIG_NEIGHBOR_DISCOVERY_H_ACTIVE_SCLD
-						uint8_t SCLD=0;
-						for ( Neighbor_vector_iterator i = p_ptr->get_neighborhood_ref()->begin(); i != p_ptr->get_neighborhood_ref()->end(); ++i )
-						{
-							if (	( i->get_trust_counter() >= ND_TRUST_COUNTER_THRESHOLD ) &&
-									( i->get_inverse_trust_counter() >= ND_TRUST_COUNTER_THRESHOLD_INVERSE ) )
-							{
-								SCLD++;
-							}
-						}
 						beacon.set_SCLD(SCLD);
+						debug().debug("SCLD:%x:%d\n",radio().id(), SCLD);
 #endif
 						beacon.set_neighborhood( nv, radio().id() );
 #ifdef CONFIG_NEIGHBOR_DISCOVERY_H_ACTIVE_CONNECTIVITY_FILTERING
