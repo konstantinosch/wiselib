@@ -174,11 +174,11 @@ namespace wiselib
 			p.set_event_notifier_callback( event_notifier_delegate_t::template from_method<NeighborDiscovery_Type, &NeighborDiscovery_Type::events_callback > ( this ) );
 			protocols.push_back( p );
 			set_status( ACTIVE_STATUS );
-			if (radio().id()!=0x1515)
-			{
-				debug().debug("RADIO:%x\n",radio().id());
-				radio().enable_radio();
-			}
+			//if (radio().id()!=0x1515)
+			//{
+			//	debug().debug("RADIO:%x\n",radio().id());
+			radio().enable_radio();
+			//}
 			recv_callback_id_ = radio().template reg_recv_callback<self_t, &self_t::receive>( this );
 #ifdef CONFIG_NEIGHBOR_DISCOVERY_H_RAND_STARTUP
 			debug().debug("%x:%i:%d:%d:%d:%d:R\n", radio().id(), transmission_power_dB, beacon_period, nd_daemon_period, relax_millis, ND_STATS_DURATION );

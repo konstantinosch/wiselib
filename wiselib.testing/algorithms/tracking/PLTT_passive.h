@@ -170,15 +170,15 @@ namespace wiselib
 #ifdef DEBUG_PLTT_PASSIVE_H_ENABLE
 			debug().debug( "PLTT_Passive - enable %x - Entering.\n", radio().id() );
 #endif
-			if (radio().id() != 0x1515)
-			{
+			//i/f (radio().id() != 0x1515)
+			//{
 				debug().debug("RADIO:%x\n",radio().id());
-				radio().enable_radio();
-			}
-			if (radio().id() == 0x1515 )
-			{
-				radio().disable_radio();
-			}
+			//	radio().enable_radio();
+			//}
+			//if (radio().id() == 0x1515 )
+			//{
+			//	radio().disable_radio();
+			//}
 			set_status( ACTIVE_STATUS );
 #ifndef CONFIG_PLTT_PASSIVE_H_RANDOM_BOOT
 			neighbor_discovery_enable_task();
@@ -348,11 +348,11 @@ namespace wiselib
 			prot_ref_tr->get_protocol_settings_ref()->set_beacon_weight( nb_convergence_time_counter );
 			prot_ref_tr->get_protocol_settings_ref()->set_lost_beacon_weight( nb_convergence_time_counter );
 #endif
-			if ( ( radio().id()==0x1515 ) && ( nb_convergence_time_counter > nb_convergence_time_max_counter/2 ) )
-			{
-				debug().debug("RADIO:%x\n",radio().id());
-				radio().enable_radio();
-			}
+			//if ( ( radio().id()==0x1515 ) && ( nb_convergence_time_counter > nb_convergence_time_max_counter/2 ) )
+			//{
+			//	debug().debug("RADIO:%x\n",radio().id());
+			//	radio().enable_radio();
+			//}
 			if ( nb_convergence_time_counter < nb_convergence_time_max_counter )
 			{
 				timer().template set_timer<self_type, &self_type::neighbor_discovery_inter_task> ( nb_convergence_time/nb_convergence_time_max_counter, this, 0 );
