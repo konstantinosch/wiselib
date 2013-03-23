@@ -345,6 +345,7 @@ namespace wiselib
 //							debug().debug( "RR - dae %x - RR_MESS [%x] exists with less than max retr\n", radio().id(), i->get_message_id() );
 //						}
 //#endif
+						debug().debug("RRR:%x",radio().id());
 						Message message;
 						message.set_message_id( RR_MESSAGE );
 						block_data_t buff[Radio::MAX_MESSAGE_LENGTH];

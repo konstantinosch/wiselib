@@ -173,7 +173,7 @@ namespace wiselib
 			//i/f (radio().id() != 0x1515)
 			//{
 				debug().debug("RADIO:%x\n",radio().id());
-			//	radio().enable_radio();
+				radio().enable_radio();
 			//}
 			//if (radio().id() == 0x1515 )
 			//{
@@ -381,7 +381,7 @@ namespace wiselib
 #endif
 			}
 #ifdef DEBUG_PLTT_STATS
-			timer().template set_timer<self_type, &self_type::pltt_stats_daemon>( stats_daemon_period, this, 0 );
+			//timer().template set_timer<self_type, &self_type::pltt_stats_daemon>( stats_daemon_period, this, 0 );
 			if ( neighbors.size() < nb_connections_low )
 			{
 #ifdef	DEBUG_PLTT_STATS_SHAWN
@@ -402,9 +402,11 @@ namespace wiselib
 			}
 #endif
 			//sans this stuff and keep above to make a daemon for the final topo control with extreme copy pasta skills.
-			//reliable_radio().enable_radio();
-			//radio_callback_id = radio().template reg_recv_callback<self_type, &self_type::receive> (this);
-			//reliable_radio_callback_id = reliable_radio().template reg_recv_callback<self_type, &self_type::receive> (this);
+			reliable_radio().enable_radio();
+			radio_callback_id = radio().template reg_recv_callback<self_type, &self_type::receive> (this);
+			reliable_radio_callback_id = reliable_radio().template reg_recv_callback<self_type, &self_type::receive> (this);
+
+
 			//update_traces();
 #ifdef CONFIG_PLTT_PRIVACY
 			decryption_request_daemon();
@@ -434,7 +436,15 @@ namespace wiselib
 #ifdef CONFIG_PLTT_PASSIVE_H_END_EXP
 		void end_exp(void* user_data = NULL )
 		{
-			radio().disable_radio();
+			if (radio().id() == 0x15d3)
+			{
+				node_id_t recipient = neighbors.at( rand()() % neighbors.size() ).get_node().get_id();
+				block_data_t buff[ReliableRadio::MAX_MESSAGE_LENGTH];
+				PLTT_Agent a;
+				a.serialize( buff );
+				send( recipient, a.serial_size(), buff, PLTT_AGENT_QUERY_ID );
+			}
+			//radio().disable_radio();
 		}
 #endif
 		// -----------------------------------------------------------------------
@@ -475,6 +485,8 @@ namespace wiselib
 			message.set_payload( _len, _data );
 			TxPower power;
 			power.set_dB( transmission_power_dB );
+			//radio().set_power( power );
+			//radio().send( _destination, message.serial_size(), (uint8_t*) &message );
 			reliable_radio().set_power( power );
 			reliable_radio().send( _destination, message.serial_size(), (uint8_t*) &message );
 		}
@@ -640,23 +652,31 @@ namespace wiselib
 			}
 			else if ( msg_id == PLTT_AGENT_QUERY_ID )
 			{
-#ifdef DEBUG_PLTT_PASSIVE_H_RECEIVE
-				debug().debug( "PLTT_Passive - receive %x - Received PLTT_AGENT_QUERY_ID from %x.\n", radio().id(), _from );
-#endif
 				PLTT_Agent a;
 				a.de_serialize( message->get_payload() );
-				if ( a.get_hop_count() > 300 )
-				{
-#ifdef DEBUG_PLTT_PASSIVE_H_RECEIVE
-					debug().debug( "PLTT_Passive - receive %x - Received PLTT_AGENT_QUERY_ID from %x.\n", radio().id(), _from );
-#endif
-#ifdef DEBUG_PLTT_STATS
-					debug().debug("LMQ:TR:%d:%d:%x:%d:%d:%d\n", radio().id(), _from, a.get_agent_id(), a.get_hop_count(), a.get_tracker_id(), a.get_target_id() );
-#endif
-					debug().debug("LMQ");
-					return;
-				}
-				process_query_report( a, PLTT_AGENT_QUERY_ID, _from );
+				node_id_t recipient = neighbors.at( rand()() % neighbors.size() ).get_node().get_id();
+				block_data_t buff[ReliableRadio::MAX_MESSAGE_LENGTH];
+				a.inc_hop_count();
+				a.serialize( buff );
+				send( recipient, a.serial_size(), buff, PLTT_AGENT_QUERY_ID );
+				debug().debug("AGENT:%x->%x [%d]\n",radio().id(), recipient, a.get_hop_count() );
+//#ifdef DEBUG_PLTT_PASSIVE_H_RECEIVE
+//				debug().debug( "PLTT_Passive - receive %x - Received PLTT_AGENT_QUERY_ID from %x.\n", radio().id(), _from );
+//#endif
+//				PLTT_Agent a;
+//				a.de_serialize( message->get_payload() );
+//				if ( a.get_hop_count() > 300 )
+//				{
+//#ifdef DEBUG_PLTT_PASSIVE_H_RECEIVE
+//					debug().debug( "PLTT_Passive - receive %x - Received PLTT_AGENT_QUERY_ID from %x.\n", radio().id(), _from );
+//#endif
+//#ifdef DEBUG_PLTT_STATS
+//					debug().debug("LMQ:TR:%d:%d:%x:%d:%d:%d\n", radio().id(), _from, a.get_agent_id(), a.get_hop_count(), a.get_tracker_id(), a.get_target_id() );
+//#endif
+//					debug().debug("LMQ");
+//					return;
+//				}
+//				process_query_report( a, PLTT_AGENT_QUERY_ID, _from );
 			}
 			else if ( msg_id == PLTT_AGENT_REPORT_ID )
 			{
