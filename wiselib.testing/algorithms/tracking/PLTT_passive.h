@@ -402,9 +402,9 @@ namespace wiselib
 			}
 #endif
 			//sans this stuff and keep above to make a daemon for the final topo control with extreme copy pasta skills.
-			reliable_radio().enable_radio();
-			radio_callback_id = radio().template reg_recv_callback<self_type, &self_type::receive> (this);
-			reliable_radio_callback_id = reliable_radio().template reg_recv_callback<self_type, &self_type::receive> (this);
+			//reliable_radio().enable_radio();
+			//radio_callback_id = radio().template reg_recv_callback<self_type, &self_type::receive> (this);
+			//reliable_radio_callback_id = reliable_radio().template reg_recv_callback<self_type, &self_type::receive> (this);
 
 
 			//update_traces();

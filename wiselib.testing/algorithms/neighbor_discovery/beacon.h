@@ -237,7 +237,7 @@ namespace wiselib
 		{
 #ifdef CONFIG_NEIGHBOR_DISCOVERY_H_ACTIVE_SCLD
 			size_t SCLD_POS = 0;
-			write<Os, block_data_t, size_t>( _buff + SCLD_POS + _offset, SCLD );
+			write<Os, block_data_t, uint8_t>( _buff + SCLD_POS + _offset, SCLD );
 			size_t PROTOCOL_PAYLOADS_SIZE_POS = SCLD_POS + sizeof(uint8_t);
 #else
 			size_t PROTOCOL_PAYLOADS_SIZE_POS = 0;
