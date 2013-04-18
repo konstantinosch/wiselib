@@ -8,7 +8,7 @@
 #include "algorithms/flood_tracking/FLOOD_TRACKING_target.h"
 #include "FLOOD_TRACKING_app_config.h"
 #ifdef UNIGE_TESTBED
-#include "UNIGE_topology.h"
+#include "UNIGE_ISENSE_topology.h"
 #endif
 
 typedef wiselib::OSMODEL Os;

@@ -121,7 +121,7 @@ namespace wiselib
 			Neighbor_vector neighbors;
 			neighbors.push_back( n );
 #ifdef CONFIG_NEIGHBOR_DISCOVERY_COORD_SUPPORT
-			set_coords( get_node_info<Position, Radio>( &radio() ).get_x(), get_node_info<Position, Radio>( &radio() ).get_y(), get_node_info<Position, Radio>( &radio() ).get_z() );
+			set_position( get_node_info<Position, Radio>( &radio() ).get_x(), get_node_info<Position, Radio>( &radio() ).get_y(), get_node_info<Position, Radio>( &radio() ).get_z() );
 			block_data_t buff[100];
 			ProtocolPayload pp( ND_PROTOCOL_ID, position.serial_size(), position.serialize( buff ) );
 #else
@@ -174,11 +174,7 @@ namespace wiselib
 			p.set_event_notifier_callback( event_notifier_delegate_t::template from_method<NeighborDiscovery_Type, &NeighborDiscovery_Type::events_callback > ( this ) );
 			protocols.push_back( p );
 			set_status( ACTIVE_STATUS );
-			//if (radio().id()!=0x1515)
-			//{
-			//	debug().debug("RADIO:%x\n",radio().id());
 			radio().enable_radio();
-			//}
 			recv_callback_id_ = radio().template reg_recv_callback<self_t, &self_t::receive>( this );
 #ifdef CONFIG_NEIGHBOR_DISCOVERY_H_RAND_STARTUP
 			debug().debug("%x:%i:%d:%d:%d:%d:R\n", radio().id(), transmission_power_dB, beacon_period, nd_daemon_period, relax_millis, ND_STATS_DURATION );
@@ -613,7 +609,6 @@ namespace wiselib
 #ifdef CONFIG_NEIGHBOR_DISCOVERY_H_TRUST_FILTERING
 							}
 #endif
-						//	debug().debug( "NB:[%d] - %d[:]%d[:]%i[:]%d[%d:%d] -(%d).\n", transmission_power_dB, radio().id(), _from, pit->get_protocol_id(), new_neighbor.get_id(), new_neighbor.get_link_stab_ratio(), new_neighbor.get_link_stab_ratio_inverse(), new_neighbor.get_trust_counter() );
 						}
 						uint8_t events_flag = 0;
 						if	(
@@ -1360,9 +1355,14 @@ namespace wiselib
 #endif
 		// --------------------------------------------------------------------
 #ifdef CONFIG_NEIGHBOR_DISCOVERY_COORD_SUPPORT
-		void set_coords( PositionNumber _x, PositionNumber _y, PositionNumber _z )
+		void set_position( PositionNumber _x, PositionNumber _y, PositionNumber _z )
 		{
 			position = Position( _x, _y, _z);
+		}
+		// --------------------------------------------------------------------
+		Position get_position()
+		{
+			return position;
 		}
 #endif
 		// --------------------------------------------------------------------
@@ -1441,7 +1441,8 @@ namespace wiselib
 		enum protocol_ids
 		{
 			ND_PROTOCOL_ID,
-			TRACKING_PROTOCOL_ID
+			TRACKING_PROTOCOL_ID,
+			ATP_PROTOCOL_ID
 		};
 		enum message_ids
 		{

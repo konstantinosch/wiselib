@@ -117,7 +117,7 @@ namespace wiselib
 #ifdef TRACKER_NODE
 				//debug().debug(" Tracker %x receive spread trace of target %x from passive %x with start_time %i and detection point %x, [%i,%i] and lqi %i", self.get_id(), t.get_target_id(), from, t.get_start_time(), t.get_current().get_id(), t.get_current().get_position().get_x(), t.get_current().get_position().get_y(), t.get_detection_LQI() );
 				uint8_t single_store_flag = 1;
-				#endif
+#endif
 				uint8_t store_flag = 1;
 
 				while ( traces_iterator!=traces.end() )

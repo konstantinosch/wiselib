@@ -57,10 +57,10 @@ namespace wiselib
 		inline block_data_t* set_buffer_from( block_data_t* buff, size_t offset = 0 )
 		{
 			uint8_t CURRENT_NODE_POS = 0;
-			uint8_t TARGET_ID_POS = current.get_buffer_size() + CURRENT_NODE_POS;
+			uint8_t TARGET_ID_POS = current.serial_size() + CURRENT_NODE_POS;
 			uint8_t START_TIME_POS = sizeof( NodeID ) + TARGET_ID_POS;
 			uint8_t DETECTION_LQI_POS = sizeof( TimesNumber) + START_TIME_POS;
-			current.set_buffer_from( buff, CURRENT_NODE_POS + offset);
+			current.serialize( buff, CURRENT_NODE_POS + offset);
 			write<Os, block_data_t, NodeID>( buff + TARGET_ID_POS + offset, target_id );
 			write<Os, block_data_t, TimesNumber>( buff + START_TIME_POS + offset, start_time );
 			write<Os, block_data_t, uint8_t>( buff + DETECTION_LQI_POS + offset, detection_LQI);
@@ -70,10 +70,10 @@ namespace wiselib
 		inline void get_from_buffer(block_data_t* buff, size_t offset = 0)
 		{
 			uint8_t CURRENT_NODE_POS = 0;
-			uint8_t TARGET_ID_POS = current.get_buffer_size() + CURRENT_NODE_POS;
+			uint8_t TARGET_ID_POS = current.serial_size() + CURRENT_NODE_POS;
 			uint8_t START_TIME_POS = sizeof( NodeID ) + TARGET_ID_POS;
 			uint8_t DETECTION_LQI_POS = sizeof( TimesNumber) + START_TIME_POS;
-			current.get_from_buffer( buff, CURRENT_NODE_POS + offset);
+			current.de_serialize( buff, CURRENT_NODE_POS + offset);
 			target_id = read<Os, block_data_t, NodeID>(buff + TARGET_ID_POS + offset );
 			start_time = read<Os, block_data_t, TimesNumber>(buff + START_TIME_POS + offset );
 			detection_LQI = read<Os, block_data_t, uint8_t>( buff + DETECTION_LQI_POS + offset);
@@ -82,7 +82,7 @@ namespace wiselib
 		inline size_t get_buffer_size()
 		{
 			uint8_t CURRENT_NODE_POS = 0;
-			uint8_t TARGET_ID_POS = current.get_buffer_size() + CURRENT_NODE_POS;
+			uint8_t TARGET_ID_POS = current.serial_size() + CURRENT_NODE_POS;
 			uint8_t START_TIME_POS = sizeof( NodeID ) + TARGET_ID_POS;
 			uint8_t DETECTION_LQI_POS = sizeof( TimesNumber) + START_TIME_POS;
 			return DETECTION_LQI_POS + sizeof( uint8_t );
