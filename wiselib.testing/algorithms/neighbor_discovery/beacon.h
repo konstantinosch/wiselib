@@ -46,6 +46,9 @@ namespace wiselib
 		typedef typename Radio::block_data_t block_data_t;
 		typedef typename Timer::millis_t millis_t;
 		typedef Neighbor_Type<Os, Radio, Clock, Timer, Debug> Neighbor;
+#ifdef CONFIG_NEIGHBOR_DISCOVERY_H_COORD_SUPPORT
+		typedef typename Neighbor::Position Position;
+#endif
 		typedef ProtocolPayload_Type<Os, Radio, Debug> ProtocolPayload;
 		typedef ProtocolSettings_Type<Os, Radio, Timer, Debug> ProtocolSettings;
 		typedef Protocol_Type<Os, Radio, Clock, Timer, Debug> Protocol;
@@ -56,9 +59,6 @@ namespace wiselib
 		typedef vector_static<Os, Protocol, ND_MAX_REGISTERED_PROTOCOLS> Protocol_vector;
 		typedef typename Protocol_vector::iterator Protocol_vector_iterator;
 		typedef Beacon_Type<Os, Radio, Clock, Timer, Debug> self_type;
-#ifdef NEIGHBOR_DISCOVERY_COORD_SUPPORT
-		typedef typename Neighbor::Position Position;
-#endif
 		// --------------------------------------------------------------------
 		Beacon_Type() :
 #ifdef CONFIG_NEIGHBOR_DISCOVERY_H_ACTIVE_SCLD
@@ -188,10 +188,25 @@ namespace wiselib
 		}
 #endif
 		// --------------------------------------------------------------------
+#ifdef CONFIG_NEIGHBOR_DISCOVERY_H_COORD_SUPPORT
+		void set_position( Position _p )
+		{
+			position = _p;
+		}
+		// --------------------------------------------------------------------
+		Position get_position()
+		{
+			return position;
+		}
+#endif
+		// --------------------------------------------------------------------
 		Beacon_Type& operator=( const Beacon_Type& _b )
 		{
 #ifdef CONFIG_NEIGHBOR_DISCOVERY_H_ACTIVE_SCLD
-			SCLD = _b;
+			SCLD = _b.SCLD;
+#endif
+#ifdef CONFIG_NEIGHBOR_DISCOVERY_H_COORD_SUPPORT
+			position = _b.position;
 #endif
 			beacon_period_update_counter = _b.beacon_period_update_counter;
 			beacon_period = _b.beacon_period;
@@ -202,7 +217,7 @@ namespace wiselib
 		// --------------------------------------------------------------------
 #ifdef DEBUG_BEACON_H
 		void print( Debug& debug, Radio& radio
-#ifdef NEIGHBOR_DISCOVERY_COORD_SUPPORT
+#ifdef CONFIG_NEIGHBOR_DISCOVERY_H_COORD_SUPPORT
 				,Position pos = Position( 0, 0, 0 )
 #endif
 				)
@@ -220,7 +235,7 @@ namespace wiselib
 			debug.debug( "neighborhood size: %d\n", neighborhood.size() );
 			for ( Neighbor_vector_iterator it = neighborhood.begin(); it != neighborhood.end(); ++it )
 			{
-#ifdef NEIGHBOR_DISCOVERY_COORD_SUPPORT
+#ifdef CONFIG_NEIGHBOR_DISCOVERY_H_COORD_SUPPORT
 				it->print( debug, radio, pos );
 #else
 				it->print( debug, radio );
@@ -251,7 +266,13 @@ namespace wiselib
 				it->serialize( _buff + PROTOCOL_PAYLOADS_POS + pp_size, _offset );
 				pp_size = it->serial_size() + pp_size;
 			}
+#ifdef CONFIG_NEIGHBOR_DISCOVERY_H_COORD_SUPPORT
+			size_t POSITION_POS = PROTOCOL_PAYLOADS_POS + pp_size;
+			position.serialize( _buff + POSITION_POS, _offset );
+			size_t NEIGHBORHOOD_SIZE_POS = POSITION_POS + position.serial_size();;
+#else
 			size_t NEIGHBORHOOD_SIZE_POS = PROTOCOL_PAYLOADS_POS + pp_size;
+#endif
 			size_t NEIGHBORHOOD_POS = NEIGHBORHOOD_SIZE_POS + sizeof(size_t);
 			size_t ns_size = neighborhood.size();
 			write<Os, block_data_t, size_t>( _buff + NEIGHBORHOOD_SIZE_POS + _offset, ns_size );
@@ -287,7 +308,13 @@ namespace wiselib
 				protocol_payloads.push_back( pp );
 				PROTOCOL_PAYLOADS_POS = pp.serial_size() + PROTOCOL_PAYLOADS_POS;
 			}
+#ifdef CONFIG_NEIGHBOR_DISCOVERY_H_COORD_SUPPORT
+			size_t POSITION_POS = PROTOCOL_PAYLOADS_POS;
+			position.de_serialize( _buff + POSITION_POS, _offset );
+			size_t NEIGHBORHOOD_SIZE_POS = POSITION_POS + position.serial_size();
+#else
 			size_t NEIGHBORHOOD_SIZE_POS = PROTOCOL_PAYLOADS_POS;
+#endif
 			size_t NEIGHBORHOOD_POS = NEIGHBORHOOD_SIZE_POS + sizeof(size_t);
 			size_t ns_size = read<Os, block_data_t, size_t>( _buff + NEIGHBORHOOD_SIZE_POS + _offset );
 			neighborhood.clear();
@@ -323,7 +350,12 @@ namespace wiselib
 			size_t PROTOCOL_PAYLOADS_SIZE_POS = 0;
 #endif
 			size_t PROTOCOL_PAYLOADS_POS = PROTOCOL_PAYLOADS_SIZE_POS + sizeof(size_t);
+#ifdef CONFIG_NEIGHBOR_DISCOVERY_H_COORD_SUPPORT
+			size_t POSITION_POS = PROTOCOL_PAYLOADS_POS + pp_size;
+			size_t NEIGHBORHOOD_SIZE_POS = POSITION_POS + position.serial_size();;
+#else
 			size_t NEIGHBORHOOD_SIZE_POS = PROTOCOL_PAYLOADS_POS + pp_size;
+#endif
 			size_t NEIGHBORHOOD_POS = NEIGHBORHOOD_SIZE_POS + sizeof(size_t);
 			size_t BEACON_PERIOD_POS = NEIGHBORHOOD_POS + n_size;
 			size_t BEACON_PERIOD_UPDATE_COUNTER_POS = BEACON_PERIOD_POS + sizeof(millis_t);
@@ -333,6 +365,9 @@ namespace wiselib
 	private:
 #ifdef CONFIG_NEIGHBOR_DISCOVERY_H_ACTIVE_SCLD
 		uint8_t SCLD;
+#endif
+#ifdef CONFIG_NEIGHBOR_DISCOVERY_H_COORD_SUPPORT
+		Position position;
 #endif
 		ProtocolPayload_vector protocol_payloads;
 		Neighbor_vector neighborhood;

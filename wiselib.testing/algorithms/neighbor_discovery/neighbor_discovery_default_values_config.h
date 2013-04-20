@@ -1,8 +1,8 @@
 //default ND protocol settings
-#define ND_MAX_NEIGHBORS 500 //shawn setting
-//#define ND_MAX_NEIGHBORS 4
+//#define ND_MAX_NEIGHBORS 500 //shawn setting
+#define ND_MAX_NEIGHBORS 25
 #define ND_MAX_REGISTERED_PROTOCOLS 2
-#define ND_BEACON_PERIOD 1000
+#define ND_BEACON_PERIOD 2000
 #define ND_TRANSMISSION_POWER_DB 0
 #define ND_RELAX_MILLIS 500 //great care with this one when tinkering with very minute period predictions/calculations. Could be set to a tiny analogous value of the period like 10%.
 #define ND_DAEMON_PERIOD 500
@@ -28,9 +28,9 @@
 #define ND_MAX_LINK_STAB_RATIO_INVERSE_THRESHOLD 100
 #define ND_MIN_LINK_STAB_RATIO_INVERSE_THRESHOLD 0
 //#define ND_MAX_PROTOCOL_PAYLOAD_SIZE 768 some old setting
-#define ND_MAX_PROTOCOL_PAYLOAD_SIZE 100 //shawn setting
+//#define ND_MAX_PROTOCOL_PAYLOAD_SIZE 100 //shawn setting
 //#define ND_MAX_PROTOCOL_PAYLOAD_SIZE 20
-//#define ND_MAX_PROTOCOL_PAYLOAD_SIZE 6
+#define ND_MAX_PROTOCOL_PAYLOAD_SIZE 6
 #define ND_PROPOSED_TRANSMISSION_POWER_DB 0
 #define ND_PROPOSED_TRANSMISSION_POWER_DB_WEIGHT 100
 #define ND_PROPOSED_BEACON_PERIOD 1000

@@ -274,6 +274,7 @@ namespace wiselib
 			debug().debug("CON:%d:%x:%d:%d:%i:%d:%d:%d:%d\n", nb_convergence_time_counter+1, radio().id(), neighbors.size(), prot_ref->get_neighborhood_ref()->size(), transmission_power_dB, nb_convergence_time, nb_convergence_time_max_counter+1, self.get_node().get_position().get_x(), self.get_node().get_position().get_y() );
 #endif
 #endif
+			debug().debug("DE_SIZES:%x:%d:%d:%d", radio().id(), neighbors.size(), prot_ref_tr->get_neighborhood_active_size(), prot_ref_tr->get_neighborhood_active_size() );
 			if ( neighbors.size() < nb_connections_low )
 			{
 				int8_t old_transmission_power_dB = transmission_power_dB;

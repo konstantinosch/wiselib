@@ -17,8 +17,8 @@
 ** If not, see <http://www.gnu.org/licenses/>.                           **
 ***************************************************************************/
 
-#define POSITION_FLOAT_DEBUG
-//#define POSITION_INT_DEBUG
+//#define POSITION_FLOAT_DEBUG
+#define POSITION_INT_DEBUG
 
 namespace wiselib
 {

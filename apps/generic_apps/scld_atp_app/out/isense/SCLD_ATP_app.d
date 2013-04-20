@@ -101,4 +101,4 @@ out/isense/SCLD_ATP_app.o: SCLD_ATP_app.cpp \
   /home/konstantinos/Desktop/wiselib/wiselib.testing/algorithms/neighbor_discovery/protocol_payload.h \
   /home/konstantinos/Desktop/wiselib/wiselib.testing/algorithms/neighbor_discovery/protocol.h \
   /home/konstantinos/Desktop/wiselib/wiselib.testing/algorithms/neighbor_discovery/beacon.h \
-  ../topologies/CTI_ISENSE_topology.h SCLD_ATP_app_config.h
+  ../topologies/UNIGE_ISENSE_topology.h SCLD_ATP_app_config.h

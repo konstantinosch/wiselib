@@ -21,7 +21,7 @@
 #define	__NEIGHBOR_H__
 
 #include "neighbor_discovery_source_config.h"
-#ifdef CONFIG_NEIGHBOR_DISCOVERY_COORD_SUPPORT
+#ifdef CONFIG_NEIGHBOR_DISCOVERY_H_COORD_SUPPORT
 #include "../../internal_interface/position/position_new.h"
 #endif
 
@@ -45,11 +45,11 @@ namespace wiselib
 		typedef typename Radio::block_data_t block_data_t;
 		typedef typename Timer::millis_t millis_t;
 		typedef typename Clock::time_t time_t;
-#ifdef CONFIG_NEIGHBOR_DISCOVERY_COORD_SUPPORT
-#ifdef CONFIG_NEIGHBOR_DISCOVERY_COORD_SUPPORT_2D
+#ifdef CONFIG_NEIGHBOR_DISCOVERY_H_COORD_SUPPORT
+#ifdef CONFIG_NEIGHBOR_DISCOVERY_H_COORD_SUPPORT_2D
 		typedef Position2DType<Os, Radio, PositionNumber, Debug> Position;
 #endif
-#ifdef CONFIG_NEIGHBOR_DISCOVERY_COORD_SUPPORT_3D
+#ifdef CONFIG_NEIGHBOR_DISCOVERY_H_COORD_SUPPORT_3D
 		typedef Position3DType<Os, Radio, PositionNumber, Debug> Position;
 #endif
 #endif
@@ -406,7 +406,7 @@ namespace wiselib
 		}
 		// --------------------------------------------------------------------
 #endif
-#ifdef CONFIG_NEIGHBOR_DISCOVERY_COORD_SUPPORT
+#ifdef CONFIG_NEIGHBOR_DISCOVERY_H_COORD_SUPPORT
 		Position get_position()
 		{
 			return position;
@@ -444,7 +444,7 @@ namespace wiselib
 			trust_counter = _n.trust_counter;
 			trust_counter_inverse = _n.trust_counter_inverse;
 #endif
-#ifdef CONFIG_NEIGHBOR_DISCOVERY_COORD_SUPPORT
+#ifdef CONFIG_NEIGHBOR_DISCOVERY_H_COORD_SUPPORT
 			position = _n.position;
 #endif
 			return *this;
@@ -538,7 +538,7 @@ namespace wiselib
 		// --------------------------------------------------------------------
 #ifdef DEBUG_NEIGHBOR_H
 		void print( Debug& debug, Radio& radio
-#ifdef CONFIG_NEIGHBOR_DISCOVERY_COORD_SUPPORT
+#ifdef CONFIG_NEIGHBOR_DISCOVERY_H_COORD_SUPPORT
 				,Position pos = Position( 0, 0, 0 )
 #endif
 				)
@@ -571,11 +571,11 @@ namespace wiselib
 #else
 			if ( ( radio.id() != id ) && ( active ) )
 			{
-#ifdef CONFIG_NEIGHBOR_DISCOVERY_COORD_SUPPORT
-#ifdef CONFIG_NEIGHBOR_DISCOVERY_COORD_SUPPORT_SHAWN
+#ifdef CONFIG_NEIGHBOR_DISCOVERY_H_COORD_SUPPORT
+#ifdef CONFIG_NEIGHBOR_DISCOVERY_H_COORD_SUPPORT_SHAWN
 				debug.debug( "NB:%x:%x:%d:%d:%d:%d:%d:%d:%d:%d:%d:%d:%d:%d:%f:%f:%f:%f:%d:%d\n",
 #endif
-#ifdef CONFIG_NEIGHBOR_DISCOVERY_COORD_SUPPORT_ISENSE
+#ifdef CONFIG_NEIGHBOR_DISCOVERY_H_COORD_SUPPORT_ISENSE
 				debug.debug( "NB:%x:%x:%d:%d:%d:%d:%d:%d:%d:%d:%d:%d:%d:%d:%d:%d:%d:%d:%d:%d\n",
 #endif
 #else
@@ -607,7 +607,7 @@ namespace wiselib
 					beacon_period,
 					beacon_period_update_counter,
 					active
-#ifdef CONFIG_NEIGHBOR_DISCOVERY_COORD_SUPPORT
+#ifdef CONFIG_NEIGHBOR_DISCOVERY_H_COORD_SUPPORT
 					,position.get_x(), position.get_y(), position.get_z(),
 					( ( position.get_x() - pos.get_x() ) * ( position.get_x() - pos.get_x() ) +
 					( position.get_y() - pos.get_y() ) * ( position.get_y() - pos.get_y() ) +
@@ -648,7 +648,7 @@ namespace wiselib
 		int8_t trust_counter;
 		int8_t trust_counter_inverse;
 #endif
-#ifdef CONFIG_NEIGHBOR_DISCOVERY_COORD_SUPPORT
+#ifdef CONFIG_NEIGHBOR_DISCOVERY_H_COORD_SUPPORT
 		Position position;
 #endif
 	};

@@ -28,7 +28,7 @@ namespace wiselib
 {
 	template<	typename Os_P,
 				typename Radio_P,
-				typename NeighborDiscovery_P,
+				typename SCL_P,
 				typename Timer_P,
 				typename Rand_P,
 				typename Clock_P,
@@ -42,7 +42,7 @@ namespace wiselib
 		typedef Rand_P Rand;
 		typedef typename Rand::rand_t rand_t;
 		typedef Debug_P Debug;
-		typedef NeighborDiscovery_P NeighborDiscovery;
+		typedef SCL_P SCL;
 		typedef Timer_P Timer;
 		typedef Clock_P Clock;
 		typedef typename Radio::node_id_t node_id_t;
@@ -54,26 +54,28 @@ namespace wiselib
 		typedef typename Radio::TxPower TxPower;
 		typedef typename Clock::time_t time_t;
 		typedef Message_Type<Os, Radio, Debug> Message;
-		typedef ATP_Type<Os, Radio, NeighborDiscovery, Timer, Rand, Clock, Debug> self_type;
-		typedef typename NeighborDiscovery::ProtocolSettings ProtocolSettings;
-		typedef typename NeighborDiscovery::Neighbor Neighbor;
-		typedef typename NeighborDiscovery::ProtocolPayload ProtocolPayload;
-		typedef typename NeighborDiscovery::Protocol Protocol;
-		typedef typename NeighborDiscovery::Beacon Beacon;
-		typedef typename NeighborDiscovery::Neighbor_vector Neighbor_vector;
-		typedef typename NeighborDiscovery::Neighbor_vector_iterator Neighbor_vector_iterator;
-		typedef typename NeighborDiscovery::ProtocolPayload_vector ProtocolPayload_vector;
-		typedef typename NeighborDiscovery::ProtocolPayload_vector_iterator ProtocolPayload_vector_iterator;
-		typedef wiselib::ATP_Type<Os, Radio, NeighborDiscovery, Timer, Rand, Clock, Debug> ATP;
+		typedef ATP_Type<Os, Radio, SCL, Timer, Rand, Clock, Debug> self_type;
+		typedef typename SCL::ProtocolSettings ProtocolSettings;
+		typedef typename SCL::Neighbor Neighbor;
+		typedef typename SCL::ProtocolPayload ProtocolPayload;
+		typedef typename SCL::Protocol Protocol;
+		typedef typename SCL::Protocol_vector Protocol_vector;
+		typedef typename SCL::Protocol_vector_iterator Protocol_vector_iterator;
+		typedef typename SCL::Beacon Beacon;
+		typedef typename SCL::Neighbor_vector Neighbor_vector;
+		typedef typename SCL::Neighbor_vector_iterator Neighbor_vector_iterator;
+		typedef typename SCL::ProtocolPayload_vector ProtocolPayload_vector;
+		typedef typename SCL::ProtocolPayload_vector_iterator ProtocolPayload_vector_iterator;
+		typedef wiselib::ATP_Type<Os, Radio, SCL, Timer, Rand, Clock, Debug> ATP;
 		// -----------------------------------------------------------------------
 		ATP_Type() :
 			radio_callback_id						( 0 ),
 			transmission_power_dB					( ATP_H_TRANSMISSION_POWER_DB ),
-			nb_convergence_time						( ATP_H_CONVERGENCE_TIME ),
-			nb_convergence_time_counter				( 0 ),
-			nb_convergence_time_max_counter			( ATP_H_MAX_MONITORING_PHASES ),
-			nb_connections_high						( ATP_H_SCL_DMAX ),
-			nb_connections_low						( ATP_H_SCL_DMIN ),
+			convergence_time						( ATP_H_CONVERGENCE_TIME ),
+			monitoring_phase_counter				( 0 ),
+			monitoring_phases						( ATP_H_MONITORING_PHASES ),
+			SCLD_MAX								( ATP_H_SCL_DMAX ),
+			SCLD_MIN								( ATP_H_SCL_DMIN ),
 			random_enable_timer_range				( ATP_H_RANDOM_ENABLE_TIMER_RANGE ),
 			status									( WAITING_STATUS )
 		{
@@ -91,204 +93,220 @@ namespace wiselib
 			radio().enable_radio();
 			set_status( ACTIVE_STATUS );
 #ifndef CONFIG_ATP_H_RANDOM_BOOT
-			neighbor_discovery_enable_task();
+			SCL_enable_task();
 #else
 			millis_t r = rand()() % random_enable_timer_range;
-			timer().template set_timer<self_type, &self_type::neighbor_discovery_enable_task> ( r, this, 0 );
+			timer().template set_timer<self_type, &self_type::SCL_enable_task> ( r, this, 0 );
 #endif
 #ifdef DEBUG_ATP_H_ENABLE
 			debug().debug( "ATP - enable %x - Exiting.\n", radio().id() );
 #endif
 		}
 		// -----------------------------------------------------------------------
-		void neighbor_discovery_enable_task( void* _userdata = NULL )
+		void SCL_enable_task( void* _userdata = NULL )
 		{
+			if ( status == ACTIVE_STATUS )
+			{
 #ifdef DEBUG_ATP_H_NEIGHBOR_DISCOVERY_ENABLE_TASK
-			debug().debug( "ATP - neighbor_discovery_enable_task %x - Entering.\n", radio().id() );
+				debug().debug( "ATP - SCL_enable_task %x - Entering.\n", radio().id() );
 #endif
-			block_data_t buff[100];
-			ProtocolPayload pp( NeighborDiscovery::ATP_PROTOCOL_ID, 0, buff );
-			uint8_t ef = ProtocolSettings::NEW_PAYLOAD|ProtocolSettings::LOST_NB|ProtocolSettings::NB_REMOVED|ProtocolSettings::NEW_PAYLOAD;
-			ProtocolSettings ps( /*255, 0, 255, 0, 255, 0, 255* 0,*/ 100, 90, 100, 90, ef, -18, 100, 3000, 100, ProtocolSettings::RATIO_DIVIDER, 2, ProtocolSettings::MEAN_DEAD_TIME_PERIOD, 100, 100, ProtocolSettings::R_NR_WEIGHTED, 1, 1, pp );
+				block_data_t buff[100];
+				ProtocolPayload pp( SCL::ATP_PROTOCOL_ID, 0, buff );
+				uint8_t events_flag	= 	ProtocolSettings::NEW_NB|
+										ProtocolSettings::UPDATE_NB|
+										ProtocolSettings::NEW_PAYLOAD|
+										ProtocolSettings::LOST_NB|
+										ProtocolSettings::TRANS_DB_UPDATE|
+										ProtocolSettings::BEACON_PERIOD_UPDATE|
+										ProtocolSettings::NB_REMOVED;
+				ProtocolSettings ps( /*255, 0, 255, 0, 255, 0, 255, 0,*/ 100, 90, 100, 90, events_flag, -18, 100, 3000, 100, ProtocolSettings::RATIO_DIVIDER, 2, ProtocolSettings::MEAN_DEAD_TIME_PERIOD, 100, 100, ProtocolSettings::R_NR_WEIGHTED, 1, 1, pp );
+				result = scl(). template register_protocol<self_type, &self_type::events_callback>( SCL::ATP_PROTOCOL_ID, ps, this  );
 #ifdef CONFIG_ATP_H_RANDOM_DB
-			transmission_power_dB = (rand()()%5)*(-6);
-			debug().debug("RAND_DB:%x:%d\n", radio().id(), transmission_power_dB );
+				transmission_power_dB = ( rand()()%5 ) * ( -1 ) * ATP_H_DB_STEP;
+				debug().debug("RAND_DB:%x:%i\n", radio().id(), transmission_power_dB );
 #endif
-			neighbor_discovery().set_transmission_power_dB( transmission_power_dB );
-			uint8_t result = 0;
-			result = neighbor_discovery(). template register_protocol<self_type, &self_type::sync_neighbors>( NeighborDiscovery::ATP_PROTOCOL_ID, ps, this  );
-			Protocol* prot_ref = neighbor_discovery().get_protocol_ref( NeighborDiscovery::ATP_PROTOCOL_ID );
-			if ( prot_ref != NULL )
-			{
-				neighbor_discovery().enable();
+				scl().set_transmission_power_dB( transmission_power_dB );
+				uint8_t result = 0;
+				Protocol* prot_ref = scl().get_protocol_ref( SCL::ATP_PROTOCOL_ID );
+				if ( prot_ref != NULL )
+				{
+					scl().enable();
 #ifdef DEBUG_ATP_H_STATS
-				#ifdef	DEBUG_ATP_H_STATS_SHAWN
-						debug().debug("COORD:%d:%d:%f:%f\n", nb_convergence_time_max_counter, radio().id(), neighbor_discovery().get_position().get_x(),  neighbor_discovery().get_position().get_y() );
-				#endif
-				#ifdef	DEBUG_ATP_H_STATS_ISENSE
-						debug().debug("COORD:%d:%x:%d:%d\n", nb_convergence_time_max_counter, radio().id(), neighbor_discovery().get_position().get_x(),  neighbor_discovery().get_position().get_y() );
-				#endif
-#ifdef DEBUG_ATP_H_STATS_SHAWN
-				debug().debug("CON:%d:%d:%d:%d:%d:%d:%d:%f:%f\n", nb_convergence_time_counter, radio().id(), prot_ref->get_neighborhood_active_size(), prot_ref->get_neighborhood_ref()->size(), transmission_power_dB, nb_convergence_time, nb_convergence_time_max_counter, neighbor_discovery().get_position().get_x(),  neighbor_discovery().get_position().get_y() );
+#ifdef	DEBUG_ATP_H_STATS_SHAWN
+							debug().debug("COORD:%d:%d:%f:%f\n", monitoring_phases, radio().id(), scl().get_position().get_x(),  scl().get_position().get_y() );
 #endif
 #ifdef	DEBUG_ATP_H_STATS_ISENSE
-				debug().debug("CON:%d:%x:%d:%d:%i:%d:%d:%d:%d\n", nb_convergence_time_counter, radio().id(), prot_ref->get_neighborhood_active_size(), prot_ref->get_neighborhood_ref()->size(), transmission_power_dB, nb_convergence_time, nb_convergence_time_max_counter, neighbor_discovery().get_position().get_x(),  neighbor_discovery().get_position().get_y() );
+							debug().debug("COORD:%d:%x:%d:%d\n", monitoring_phases, radio().id(), scl().get_position().get_x(),  scl().get_position().get_y() );
+#endif
+#ifdef DEBUG_ATP_H_STATS_SHAWN
+					debug().debug("CON:%d:%d:%d:%d:%d:%d:%d:%f:%f\n", monitoring_phase_counter, radio().id(), prot_ref->get_neighborhood_active_size(), prot_ref->get_neighborhood_ref()->size(), transmission_power_dB, convergence_time, monitoring_phases, scl().get_position().get_x(),  scl().get_position().get_y() );
+#endif
+#ifdef	DEBUG_ATP_H_STATS_ISENSE
+					debug().debug("CON:%d:%x:%d:%d:%i:%d:%d:%d:%d\n", monitoring_phase_counter, radio().id(), prot_ref->get_neighborhood_active_size(), prot_ref->get_neighborhood_ref()->size(), transmission_power_dB, convergence_time, monitoring_phases, scl().get_position().get_x(),  scl().get_position().get_y() );
 #endif
 #endif
-				timer().template set_timer<self_type, &self_type::neighbor_discovery_inter_task> ( nb_convergence_time/nb_convergence_time_max_counter, this, 0 );
-			}
+					timer().template set_timer<self_type, &self_type::ATP_service> ( convergence_time/monitoring_phases, this, 0 );
+				}
 #ifdef DEBUG_ATP_H_NEIGHBOR_DISCOVERY_ENABLE_TASK
-			debug().debug( "ATP - neighbor_discovery_enable_task - Exiting.\n" );
+				debug().debug( "ATP - SCL_enable_task - Exiting.\n" );
 #endif
+			}
 		}
 		// -----------------------------------------------------------------------
-		void neighbor_discovery_inter_task(void* _userdata = NULL )
+		void ATP_service(void* _userdata = NULL )
 		{
-			Protocol* prot_ref = neighbor_discovery().get_protocol_ref( NeighborDiscovery::ATP_PROTOCOL_ID );
-			Protocol* prot_ref_ND = neighbor_discovery().get_protocol_ref( NeighborDiscovery::ND_PROTOCOL_ID );
+			if ( status == ACTIVE_STATUS )
+			{
+				Protocol* prot_ref = scl().get_protocol_ref( SCL::ATP_PROTOCOL_ID );
 #ifdef DEBUG_ATP_H_STATS_SHAWN
-				debug().debug("CON:%d:%d:%d:%d:%d:%d:%d:%f:%f\n", nb_convergence_time_counter, radio().id(), prot_ref->get_neighborhood_active_size(), prot_ref->get_neighborhood_ref()->size(), transmission_power_dB, nb_convergence_time, nb_convergence_time_max_counter, neighbor_discovery().get_position().get_x(),  neighbor_discovery().get_position().get_y() );
+					debug().debug("CON:%d:%d:%d:%d:%d:%d:%d:%f:%f\n", monitoring_phase_counter, radio().id(), prot_ref->get_neighborhood_active_size(), prot_ref->get_neighborhood_ref()->size(), transmission_power_dB, convergence_time, monitoring_phases, scl().get_position().get_x(),  scl().get_position().get_y() );
 #endif
 #ifdef	DEBUG_ATP_H_STATS_ISENSE
-				debug().debug("CON:%d:%x:%d:%d:%i:%d:%d:%d:%d\n", nb_convergence_time_counter, radio().id(), prot_ref->get_neighborhood_active_size(), prot_ref->get_neighborhood_ref()->size(), transmission_power_dB, nb_convergence_time, nb_convergence_time_max_counter, neighbor_discovery().get_position().get_x(),  neighbor_discovery().get_position().get_y() );
+					debug().debug("CON:%d:%x:%d:%d:%i:%d:%d:%d:%d\n", monitoring_phase_counter, radio().id(), prot_ref->get_neighborhood_active_size(), prot_ref->get_neighborhood_ref()->size(), transmission_power_dB, convergence_time, monitoring_phases, scl().get_position().get_x(),  scl().get_position().get_y() );
 #endif
-			if ( prot_ref->get_neighborhood_active_size() < nb_connections_low )
-			{
-				int8_t old_transmission_power_dB = transmission_power_dB;
+				if ( prot_ref->get_neighborhood_active_size() < SCLD_MIN )
+				{
+					int8_t old_transmission_power_dB = transmission_power_dB;
 #ifdef CONFIG_ATP_H_FLEXIBLE_DB
-				transmission_power_dB = transmission_power_dB + 6;
+					transmission_power_dB = transmission_power_dB + ATP_H_DB_STEP;
 #endif
-				if ( transmission_power_dB > ATP_H_NB_INTER_TASK_MAX_DB )
-				{
-					transmission_power_dB = ATP_H_NB_INTER_TASK_MAX_DB;
-				}
-				if ( transmission_power_dB != old_transmission_power_dB )
-				{
+					if ( transmission_power_dB > ATP_H_MAX_DB_THRESHOLD )
+					{
+						transmission_power_dB = ATP_H_MAX_DB_THRESHOLD;
+					}
+					if ( transmission_power_dB != old_transmission_power_dB )
+					{
 #ifdef DEBUG_ATP_H_NEIGHBOR_DISCOVERY_STATS
-					debug().debug("%x - increasing radius from %i to %i\n", radio().id(), old_transmission_power_dB, transmission_power_dB );
+						debug().debug("%x - increasing radius from %i to %i\n", radio().id(), old_transmission_power_dB, transmission_power_dB );
 #endif
+					}
 				}
-			}
-			else if ( prot_ref->get_neighborhood_active_size() > nb_connections_high )
-			{
-				int8_t old_transmission_power_dB = transmission_power_dB;
+				else if ( prot_ref->get_neighborhood_active_size() > SCLD_MAX )
+				{
+					int8_t old_transmission_power_dB = transmission_power_dB;
 #ifdef CONFIG_ATP_H_FLEXIBLE_DB
-				transmission_power_dB = transmission_power_dB - 6;
+					transmission_power_dB = transmission_power_dB - ATP_H_DB_STEP;
 #endif
-				if ( transmission_power_dB < ATP_H_NB_INTER_TASK_MIN_DB )
-				{
-					transmission_power_dB = ATP_H_NB_INTER_TASK_MIN_DB;
-				}
-				if ( transmission_power_dB != old_transmission_power_dB )
-				{
+					if ( transmission_power_dB < ATP_H_MIN_DB_THRESHOLD )
+					{
+						transmission_power_dB = ATP_H_MIN_DB_THRESHOLD;
+					}
+					if ( transmission_power_dB != old_transmission_power_dB )
+					{
 #ifdef DEBUG_ATP_H_NEIGHBOR_DISCOVERY_STATS
-					debug().debug("%x - decreasing radius from %i to %i\n", radio().id(), old_transmission_power_dB, transmission_power_dB );
+						debug().debug("%x - decreasing radius from %i to %i\n", radio().id(), old_transmission_power_dB, transmission_power_dB );
 #endif
+					}
 				}
-			}
-			for ( Neighbor_vector_iterator i = prot_ref->get_neighborhood_ref()->begin(); i != prot_ref->get_neighborhood_ref()->end(); ++i )
-			{
+				for ( Neighbor_vector_iterator i = prot_ref->get_neighborhood_ref()->begin(); i != prot_ref->get_neighborhood_ref()->end(); ++i )
+				{
+					if ( i->get_active() == 1 )
+					{
 #ifdef	DEBUG_ATP_H_STATS_SHAWN
-				debug().debug( "NB:%d:%d:%d:%f:%f\n", nb_convergence_time_counter+1, radio().id(), i->get_node().get_id(), neighbor_discovery().get_position().get_x(),  neighbor_discovery().get_position().get_y() );
-				debug().debug( "NB:%d:%d:%d:%f:%f\n", nb_convergence_time_counter+1, radio().id(), i->get_node().get_id(),i->get_position().get_x(), i->get_position().get_y() );
+						debug().debug( "NB:%d:%d:%d:%f:%f\n", monitoring_phase_counter+1, radio().id(), i->get_id(), scl().get_position().get_x(),  scl().get_position().get_y() );
+						debug().debug( "NB:%d:%d:%d:%f:%f\n", monitoring_phase_counter+1, radio().id(), i->get_id(),i->get_position().get_x(), i->get_position().get_y() );
 #endif
 #ifdef	DEBUG_ATP_H_STATS_ISENSE
-				debug().debug( "NB:%d:%x:%x:%d:%d\n", nb_convergence_time_counter+1, radio().id(), i->get_id(), neighbor_discovery().get_position().get_x(),  neighbor_discovery().get_position().get_y() );
-				debug().debug( "NB:%d:%x:%x:%d:%d\n", nb_convergence_time_counter+1, radio().id(), i->get_id(), i->get_position().get_x(), i->get_position().get_y() );
+						debug().debug( "NB:%d:%x:%x:%d:%d\n", monitoring_phase_counter+1, radio().id(), i->get_id(), scl().get_position().get_x(),  scl().get_position().get_y() );
+						debug().debug( "NB:%d:%x:%x:%d:%d\n", monitoring_phase_counter+1, radio().id(), i->get_id(), i->get_position().get_x(), i->get_position().get_y() );
+					}
 #endif
-			}
+				}
 #ifdef DEBUG_ATP_H_STATS
-			if ( prot_ref->get_neighborhood_active_size() < nb_connections_low )
-			{
+				if ( prot_ref->get_neighborhood_active_size() < SCLD_MIN )
+				{
 #ifdef	DEBUG_ATP_H_STATS_SHAWN
-				debug().debug( "LOCAL_MINIMUM:%d:%d:%d\n", nb_convergence_time_counter, radio().id(),  prot_ref->get_neighborhood_active_size() );
+					debug().debug( "LOCAL_MINIMUM:%d:%d:%d\n", monitoring_phase_counter, radio().id(),  prot_ref->get_neighborhood_active_size() );
 #endif
 #ifdef	DEBUG_ATP_H_STATS_ISENSE
-				debug().debug( "LOCAL_MINIMUM:%d:%x:%d\n", nb_convergence_time_counter, radio().id(),  prot_ref->get_neighborhood_active_size() );
+					debug().debug( "LOCAL_MINIMUM:%d:%x:%d\n", monitoring_phase_counter, radio().id(),  prot_ref->get_neighborhood_active_size() );
 #endif
-			}
-			else if (prot_ref->get_neighborhood_active_size() > nb_connections_high )
-			{
+				}
+				else if (prot_ref->get_neighborhood_active_size() > SCLD_MAX )
+				{
 #ifdef	DEBUG_ATP_H_STATS_SHAWN
-				debug().debug( "LOCAL_MAXIMUM:%d:%d:%d\n", nb_convergence_time_counter, radio().id(),  prot_ref->get_neighborhood_active_size() );
+					debug().debug( "LOCAL_MAXIMUM:%d:%d:%d\n", monitoring_phase_counter, radio().id(),  prot_ref->get_neighborhood_active_size() );
 #endif
 #ifdef	DEBUG_ATP_H_STATS_ISENSE
-				debug().debug( "LOCAL_MAXIMUM:%d:%x:%d\n", nb_convergence_time_counter, radio().id(),  prot_ref->get_neighborhood_active_size() );
+					debug().debug( "LOCAL_MAXIMUM:%d:%x:%d\n", monitoring_phase_counter, radio().id(),  prot_ref->get_neighborhood_active_size() );
 #endif
-			}
+				}
 #endif
-			neighbor_discovery().set_transmission_power_dB( transmission_power_dB );
-			nb_convergence_time_counter = nb_convergence_time_counter + 1;
+				scl().set_transmission_power_dB( transmission_power_dB );
+				monitoring_phase_counter = monitoring_phase_counter + 1;
 #ifdef CONFIG_ATP_H_MEMORYLESS_STATISTICS
-			prot_ref_ND->get_protocol_settings_ref()->set_beacon_weight( nb_convergence_time_counter );
-			prot_ref_ND->get_protocol_settings_ref()->set_lost_beacon_weight( nb_convergence_time_counter );
-			prot_ref->get_protocol_settings_ref()->set_beacon_weight( nb_convergence_time_counter );
-			prot_ref->get_protocol_settings_ref()->set_lost_beacon_weight( nb_convergence_time_counter );
+				for ( Protocol_vector_iterator it = scl().get_protocols_ref()->begin(); it != scl().get_protocols_ref()->end(); ++it )
+				{
+					it->get_protocol_settings_ref()->set_beacon_weight( monitoring_phase_counter );
+					it->get_protocol_settings_ref()->set_lost_beacon_weight( monitoring_phase_counter );
+					//for ( Neighbor_vector_iterator jt = it->get_neighborhood_ref()->begin(); jt != it->get_neighborhood_ref()->end(); ++jt )
+					//{
+					//	jt->set_total_beacons( jt->get_total_beacons() / 2 );
+					//	jt->set_total_beacons_expected( jt->get_total_beacons_expected() / 2 );
+					//}
+				}
 #endif
-			if ( nb_convergence_time_counter < nb_convergence_time_max_counter )
-			{
-				timer().template set_timer<self_type, &self_type::neighbor_discovery_inter_task> ( nb_convergence_time/nb_convergence_time_max_counter, this, 0 );
-			}
-			else
-			{
-				timer().template set_timer<self_type, &self_type::neighbor_discovery_disable_task> ( nb_convergence_time/nb_convergence_time_max_counter, this, 0 );
+				if ( monitoring_phase_counter < monitoring_phases )
+				{
+					timer().template set_timer<self_type, &self_type::ATP_service> ( convergence_time/monitoring_phases, this, 0 );
+				}
+				else
+				{
+					timer().template set_timer<self_type, &self_type::ATP_service_disable> ( convergence_time/monitoring_phases, this, 0 );
+				}
 			}
 		}
 		// -----------------------------------------------------------------------
-		void neighbor_discovery_disable_task( void* _userdata = NULL )
+		void ATP_service_disable( void* _userdata = NULL )
 		{
-#ifdef DEBUG_ATP_H_NEIGHBOR_DISCOVERY_DISABLE_TASK
-			debug().debug( "ATP - neighbor_discovery_unregister_task %x - Entering.\n", radio().id() );
-#endif
-			Protocol* prot_ref = neighbor_discovery().get_protocol_ref( NeighborDiscovery::ATP_PROTOCOL_ID );
-			for ( Neighbor_vector_iterator i = prot_ref->get_neighborhood_ref()->begin(); i != prot_ref->get_neighborhood_ref()->end(); ++i )
+			if ( status == ACTIVE_STATUS )
 			{
+#ifdef DEBUG_ATP_H_ATP_SERVICE_DISABLE
+				debug().debug( "ATP - ATP_service_disable %x - Entering.\n", radio().id() );
+#endif
+				Protocol* prot_ref = scl().get_protocol_ref( SCL::ATP_PROTOCOL_ID );
+				for ( Neighbor_vector_iterator i = prot_ref->get_neighborhood_ref()->begin(); i != prot_ref->get_neighborhood_ref()->end(); ++i )
+				{
+					if ( i->get_active() == 1 )
+					{
 #ifdef	DEBUG_ATP_H_STATS_SHAWN
-				debug().debug( "NB:%d:%d:%d:%f:%f\n", nb_convergence_time_counter+1, radio().id(), i->get_node().get_id(), neighbor_discovery().get_position().get_x(),  neighbor_discovery().get_position().get_y() );
-				debug().debug( "NB:%d:%d:%d:%f:%f\n", nb_convergence_time_counter+1, radio().id(), i->get_node().get_id(),i->get_position().get_x(), i->get_position().get_y() );
+						debug().debug( "NB:%d:%d:%d:%f:%f\n", monitoring_phase_counter+1, radio().id(), i->get_id(), scl().get_position().get_x(),  scl().get_position().get_y() );
+						debug().debug( "NB:%d:%d:%d:%f:%f\n", monitoring_phase_counter+1, radio().id(), i->get_id(),i->get_position().get_x(), i->get_position().get_y() );
 #endif
 #ifdef	DEBUG_ATP_H_STATS_ISENSE
-				debug().debug( "NB:%d:%x:%x:%d:%d\n", nb_convergence_time_counter+1, radio().id(), i->get_id(), neighbor_discovery().get_position().get_x(),  neighbor_discovery().get_position().get_y() );
-				debug().debug( "NB:%d:%x:%x:%d:%d\n", nb_convergence_time_counter+1, radio().id(), i->get_id(), i->get_position().get_x(), i->get_position().get_y() );
+						debug().debug( "NB:%d:%x:%x:%d:%d\n", monitoring_phase_counter+1, radio().id(), i->get_id(), scl().get_position().get_x(),  scl().get_position().get_y() );
+						debug().debug( "NB:%d:%x:%x:%d:%d\n", monitoring_phase_counter+1, radio().id(), i->get_id(), i->get_position().get_x(), i->get_position().get_y() );
 #endif
-			}
+					}
+				}
 #ifdef DEBUG_ATP_H_STATS
-			if ( prot_ref->get_neighborhood_active_size() < nb_connections_low )
-			{
+				if ( prot_ref->get_neighborhood_active_size() < SCLD_MIN )
+				{
 #ifdef	DEBUG_ATP_H_STATS_SHAWN
-				debug().debug( "LOCAL_MINIMUM:%d:%d:%d\n", nb_convergence_time_counter, radio().id(),  prot_ref->get_neighborhood_active_size() );
+					debug().debug( "LOCAL_MINIMUM:%d:%d:%d\n", monitoring_phase_counter, radio().id(),  prot_ref->get_neighborhood_active_size() );
 #endif
 #ifdef	DEBUG_ATP_H_STATS_ISENSE
-				debug().debug( "LOCAL_MINIMUM:%d:%x:%d\n", nb_convergence_time_counter, radio().id(),  prot_ref->get_neighborhood_active_size() );
+					debug().debug( "LOCAL_MINIMUM:%d:%x:%d\n", monitoring_phase_counter, radio().id(),  prot_ref->get_neighborhood_active_size() );
 #endif
-			}
-			else if (prot_ref->get_neighborhood_active_size() > nb_connections_high )
-			{
+				}
+				else if (prot_ref->get_neighborhood_active_size() > SCLD_MAX )
+				{
 #ifdef	DEBUG_ATP_H_STATS_SHAWN
-				debug().debug( "LOCAL_MAXIMUM:%d:%d:%d\n", nb_convergence_time_counter, radio().id(),  prot_ref->get_neighborhood_active_size() );
+					debug().debug( "LOCAL_MAXIMUM:%d:%d:%d\n", monitoring_phase_counter, radio().id(),  prot_ref->get_neighborhood_active_size() );
 #endif
 #ifdef	DEBUG_ATP_H_STATS_ISENSE
-				debug().debug( "LOCAL_MAXIMUM:%d:%x:%d\n", nb_convergence_time_counter, radio().id(),  prot_ref->get_neighborhood_active_size() );
+					debug().debug( "LOCAL_MAXIMUM:%d:%x:%d\n", monitoring_phase_counter, radio().id(),  prot_ref->get_neighborhood_active_size() );
+#endif
+				}
+#endif
+#ifdef CONFIG_ATP_H_DISABLE_SCL
+				scl().disable();
+#endif
+#ifdef DEBUG_ATP_H_ATP_SERVICE_DISABLE
+				debug().debug( "ATP - ATP_service_disable %x - Exiting.\n", radio().id() );
 #endif
 			}
-#endif
-#ifdef CONFIG_ATP_H_DISABLE_NEIGHBOR_DISCOVERY
-			neighbor_discovery().disable();
-#endif
-#ifdef DEBUG_ATP_H_NEIGHBOR_DISCOVERY_DISABLE_TASK
-			debug().debug( "ATP - neighbor_discovery_unregister_task %x - Exiting.\n", radio().id() );
-#endif
-#ifdef CONFIG_ATP_H_END_EXP
-			timer().template set_timer<self_type, &self_type::end_exp> ( ATP_H_END_EXP_TIMER, this, 0 );
-#endif
 		}
-		// -----------------------------------------------------------------------
-#ifdef CONFIG_ATP_H_END_EXP
-		void end_exp(void* user_data = NULL )
-		{
-			radio().disable_radio();
-		}
-#endif
 		// -----------------------------------------------------------------------
 		void disable( void )
 		{
@@ -296,44 +314,63 @@ namespace wiselib
 			radio().unreg_recv_callback( radio_callback_id );
 		}
 		// -----------------------------------------------------------------------
-		void sync_neighbors( uint8_t _event, node_id_t _from, size_t _len, uint8_t* _data )
+		void events_callback( uint8_t _event, node_id_t _from, size_t _len, uint8_t* _data )
 		{
-#ifdef DEBUG_ATP_H_STATS_ISENSE
-			debug().debug( "ATP - sync_neighbors %x - Entering.\n", radio().id() );
+#ifdef DEBUG_ATP_H_EVENTS_CALLBACK
+			debug().debug( "ATP - events_callback %x - Entering.\n", radio().id() );
 #endif
-			if ( _event & ProtocolSettings::NEW_PAYLOAD )
+			if ( _event & ProtocolSettings::NEW_NB )
 			{
-#ifdef DEBUG_ATP_H_STATS_ISENSE
-			debug().debug( "ATP - sync_neighbors %x - NEW_PAYLOAD.\n", radio().id() );
+#ifdef DEBUG_ATP_H_EVENTS_CALLBACK
+			debug().debug( "ATP - events_callback %x - NEW_NB.\n", radio().id() );
 #endif
-				return;
+			}
+			else if ( _event & ProtocolSettings::UPDATE_NB )
+			{
+#ifdef DEBUG_ATP_H_EVENTS_CALLBACK
+			debug().debug( "ATP - events_callback %x - UPDATE_NB.\n", radio().id() );
+#endif
+			}
+			else if ( _event & ProtocolSettings::NEW_PAYLOAD )
+			{
+#ifdef DEBUG_ATP_H_EVENTS_CALLBACK
+			debug().debug( "ATP - events_callback %x - NEW_PAYLOAD.\n", radio().id() );
+#endif
 			}
 			else if ( _event & ProtocolSettings::LOST_NB )
 			{
-
-#ifdef DEBUG_ATP_H_STATS_ISENSE
-				debug().debug( "ATP - sync_neighbors %x - LOST_NB %x.\n", radio().id(), _from );
+#ifdef DEBUG_ATP_H_EVENTS_CALLBACK
+				debug().debug( "ATP - events_callback %x - LOST_NB %x.\n", radio().id(), _from );
 #endif
-				return;
 			}
 			else if ( _event & ProtocolSettings::NB_REMOVED )
 			{
-
-#ifdef DEBUG_ATP_H_STATS_ISENSE
-				debug().debug( "ATP - sync_neighbors %x - NB_REMOVED %x.\n", radio().id(), _from );
+#ifdef DEBUG_ATP_H_EVENTS_CALLBACK
+				debug().debug( "ATP - events_callback %x - NB_REMOVED %x.\n", radio().id(), _from );
 #endif
-				return;
+			}
+			else if ( _event & ProtocolSettings::TRANS_DB_UPDATE )
+			{
+#ifdef DEBUG_ATP_H_EVENTS_CALLBACK
+				debug().debug( "ATP - events_callback %x - TRANS_DB_UPDATE %x.\n", radio().id(), _from );
+#endif
+			}
+			else if ( _event & ProtocolSettings::BEACON_PERIOD_UPDATE )
+			{
+#ifdef DEBUG_ATP_H_EVENTS_CALLBACK
+				debug().debug( "ATP - events_callback %x - BEACON_PERIOD_UPDATE %x.\n", radio().id(), _from );
+#endif
 			}
 		}
 		// -----------------------------------------------------------------------
-		void init( Radio& radio, Timer& timer, Debug& debug, Rand& rand, Clock& clock, NeighborDiscovery& neighbor_discovery )
+		void init( Radio& radio, Timer& timer, Debug& debug, Rand& rand, Clock& clock, SCL& scl )
 		{
 			_radio = &radio;
 			_timer = &timer;
 			_debug = &debug;
 			_rand = &rand;
 			_clock = &clock;
-			_neighbor_discovery = &neighbor_discovery;
+			_scl = &scl;
 		}
 		// -----------------------------------------------------------------------
 		void set_status( int _st )
@@ -367,9 +404,9 @@ namespace wiselib
 			return *_clock;
 		}
 		// -----------------------------------------------------------------------
-		NeighborDiscovery& neighbor_discovery()
+		SCL& scl()
 		{
-			return *_neighbor_discovery;
+			return *_scl;
 		}
 		// -----------------------------------------------------------------------
 		Radio* _radio;
@@ -377,7 +414,7 @@ namespace wiselib
 		Debug* _debug;
 		Rand* _rand;
 		Clock* _clock;
-		NeighborDiscovery* _neighbor_discovery;
+		SCL* _scl;
 		enum atp_status
 		{
 			ACTIVE_STATUS,
@@ -386,11 +423,11 @@ namespace wiselib
 		};
 		uint32_t radio_callback_id;
 		int8_t transmission_power_dB;
-		millis_t nb_convergence_time;
-		uint32_t nb_convergence_time_counter;
-		uint32_t nb_convergence_time_max_counter;
-		uint16_t nb_connections_high;
-		uint16_t nb_connections_low;
+		millis_t convergence_time;
+		uint32_t monitoring_phase_counter;
+		uint32_t monitoring_phases;
+		uint16_t SCLD_MAX;
+		uint16_t SCLD_MIN;
 		uint32_t random_enable_timer_range;
 		uint8_t status;
 	};
