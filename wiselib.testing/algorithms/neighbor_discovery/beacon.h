@@ -243,7 +243,7 @@ namespace wiselib
 			}
 			debug.debug( "beacon_period (size %i) : %d\n", sizeof(beacon_period), beacon_period );
 			debug.debug( "beacon_period_update_counter (size %i) : %d\n", sizeof(beacon_period_update_counter), beacon_period_update_counter );
-			debug.debug( "active_connectivity (size %i) : %d\n", sizeof(active_connectivity), active_connectivity );
+			debug.debug( "active_connectivity (size %i) : %d\n", sizeof( SCLD ), SCLD );
 			debug.debug( "-------------------------------------------------------\n" );
 		}
 #endif

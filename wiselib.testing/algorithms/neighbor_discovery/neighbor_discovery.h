@@ -87,9 +87,9 @@ namespace wiselib
 			beacon_period						( ND_BEACON_PERIOD ),
 			transmission_power_dB				( ND_TRANSMISSION_POWER_DB ),
 			protocol_max_payload_size			( ND_MAX_PROTOCOL_PAYLOAD_SIZE ),
-			transmission_power_dB_strategy		( FIXED_TRANSM ),
+//			transmission_power_dB_strategy		( FIXED_TRANSM ),
 			protocol_max_payload_size_strategy	( FIXED_PAYLOAD_SIZE ),
-			beacon_period_strategy				( FIXED_PERIOD ),
+//			beacon_period_strategy				( FIXED_PERIOD ),
 			relax_millis						( ND_RELAX_MILLIS ),
 			nd_daemon_period					( ND_DAEMON_PERIOD )
 #ifdef DEBUG_NEIGHBOR_DISCOVERY_STATS
@@ -153,10 +153,6 @@ namespace wiselib
 									ND_MAX_LINK_STAB_RATIO_INVERSE_THRESHOLD,
 									ND_MIN_LINK_STAB_RATIO_INVERSE_THRESHOLD,
 									events_flag,
-									get_transmission_power_dB(),
-									ND_PROPOSED_TRANSMISSION_POWER_DB_WEIGHT,
-									get_beacon_period(),
-									ND_PROPOSED_BEACON_PERIOD_WEIGHT,
 									ProtocolSettings::RATIO_DIVIDER,
 									ND_RATIO_DIVIDER,
 									ProtocolSettings::MEAN_DEAD_TIME_PERIOD,
@@ -193,23 +189,6 @@ namespace wiselib
 		// --------------------------------------------------------------------
 		void events_callback( uint8_t _event, node_id_t _node_id, size_t _len, uint8_t* _data )
 		{
-//#ifdef CONFIG_NEIGHBOR_DISCOVERY_H_COORD_SUPPORT
-//			if ( _event & ProtocolSettings::NEW_PAYLOAD )
-//			{
-//				Neighbor_vector_iterator i = get_protocol_ref( ND_PROTOCOL_ID )->get_neighborhood_ref()->begin();
-//				while ( i != get_protocol_ref( ND_PROTOCOL_ID )->get_neighborhood_ref()->end() )
-//				{
-//					if ( i->get_id() == _node_id )
-//					{
-//						Position p;
-//						p.de_serialize( _data );
-//						i->set_position( p );
-//						return;
-//					}
-//					++i;
-//				}
-//			}
-//#endif
 		}
 		// --------------------------------------------------------------------
 		void send( node_id_t _dest, size_t _len, block_data_t* _data, message_id_t _msg_id )
@@ -319,16 +298,7 @@ namespace wiselib
 						{
 							beacon.q_sort_neigh_active_con( 0, beacon.get_neighborhood_ref()->size() - 1 );
 						}
-//#ifdef DEBUG_NEIGHBOR_DISCOVERY_H_BEACONS
-						//if ( beacon.serial_size() > Radio::MAX_MESSAGE_LENGTH + sizeof(message_id_t) + sizeof(uint16_t) + sizeof(size_t)  )
-						//{
-							debug().debug("BEAC:%x:%d:%d:%d,\n", radio().id(), Radio::MAX_MESSAGE_LENGTH, nv.size(), beacon.serial_size() );
-						//}
-//						for ( Neighbor_vector_iterator i = beacon.get_neighborhood_ref()->begin(); i != beacon.get_neighborhood_ref()->end(); ++i )
-//						{
-//							debug().debug("ND:BEAC:NEIGH:%x:%x:%d:%d \n", radio().id(), i->get_id(), i->get_active_connectivity(), i->serial_size() );
-//						}
-//#endif
+						debug().debug("BEAC:%x:%d:%d:%d,\n", radio().id(), Radio::MAX_MESSAGE_LENGTH, nv.size(), beacon.serial_size() );
 #endif
 						block_data_t buff[Radio::MAX_MESSAGE_LENGTH];
 						send( Radio::BROADCAST_ADDRESS, beacon.serial_size(), beacon.serialize( buff ), ND_MESSAGE );
@@ -395,8 +365,12 @@ namespace wiselib
 #ifdef CONFIG_NEIGHBOR_DISCOVERY_H_RSSI_FILTERING
 					uint16_t signal_strength = _ex.get_rssi();
 #endif
+#ifdef CONFIG_NEIGHBOR_DISCOVERY_H_LQI_FILTERING
+#ifdef CONFIG_NEIGHBOR_DISCOVERY_H_RSSI_FILTERING
 #ifdef DEBUG_NEIGHBOR_DISCOVERY_H_RECEIVE
 					debug().debug( "NeighborDiscovery - receive - [signal_quality : %d], [signal_strength : %d]\n", signal_quality, signal_strength );
+#endif
+#endif
 #endif
 					for ( Protocol_vector_iterator pit = protocols.begin(); pit != protocols.end(); ++pit )
 					{
@@ -1128,180 +1102,45 @@ namespace wiselib
 		// --------------------------------------------------------------------
 		millis_t get_beacon_period()
 		{
-			millis_t beacon_period_old = beacon_period;
-			if ( beacon_period_strategy == FIXED_PERIOD )
-			{
-				return beacon_period;
-			}
-			else if ( beacon_period_strategy == LEAST_PERIOD )
-			{
-				millis_t least = 0xfff;
-				for ( Protocol_vector_iterator it = protocols.begin(); it != protocols.end(); ++it )
-				{
-					if ( it->get_protocol_settings_ref()->get_proposed_beacon_period() < least )
-					{
-						least = it->get_protocol_settings_ref()->get_proposed_beacon_period();
-					}
-				}
-				beacon_period = least;
-			}
-			else if ( beacon_period_strategy == MEAN_PERIOD )
-			{
-				millis_t sum, num;
-				sum = num = 0;
-				for ( Protocol_vector_iterator it = protocols.begin(); it != protocols.end(); ++it )
-				{
-					sum = it->get_protocol_settings_ref()->get_proposed_beacon_period() + sum;
-					num = num + 1;
-				}
-				millis_t mean = sum / num;
-				beacon_period = mean;
-			}
-			else if ( beacon_period_strategy == WEIGHTED_MEAN_PERIOD )
-			{
-				millis_t sum, num;
-				sum = num = 0;
-				for ( Protocol_vector_iterator it = protocols.begin(); it != protocols.end(); ++it )
-				{
-					sum = it->get_protocol_settings_ref()->get_proposed_beacon_period() * it->get_protocol_settings_ref()->get_proposed_beacon_period_weight() + sum;
-					num = it->get_protocol_settings_ref()->get_proposed_beacon_period_weight() + num;
-				}
-				millis_t weighted_mean = sum / num;
-				beacon_period = weighted_mean;
-			}
-			if ( beacon_period_old != beacon_period )
-			{
-				for ( Protocol_vector_iterator pit = protocols.begin(); pit != protocols.end(); ++pit )
-				{
-					if ( pit->get_protocol_settings_ref()->get_events_flag() & ProtocolSettings::BEACON_PERIOD_UPDATE )
-					{
-						pit->get_event_notifier_callback()( ProtocolSettings::BEACON_PERIOD_UPDATE, radio().id(), 0, NULL );
-					}
-				}
-			}
 			return beacon_period;
 		}
 		// --------------------------------------------------------------------
 		void set_beacon_period( millis_t _bp )
 		{
+			millis_t old_beacon_period = beacon_period;
 			beacon_period =_bp;
+			if ( old_beacon_period != beacon_period )
+			{
+				uint8_t events_flag = events_flag | ProtocolSettings::BEACON_PERIOD_UPDATE;
+				for ( Protocol_vector_iterator pit = protocols.begin(); pit != protocols.end(); ++pit )
+				{
+					pit->get_event_notifier_callback()( events_flag, 0, 0, NULL );
+				}
+			}
 		}
 		// --------------------------------------------------------------------
 		int8_t get_transmission_power_dB()
 		{
-			int8_t old_transmission_power_dB = transmission_power_dB;
-			if ( transmission_power_dB_strategy == FIXED_TRANSM )
-			{
-				return transmission_power_dB;
-			}
-			else if ( transmission_power_dB_strategy == LEAST_TRANSM )
-			{
-				int8_t least = 128;
-				for ( Protocol_vector_iterator pit = protocols.begin(); pit != protocols.end(); ++pit )
-				{
-					if ( pit->get_protocol_settings_ref()->get_proposed_transmission_power_dB() < least )
-					{
-						least = pit->get_protocol_settings_ref()->get_proposed_transmission_power_dB();
-					}
-				}
-				transmission_power_dB = least;
-			}
-			else if ( transmission_power_dB_strategy == MEAN_TRANSM )
-			{
-				int8_t sum, num;
-				sum = num = 0;
-				for ( Protocol_vector_iterator pit = protocols.begin(); pit != protocols.end(); ++pit )
-				{
-					sum = pit->get_protocol_settings_ref()->get_proposed_transmission_power_dB() + sum;
-					num = num + 1;
-				}
-				int8_t mean = sum / num;
-				transmission_power_dB = mean;
-			}
-			else if ( transmission_power_dB_strategy == WEIGHTED_MEAN_TRANSM )
-			{
-				int8_t sum, num;
-				sum = num = 0;
-				for ( Protocol_vector_iterator pit = protocols.begin(); pit != protocols.end(); ++pit )
-				{
-					sum = pit->get_protocol_settings_ref()->get_proposed_transmission_power_dB() * pit->get_protocol_settings_ref()->get_proposed_transmission_power_dB_weight() + sum;
-					num = pit->get_protocol_settings_ref()->get_proposed_transmission_power_dB_weight() + num;
-				}
-				int8_t weighted_mean = sum / num;
-				transmission_power_dB = weighted_mean;
-			}
-			if ( old_transmission_power_dB != transmission_power_dB )
-			{
-				for ( Protocol_vector_iterator pit = protocols.begin(); pit != protocols.end(); ++pit )
-				{
-					if ( pit->get_protocol_settings_ref()->get_events_flag() & ProtocolSettings::TRANS_DB_UPDATE )
-					{
-						pit->get_event_notifier_callback()( ProtocolSettings::TRANS_DB_UPDATE, radio().id(), 0, NULL );
-					}
-				}
-			}
 			return transmission_power_dB;
 		}
 		// --------------------------------------------------------------------
 		void set_transmission_power_dB( int8_t _tp_dB )
 		{
-			 transmission_power_dB = _tp_dB;
+			int8_t old_transmission_power_dB = transmission_power_dB;
+			transmission_power_dB = _tp_dB;
+			if ( old_transmission_power_dB != transmission_power_dB )
+			{
+				uint8_t events_flag = events_flag | ProtocolSettings::TRANS_DB_UPDATE;
+				for ( Protocol_vector_iterator pit = protocols.begin(); pit != protocols.end(); ++pit )
+				{
+					pit->get_event_notifier_callback()( events_flag, 0, 0, NULL );
+				}
+			}
 		}
 		// --------------------------------------------------------------------
 		uint8_t get_protocol_max_payload_size()
 		{
 			return protocol_max_payload_size;
-		}
-		// --------------------------------------------------------------------
-		void set_transmission_power_dB_strategy( uint8_t _tp_dB_s )
-		{
-			if ( _tp_dB_s > TP_DB_STRATEGY_NUM_VALUES )
-			{
-				transmission_power_dB_strategy = FIXED_TRANSM;
-			}
-			else
-			{
-				transmission_power_dB_strategy = _tp_dB_s;
-			}
-		}
-		// --------------------------------------------------------------------
-		uint8_t get_transmission_power_dB_strategy()
-		{
-			return transmission_power_dB_strategy;
-		}
-		// --------------------------------------------------------------------
-		void set_beacon_period_strategy( uint8_t _bp_s )
-		{
-			if ( _bp_s > BP_STRATEGY_NUM_VALUES )
-			{
-				beacon_period_strategy = FIXED_TRANSM;
-			}
-			else
-			{
-				beacon_period_strategy = _bp_s;
-			}
-		}
-		// --------------------------------------------------------------------
-		uint8_t get_beacon_period_strategy()
-		{
-			return beacon_period_strategy;
-		}
-		// --------------------------------------------------------------------
-		void set_protocol_max_payload_size_strategy( uint8_t _mpps_s )
-		{
-			if ( _mpps_s > PP_STRATEGY_NUM_VALUES )
-			{
-				protocol_max_payload_size_strategy = FIXED_PAYLOAD_SIZE;
-			}
-			else
-			{
-				protocol_max_payload_size_strategy = _mpps_s;
-			}
-		}
-		// --------------------------------------------------------------------
-		uint8_t get_protocol_max_payload_size_strategy()
-		{
-			return protocol_max_payload_size_strategy;
 		}
 		// --------------------------------------------------------------------
 		millis_t get_relax_millis()
@@ -1429,22 +1268,6 @@ namespace wiselib
 			WAITING_STATUS,
 			ND_STATUS_NUM_VALUES
 		};
-		enum transmission_power_dB_strategies
-		{
-			FIXED_TRANSM,
-			LEAST_TRANSM,
-			MEAN_TRANSM,
-			WEIGHTED_MEAN_TRANSM,
-			TP_DB_STRATEGY_NUM_VALUES
-		};
-		enum beacon_period_strategies
-		{
-			FIXED_PERIOD,
-			LEAST_PERIOD,
-			MEAN_PERIOD,
-			WEIGHTED_MEAN_PERIOD,
-			BP_STRATEGY_NUM_VALUES
-		};
 		enum protocol_payload_strategies
 		{
 			FIXED_PAYLOAD_SIZE,
@@ -1468,9 +1291,7 @@ namespace wiselib
 		int8_t transmission_power_dB;
 		Protocol_vector protocols;
 		size_t protocol_max_payload_size;
-		uint8_t transmission_power_dB_strategy;
 		uint8_t protocol_max_payload_size_strategy;
-		uint8_t beacon_period_strategy;
 		millis_t relax_millis;
 		millis_t nd_daemon_period;
 #ifdef DEBUG_NEIGHBOR_DISCOVERY_STATS

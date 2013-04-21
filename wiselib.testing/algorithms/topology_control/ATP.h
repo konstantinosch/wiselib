@@ -119,14 +119,20 @@ namespace wiselib
 										ProtocolSettings::TRANS_DB_UPDATE|
 										ProtocolSettings::BEACON_PERIOD_UPDATE|
 										ProtocolSettings::NB_REMOVED;
-				ProtocolSettings ps( /*255, 0, 255, 0, 255, 0, 255, 0,*/ 100, 90, 100, 90, events_flag, -18, 100, 3000, 100, ProtocolSettings::RATIO_DIVIDER, 2, ProtocolSettings::MEAN_DEAD_TIME_PERIOD, 100, 100, ProtocolSettings::R_NR_WEIGHTED, 1, 1, pp );
-				result = scl(). template register_protocol<self_type, &self_type::events_callback>( SCL::ATP_PROTOCOL_ID, ps, this  );
+				ProtocolSettings ps(
+#ifdef CONFIG_ATP_H_LQI_FILTERING
+						255, 0, 255, 0,
+#endif
+#ifdef CONFIG_ATP_H_RSSI_FILTERING
+						255, 0, 255, 0,
+#endif
+				100, 90, 100, 90, events_flag, ProtocolSettings::RATIO_DIVIDER, 2, ProtocolSettings::MEAN_DEAD_TIME_PERIOD, 100, 100, ProtocolSettings::R_NR_WEIGHTED, 1, 1, pp );
+				scl(). template register_protocol<self_type, &self_type::events_callback>( SCL::ATP_PROTOCOL_ID, ps, this  );
 #ifdef CONFIG_ATP_H_RANDOM_DB
 				transmission_power_dB = ( rand()()%5 ) * ( -1 ) * ATP_H_DB_STEP;
 				debug().debug("RAND_DB:%x:%i\n", radio().id(), transmission_power_dB );
 #endif
 				scl().set_transmission_power_dB( transmission_power_dB );
-				uint8_t result = 0;
 				Protocol* prot_ref = scl().get_protocol_ref( SCL::ATP_PROTOCOL_ID );
 				if ( prot_ref != NULL )
 				{
